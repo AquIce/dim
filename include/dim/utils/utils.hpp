@@ -1,7 +1,7 @@
 #include <string>
 
 namespace dim {
-	namesapce utils {
+	namespace utils {
 		char peek(
 			const std::string& str
 		);

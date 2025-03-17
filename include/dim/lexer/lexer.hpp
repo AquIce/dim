@@ -17,14 +17,22 @@ namespace dim {
 			std::string value;
 		};
 
-		struct Token makeToken(
+		struct Token MakeToken(
 			const TokenType type = TokenType::NONE,
 			const std::string value = ""
 		);
 
-		void lex(
+		std::string TokenRepr(
+			const struct Token& token
+		);
+
+		Token LexNumber(
+			std::string& src
+		);
+
+		void Lex(
 			std::vector<struct Token>& tokens,
-			const std::string& src
+			std::string& src
 		);
 	
 	}
