@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
 
 	std::vector<struct dim::lexer::Token> tokens = {};
 
-	std::string src = "1453 2.3453";
+	std::string src = "1453 + 2.3453 / 2 - 59 * 01";
 
 	dim::lexer::Lex(
 		tokens,

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -30,10 +32,21 @@ namespace dim {
 			std::string& src
 		);
 
+		Token LexOperator(
+			std::string& str
+		);
+
+		bool TryAddToken(
+			std::vector<struct dim::lexer::Token>& tokens,
+			std::string& src,
+			std::function<struct dim::lexer::Token (std::string& src)> lexFunction
+		);
+
+		const std::array<const std::function<struct Token (std::string& src)>, 2> LexFunctionsList = { &LexNumber, &LexOperator };
+		
 		void Lex(
 			std::vector<struct Token>& tokens,
 			std::string& src
 		);
-	
 	}
 }
