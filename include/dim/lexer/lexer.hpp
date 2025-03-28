@@ -27,19 +27,19 @@ namespace dim {
 		std::string TokenRepr(
 			const struct Token& token
 		);
-
-		Token LexNumber(
+	
+		struct Token LexNumber(
 			std::string& src
 		);
 
-		Token LexOperator(
+		struct Token LexOperator(
 			std::string& str
 		);
 
 		bool TryAddToken(
-			std::vector<struct dim::lexer::Token>& tokens,
+			std::vector<struct Token>& tokens,
 			std::string& src,
-			std::function<struct dim::lexer::Token (std::string& src)> lexFunction
+			std::function<struct Token (std::string& src)> lexFunction
 		);
 
 		const std::array<const std::function<struct Token (std::string& src)>, 2> LexFunctionsList = { &LexNumber, &LexOperator };
