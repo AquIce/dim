@@ -1,6 +1,6 @@
-#include <dim/parser/ast.hpp>
+#include <parser/ast.hxx>
 
-#include <dim/lexer/lexer.hpp>
+#include <lexer/lexer.hxx>
 
 #include <memory>
 #include <vector>
@@ -32,7 +32,7 @@ namespace dim {
 			std::vector<struct dim::lexer::Token>& tokens
 		);
 
-		std::vector<std::shared_ptr<Expression>> Parse(
+		std::shared_ptr<ScopeExpression> Parse(
 			std::vector<struct dim::lexer::Token>& tokens
 		);
 	}

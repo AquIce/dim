@@ -2,12 +2,14 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace dim {
 	namespace parser {
 		
 		enum class NodeType {
 			NONE,
+			SCOPE,
 			NUMBER,
 			BINARY
 		};
@@ -18,6 +20,24 @@ namespace dim {
 			virtual NodeType Type();
 
 			Expression() = default;
+		};
+
+		class ScopeExpression : public Expression {
+		public:
+			ScopeExpression(
+				std::vector<std::shared_ptr<Expression>> expressions = {}
+			);
+
+			std::vector<std::shared_ptr<Expression>> GetExpressions();
+			void AddExpression(
+				std::shared_ptr<Expression> expression
+			);
+
+			std::string Repr() override;
+			NodeType Type() override;
+
+		private:
+			std::vector<std::shared_ptr<Expression>> m_expressions;
 		};
 
 		class NumberExpression : public Expression {
@@ -32,7 +52,7 @@ namespace dim {
 			NodeType Type() override;
 
 		private:
-			std::string value;
+			std::string m_value;
 		};
 
 		class BinaryExpression : public Expression {
@@ -51,9 +71,9 @@ namespace dim {
 			NodeType Type() override;
 
 		private:
-			std::shared_ptr<Expression> left;
-			std::string operatorSymbol;
-			std::shared_ptr<Expression> right;
+			std::shared_ptr<Expression> m_left;
+			std::string m_operatorSymbol;
+			std::shared_ptr<Expression> m_right;
 		};
 	}
 }

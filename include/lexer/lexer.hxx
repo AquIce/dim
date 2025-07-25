@@ -1,7 +1,10 @@
 #pragma once
 
+#include <utils/utils.hxx>
+
 #include <array>
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -11,7 +14,7 @@ namespace dim {
 		enum class TokenType {
 			NONE = 0,
 			NUMBER,
-			OPERATOR
+			BINARY_OPERATOR
 		};
 
 		struct Token {
@@ -32,7 +35,7 @@ namespace dim {
 			std::string& src
 		);
 
-		struct Token LexOperator(
+		struct Token LexBinaryOperator(
 			std::string& str
 		);
 
@@ -42,7 +45,7 @@ namespace dim {
 			std::function<struct Token (std::string& src)> lexFunction
 		);
 
-		const std::array<const std::function<struct Token (std::string& src)>, 2> LexFunctionsList = { &LexNumber, &LexOperator };
+		const std::array<const std::function<struct Token (std::string& src)>, 2> LexFunctionsList = { &LexNumber, &LexBinaryOperator };
 		
 		void Lex(
 			std::vector<struct Token>& tokens,
