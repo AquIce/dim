@@ -29,12 +29,10 @@ int main(int argc, char** argv) {
 		std::cout << dim::lexer::TokenRepr(token) << std::endl;		
 	}
 
-	auto expressions = dim::parser::Parse(tokens)->GetExpressions();
+	std::shared_ptr<dim::parser::ScopeExpression> program = dim::parser::Parse(tokens);
 
 	std::cout << "\n> EXPRESSIONS\n";
-	for(const auto& expression : expressions) {
-		std::cout << expression->Repr() << "\n";
-	}
+	std::cout << program->Repr() << "\n";
 
 	return 0;
 }
