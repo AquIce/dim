@@ -3,8 +3,12 @@
 namespace dim {
 	namespace parser {
 
-		std::string Expression::Repr() {
-			return "INVALID EXPRESSION";
+		std::string Expression::Repr(
+			size_t indent
+		) {
+			std::string repr = "INVALID EXPRESSION";
+			repr.insert(0, indent, '\t');
+			return repr;
 		}
 
 		NodeType Expression::Type() {
@@ -27,12 +31,18 @@ namespace dim {
 			m_expressions.push_back(expression);
 		}
 
-		std::string ScopeExpression::Repr() {
-			std::string repr = "{";
+		std::string ScopeExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "{\n";
+			repr.insert(0, indent, '\t');
 			for(const auto& expression : m_expressions) {
-				repr += "\n\t" + expression->Repr();
+				repr += expression->Repr(indent + 1) + "\n";
 			}
-			return repr + "\n}";
+			repr += "}";
+			repr.insert(repr.size() - 1, indent, '\t');
+
+			return repr;
 		}
 		NodeType ScopeExpression::Type() {
 			return NodeType::SCOPE;
@@ -49,8 +59,12 @@ namespace dim {
 			return m_value;
 		}
 
-		std::string NumberExpression::Repr() {
-			return "NumberExpression(" + m_value + ")";
+		std::string NumberExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "NumberExpression(" + m_value + ")";
+			repr.insert(0, indent, '\t');
+			return repr;
 		}
 
 		NodeType NumberExpression::Type() {
@@ -78,11 +92,20 @@ namespace dim {
 			return m_right;
 		}
 
-		std::string BinaryExpression::Repr() {
-			return "BinaryExpression("
-				+ m_left->Repr() + " "
-				+ m_operatorSymbol + " "
-				+ m_right->Repr() + ")";
+		std::string BinaryExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "BinaryExpression(\n"
+				+ m_left->Repr(indent + 1) + "\n"
+				+ m_operatorSymbol;
+
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - m_operatorSymbol.size(), indent + 1, '\t');
+
+			repr += "\n" + m_right->Repr(indent + 1) + "\n)";
+			
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
 		}
 
 		NodeType BinaryExpression::Type() {

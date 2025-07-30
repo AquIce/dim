@@ -1,12 +1,12 @@
 #include <lexer/lexer.hxx>
-#include <iostream>
+
 namespace dim {
 	namespace lexer {
 
 		struct Token MakeToken(
 			const TokenType type,
 			const std::string value
-		) {
+		) noexcept {
 			return Token{
 				type, value
 			};
@@ -14,7 +14,7 @@ namespace dim {
 
 		std::string TokenRepr(
 			const struct Token& token
-		) {
+		) noexcept {
 			switch(token.type) {
 				case TokenType::NONE:
 					return "NONE";
@@ -25,23 +25,26 @@ namespace dim {
 				case TokenType::BINARY_OPERATOR:
 					return token.value;
 				
+				case TokenType::PARENTHESIS:
+					return token.value;
+				
 				default:
 					return "UNKNOWN";
 			}
 		}
 
-		struct Token LexNumber(
+		std::expected<struct Token, std::string> LexNumber(
 			std::string& src
-		) {
+		) noexcept {
 			std::string number = "";
 			bool isDecimal = false;
 
 			while(src.length() > 0) {
-				char first = src.at(0);
+				char first = src.front();
 
 				if(first == '.') {
 					if(isDecimal) {
-						throw std::runtime_error("Invalid number literal \"" + number + ".\"");	
+						return std::unexpected("Invalid number literal \"" + number + ".\"");
 					}
 					isDecimal = true;
 					number += utils::shift(src);
@@ -55,7 +58,7 @@ namespace dim {
 				}
 			}
 			if(number.length() == 0 || (number.length() == 1 && number == ".")) {
-				return MakeToken();
+				return std::unexpected("Invalid number literal \"" + number + "\"");
 			}
 			return MakeToken(
 				TokenType::NUMBER,
@@ -63,44 +66,44 @@ namespace dim {
 			);
 		}
 
-		Token LexBinaryOperator(
+		std::expected<struct Token, std::string> LexBinaryOperator(
 			std::string& src
-		) {
-			char first_char = utils::shift(src);
+		) noexcept {
 
-			switch(first_char) {
+			switch(src.front()) {
 				case '+':
 				case '-':
 				case '*':
 				case '/':
 					return MakeToken(
 						TokenType::BINARY_OPERATOR,
-						std::string(1, first_char)
+						std::string(1, utils::shift(src))
 					);
 				default:
-					return MakeToken();
+					return std::unexpected("Invalid operator " + src.front());
 			}
 		}
 
-		bool TryAddToken(
-			std::vector<struct Token>& tokens,
-			std::string& src,
-			std::function<struct Token (std::string& src)> lexFunction
-		) {
-			struct Token token = lexFunction(src);
+		std::expected<struct Token, std::string> LexParenthesis(
+			std::string& src
+		) noexcept {
 
-			if(token.type != TokenType::NONE) {
-				tokens.push_back(token);
-				return true;
+			switch(src.front()) {
+				case '(':
+				case ')':
+					return MakeToken(
+						TokenType::PARENTHESIS,
+						std::string(1, utils::shift(src))
+					);
+				default:
+					return std::unexpected("Invalid parenthesis " + src.front());
 			}
-
-			return false;
 		}
 
-		void Lex(
+		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
 			std::string& src
-		) {
+		) noexcept {
 			while(src.size() > 0) {
 				while(src.size() > 0 && std::isspace(src.front())) {
 					(void)utils::shift(src);
@@ -109,14 +112,24 @@ namespace dim {
 					break;
 				}
 
-				struct Token token = MakeToken();
-
+				bool token_added = false;
 				for(const auto& lexFunction : LexFunctionsList) {
-					if(TryAddToken(tokens, src, lexFunction)) {
-						break;
+					
+					std::expected<struct Token, std::string> result = lexFunction(src);
+					if(!result) {
+						continue;
 					}
+
+					tokens.push_back(result.value());
+					token_added = true;
+					break;
+				}
+
+				if(!token_added) {
+					return std::unexpected("[ERR] Got error (No valid token found) while lexing source. \"" + src);
 				}
 			}
+			return Success{};
 		}
 	}
 }

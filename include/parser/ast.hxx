@@ -16,7 +16,9 @@ namespace dim {
 
 		class Expression {
 		public:
-			virtual std::string Repr();
+			virtual std::string Repr(
+				size_t indent = 0
+			);
 			virtual NodeType Type();
 
 			Expression() = default;
@@ -33,7 +35,9 @@ namespace dim {
 				std::shared_ptr<Expression> expression
 			);
 
-			std::string Repr() override;
+			std::string Repr(
+				size_t indent = 0
+			) override;
 			NodeType Type() override;
 
 		private:
@@ -48,7 +52,9 @@ namespace dim {
 
 			std::string GetValue();
 
-			std::string Repr() override;
+			std::string Repr(
+				size_t indent = 0
+			) override;
 			NodeType Type() override;
 
 		private:
@@ -67,7 +73,9 @@ namespace dim {
 			std::string GetOperator();
 			std::shared_ptr<Expression> GetRight();
 
-			std::string Repr() override;
+			std::string Repr(
+				size_t indent = 0
+			) override;
 			NodeType Type() override;
 
 		private:

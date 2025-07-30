@@ -1,5 +1,7 @@
 #include <parser/parser.hxx>
 
+#include <stdexcept>
+
 namespace dim {
 	namespace parser {
 
@@ -8,6 +10,30 @@ namespace dim {
 		) {
 			struct lexer::Token tk = tokens.front();
 			tokens.erase(tokens.begin());
+			return tk;
+		}
+
+		[[nodiscard]] struct lexer::Token expect(
+			std::vector<struct lexer::Token>& tokens,
+			struct lexer::Token expected
+		) {
+			struct lexer::Token tk = eat(tokens);
+
+			if(tk.type != expected.type && expected.value == "") {
+				throw std::runtime_error(
+					std::string("Invalid token type: got ")
+					+ std::to_string(int(tk.type)) + " expected "
+					+ std::to_string(int(expected.type))
+				);
+			}
+
+			if(tk.type != expected.type && tk.value != expected.value) {
+				throw std::runtime_error(
+					std::string("Invalid token value: got ")
+					+ tk.value + " expected " + expected.value
+				);
+			}
+
 			return tk;
 		}
 
@@ -25,10 +51,32 @@ namespace dim {
 			);
 		}
 
+		std::shared_ptr<Expression> parse_parenthesis_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(
+				tokens.front().type != lexer::TokenType::PARENTHESIS ||
+				tokens.front().value != "("
+			) {
+				return parse_number_expression(tokens);
+			}
+
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> inner = parse_expression(tokens);
+
+			(void)expect(tokens, lexer::MakeToken(
+				lexer::TokenType::PARENTHESIS,
+				")"
+			));
+
+			return inner;
+		}
+
 		std::shared_ptr<Expression> parse_multiplicative_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			std::shared_ptr<Expression> left = parse_number_expression(tokens);
+			std::shared_ptr<Expression> left = parse_parenthesis_expression(tokens);
 
 			while(
 				tokens.size() != 0 &&

@@ -14,15 +14,19 @@ int main(int argc, char** argv) {
 	std::vector<struct dim::lexer::Token> tokens = {};
 
 	std::string src = GetSource("main.dim");
-	std::cout << src;
 
 	std::cout << "> SOURCE\n";
 	std::cout << src << "\n";
 
-	dim::lexer::Lex(
+	std::expected<Success, std::string> result = dim::lexer::Lex(
 		tokens,
 		src
 	);
+
+	if(!result) {
+		std::cerr << result.error() << std::endl;
+		return 1;
+	}
 
 	std::cout << "\n> TOKENS\n";
 	for(const auto& token : tokens) {
