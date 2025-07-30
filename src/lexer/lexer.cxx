@@ -28,9 +28,26 @@ namespace dim {
 				case TokenType::PARENTHESIS:
 					return token.value;
 				
+				case TokenType::EOL:
+					return token.value;
+				
 				default:
 					return "UNKNOWN";
 			}
+		}
+
+		std::expected<struct Token, std::string> LexEOL(
+			std::string& src
+		) noexcept {
+
+			if(src.front() == ';') {
+				return MakeToken(
+					TokenType::EOL,
+					std::string(1, utils::shift(src))
+				);
+			}
+
+			return std::unexpected("Invalid EOL " + src.front());
 		}
 
 		std::expected<struct Token, std::string> LexNumber(

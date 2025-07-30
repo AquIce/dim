@@ -2,46 +2,119 @@
 
 #include <lexer/lexer.hxx>
 
+#include <expected>
 #include <memory>
+#include <string>
 #include <vector>
+
+#define __TRY_EXPECTED_FUNC_WRETERR(func, _Value, _Err, ...) \
+{ \
+	std::expected<_Value, _Err> result = func(__VA_ARGS__); \
+	if(!result) { \
+		return std::unexpected(result.error()); \
+	} \
+}
+#define __TRY_EXPECTED_FUNC_WRETERR_WSAVE(func, _Value, _Err, resvalue, ...) \
+{ \
+	std::expected<_Value, _Err> result = func(__VA_ARGS__); \
+	if(!result) { \
+		return std::unexpected(result.error()); \
+	} \
+	resvalue = result.value(); \
+}
+
+#define __TRY_TOKEN_FUNC_WRETERR(func, ...) \
+__TRY_EXPECTED_FUNC_WRETERR( \
+	func, \
+	lexer::Token, \
+	std::string, \
+	__VA_ARGS__ \
+)
+#define __TRY_TOKEN_FUNC_WRETERR_WSAVE(func, value, ...) \
+__TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
+	func, \
+	lexer::Token, \
+	std::string, \
+	value, \
+	__VA_ARGS__ \
+)
+
+#define __TRY_EXPR_FUNC_WRETERR(func, tokens) \
+__TRY_EXPECTED_FUNC_WRETERR( \
+	func, \
+	std::shared_ptr<Expression>, \
+	std::string, \
+	tokens \
+)
+#define __TRY_EXPR_FUNC_WRETERR_WSAVE(func, tokens, value) \
+__TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
+	func, \
+	std::shared_ptr<Expression>, \
+	std::string, \
+	value, \
+	tokens \
+)
 
 namespace dim {
 	namespace parser {
 
-		[[nodiscard]] struct lexer::Token eat(
+		[[nodiscard]]
+		std::expected<struct lexer::Token, std::string> eat(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		[[nodiscard]] struct lexer::Token expect(
+		[[nodiscard]]
+		std::expected<struct lexer::Token, std::string> expect(
 			std::vector<struct lexer::Token>& tokens,
 			struct lexer::Token expected
 		);
 
-		std::shared_ptr<Expression> parse_number_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_number_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<Expression> parse_parenthesis_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_parenthesis_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<Expression> parse_multiplicative_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_multiplicative_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<Expression> parse_additive_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_additive_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<Expression> parse_binary_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_binary_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<Expression> parse_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 
-		std::shared_ptr<ScopeExpression> Parse(
+		std::expected<
+			std::shared_ptr<ScopeExpression>,
+			std::string
+		> Parse(
 			std::vector<struct lexer::Token>& tokens
 		);
 	}

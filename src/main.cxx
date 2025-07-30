@@ -13,30 +13,50 @@ int main(int argc, char** argv) {
 
 	std::vector<struct dim::lexer::Token> tokens = {};
 
-	std::string src = GetSource("main.dim");
+	std::string src;
 
-	std::cout << "> SOURCE\n";
-	std::cout << src << "\n";
+	{
+		src = GetSource("main.dim");
 
-	std::expected<Success, std::string> result = dim::lexer::Lex(
-		tokens,
-		src
-	);
-
-	if(!result) {
-		std::cerr << result.error() << std::endl;
-		return 1;
+		std::cout << "> SOURCE\n";
+		std::cout << src << "\n";
 	}
 
-	std::cout << "\n> TOKENS\n";
-	for(const auto& token : tokens) {
-		std::cout << dim::lexer::TokenRepr(token) << std::endl;		
+	{
+		std::expected<Success, std::string> result = dim::lexer::Lex(
+			tokens,
+			src
+		);
+
+		if(!result) {
+			std::cerr << result.error() << std::endl;
+			return 1;
+		}
+
+		std::cout << "\n> TOKENS\n";
+		for(const auto& token : tokens) {
+			std::cout << dim::lexer::TokenRepr(token) << std::endl;		
+		}
 	}
 
-	std::shared_ptr<dim::parser::ScopeExpression> program = dim::parser::Parse(tokens);
+	std::shared_ptr<dim::parser::ScopeExpression> program;
 
-	std::cout << "\n> EXPRESSIONS\n";
-	std::cout << program->Repr() << "\n";
+	{
+		std::expected<
+			std::shared_ptr<dim::parser::ScopeExpression>,
+			std::string
+		> result = dim::parser::Parse(tokens);
+
+		if(!result) {
+			std::cerr << result.error() << std::endl;
+			return 1;
+		}
+
+		program = result.value();
+
+		std::cout << "\n> EXPRESSIONS\n";
+		std::cout << program->Repr() << "\n";
+	}
 
 	return 0;
 }

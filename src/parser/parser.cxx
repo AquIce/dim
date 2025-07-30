@@ -1,34 +1,49 @@
 #include <parser/parser.hxx>
 
-#include <stdexcept>
-
 namespace dim {
 	namespace parser {
 
-		[[nodiscard]] struct lexer::Token eat(
+		[[nodiscard]]
+		std::expected<struct lexer::Token, std::string> eat(
 			std::vector<struct lexer::Token>& tokens
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Trying to eat a token that in empty token list.");
+			}
 			struct lexer::Token tk = tokens.front();
 			tokens.erase(tokens.begin());
 			return tk;
 		}
 
-		[[nodiscard]] struct lexer::Token expect(
+		[[nodiscard]]
+		std::expected<struct lexer::Token, std::string> expect(
 			std::vector<struct lexer::Token>& tokens,
 			struct lexer::Token expected
 		) {
-			struct lexer::Token tk = eat(tokens);
+
+			std::expected<struct lexer::Token, std::string> result = eat(tokens);
+
+			if(!result) {
+				return std::unexpected(
+					result.error() + " Expected "
+					+ std::string(lexer::TokenTypeStr.at(int(expected.type)))
+					+ " (" + expected.value + ")"
+				);
+			}
+
+			struct lexer::Token tk = result.value();
 
 			if(tk.type != expected.type && expected.value == "") {
-				throw std::runtime_error(
+				return std::unexpected(
 					std::string("Invalid token type: got ")
-					+ std::to_string(int(tk.type)) + " expected "
-					+ std::to_string(int(expected.type))
+					+ std::string(lexer::TokenTypeStr.at(int(tk.type))) + " expected "
+					+ std::string(lexer::TokenTypeStr.at(int(expected.type)))
+					+ " (" + tk.value + ")"
 				);
 			}
 
 			if(tk.type != expected.type && tk.value != expected.value) {
-				throw std::runtime_error(
+				return std::unexpected(
 					std::string("Invalid token value: got ")
 					+ tk.value + " expected " + expected.value
 				);
@@ -37,21 +52,29 @@ namespace dim {
 			return tk;
 		}
 
-		std::shared_ptr<Expression> parse_number_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_number_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			lexer::Token token = eat(tokens);
-
-			if(token.type != lexer::TokenType::NUMBER) {
-				return std::make_shared<Expression>();
-			}
+			lexer::Token token;
+			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+				expect,
+				token,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::NUMBER)
+			)
 
 			return std::make_shared<NumberExpression>(
 				token.value
 			);
 		}
 
-		std::shared_ptr<Expression> parse_parenthesis_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_parenthesis_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			if(
@@ -61,83 +84,147 @@ namespace dim {
 				return parse_number_expression(tokens);
 			}
 
-			(void)eat(tokens);
+			__TRY_TOKEN_FUNC_WRETERR(
+				eat,
+				tokens
+			)
 
-			std::shared_ptr<Expression> inner = parse_expression(tokens);
+			std::shared_ptr<Expression> inner;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_expression,
+				tokens,
+				inner
+			)
 
-			(void)expect(tokens, lexer::MakeToken(
-				lexer::TokenType::PARENTHESIS,
-				")"
-			));
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::PARENTHESIS,
+					")"
+				)
+			)
 
 			return inner;
 		}
 
-		std::shared_ptr<Expression> parse_multiplicative_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_multiplicative_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			std::shared_ptr<Expression> left = parse_parenthesis_expression(tokens);
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_parenthesis_expression,
+				tokens,
+				left
+			)
 
 			while(
 				tokens.size() != 0 &&
 				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
 				(tokens.front().value == "*" || tokens.front().value == "/")
 			) {
-				std::string operatorSymbol = eat(tokens).value;
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_multiplicative_expression,
+					tokens,
+					right
+				)
 
 				left = std::make_shared<BinaryExpression>(
 					left,
 					operatorSymbol,
-					parse_multiplicative_expression(tokens)
+					right
 				);
 			}
 
 			return left;
 		}
 
-		std::shared_ptr<Expression> parse_additive_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_additive_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			std::shared_ptr<Expression> left = parse_multiplicative_expression(tokens);
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_multiplicative_expression,
+				tokens,
+				left
+			)
 
 			while(
 				tokens.size() != 0 &&
 				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
 				(tokens.front().value == "+" || tokens.front().value == "-")
 			) {
-				std::string operatorSymbol = eat(tokens).value;
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_multiplicative_expression,
+					tokens,
+					right
+				)
 
 				left = std::make_shared<BinaryExpression>(
 					left,
 					operatorSymbol,
-					parse_multiplicative_expression(tokens)
+					right
 				);
 			}
 
 			return left;
 		}
 
-		std::shared_ptr<Expression> parse_binary_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_binary_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			return parse_additive_expression(tokens);
 		}
 
-		std::shared_ptr<Expression> parse_expression(
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			return parse_binary_expression(tokens);
 		}
 
-		std::shared_ptr<ScopeExpression> Parse(
+		std::expected<
+			std::shared_ptr<ScopeExpression>,
+			std::string
+		> Parse(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			auto program = std::make_shared<ScopeExpression>();
 
 			while(tokens.size() > 0) {
+				std::shared_ptr<Expression> expr;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					expr
+				)
+
 				program->AddExpression(
-					parse_expression(tokens)
+					expr
 				);
+				
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::EOL)
+				)
 			}
 
 			return program;

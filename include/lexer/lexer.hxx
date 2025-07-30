@@ -16,9 +16,18 @@ namespace dim {
 
 		enum class TokenType {
 			NONE = 0,
+			EOL,
 			NUMBER,
 			BINARY_OPERATOR,
 			PARENTHESIS
+		};
+
+		const std::array<std::string_view, 5> TokenTypeStr = {
+			"NONE",
+			"EOL",
+			"NUMBER",
+			"BINARY_OPERATOR",
+			"PARENTHESIS"
 		};
 
 		struct Token {
@@ -37,6 +46,10 @@ namespace dim {
 			const struct Token& token
 		) noexcept;
 	
+		std::expected<struct Token, std::string> LexEOL(
+			std::string& src
+		) noexcept;
+	
 		std::expected<struct Token, std::string> LexNumber(
 			std::string& src
 		) noexcept;
@@ -49,7 +62,8 @@ namespace dim {
 			std::string& str
 		) noexcept;
 
-		const std::array<const LexFunction, 3> LexFunctionsList = {
+		const std::array<const LexFunction, 4> LexFunctionsList = {
+			&LexEOL,
 			&LexNumber,
 			&LexBinaryOperator,
 			&LexParenthesis
