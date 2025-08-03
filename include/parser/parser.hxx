@@ -7,22 +7,6 @@
 #include <string>
 #include <vector>
 
-#define __TRY_EXPECTED_FUNC_WRETERR(func, _Value, _Err, ...) \
-{ \
-	std::expected<_Value, _Err> result = func(__VA_ARGS__); \
-	if(!result) { \
-		return std::unexpected(result.error()); \
-	} \
-}
-#define __TRY_EXPECTED_FUNC_WRETERR_WSAVE(func, _Value, _Err, resvalue, ...) \
-{ \
-	std::expected<_Value, _Err> result = func(__VA_ARGS__); \
-	if(!result) { \
-		return std::unexpected(result.error()); \
-	} \
-	resvalue = result.value(); \
-}
-
 #define __TRY_TOKEN_FUNC_WRETERR(func, ...) \
 __TRY_EXPECTED_FUNC_WRETERR( \
 	func, \

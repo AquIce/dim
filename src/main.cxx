@@ -1,5 +1,6 @@
 #include <lexer/lexer.hxx>
 #include <parser/parser.hxx>
+#include <runner/interpreter/interpreter.hxx>
 
 #include <fstream>
 #include <iostream>
@@ -56,6 +57,25 @@ int main(int argc, char** argv) {
 
 		std::cout << "\n> EXPRESSIONS\n";
 		std::cout << program->Repr() << "\n";
+	}
+
+	std::shared_ptr<dim::interpreter::Value> value;
+
+	{
+		std::expected<
+			std::shared_ptr<dim::interpreter::Value>,
+			std::string
+		> result = dim::interpreter::EvaluateScopeExpression(program);
+
+		if(!result) {
+			std::cerr << result.error() << std::endl;
+			return 1;
+		}
+
+		value = result.value();
+
+		std::cout << "\n> VALUE\n";
+		std::cout << value->Repr() << "\n";
 	}
 
 	return 0;

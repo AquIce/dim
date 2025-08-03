@@ -26,6 +26,9 @@ set(NR_SRC
 	
 	${PROJECT_SOURCE_DIR}/src/parser/ast.cxx
 	${PROJECT_SOURCE_DIR}/src/parser/parser.cxx
+
+	${PROJECT_SOURCE_DIR}/src/runner/interpreter/value.cxx
+	${PROJECT_SOURCE_DIR}/src/runner/interpreter/interpreter.cxx
 )
 
 # Result executable

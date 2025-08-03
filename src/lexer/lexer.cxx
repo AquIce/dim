@@ -143,7 +143,10 @@ namespace dim {
 				}
 
 				if(!token_added) {
-					return std::unexpected("[ERR] Got error (No valid token found) while lexing source. \"" + src);
+					return std::unexpected(
+						"[ERR] Got error (No valid token found) while lexing source. \""
+						+ src
+					);
 				}
 			}
 			return Success{};

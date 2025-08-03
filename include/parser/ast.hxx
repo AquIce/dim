@@ -8,7 +8,7 @@ namespace dim {
 	namespace parser {
 		
 		enum class NodeType {
-			NONE,
+			NONE = 0,
 			SCOPE,
 			NUMBER,
 			BINARY

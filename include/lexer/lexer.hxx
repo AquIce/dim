@@ -35,7 +35,9 @@ namespace dim {
 			std::string value;
 		};
 
-		typedef std::function<std::expected<struct Token, std::string> (std::string& src)> LexFunction;
+		typedef std::function<
+			std::expected<struct Token, std::string> (std::string& src)
+		> LexFunction;
 		
 		struct Token MakeToken(
 			const TokenType type = TokenType::NONE,
