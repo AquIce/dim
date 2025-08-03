@@ -10,6 +10,17 @@ namespace dim {
 			str = str.substr(1, str.length() - 1);
 			return first;
 		}
+
+		[[nodiscard]] std::string shift(
+			std::string& str,
+			size_t num
+		) {
+			std::string result = "";
+			for(; num > 0; num--) {
+				result += shift(str);
+			}
+			return result;
+		}
 		
 	}
 }

@@ -39,6 +39,10 @@ namespace dim {
 			std::shared_ptr<parser::Expression> expression
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
@@ -53,6 +57,7 @@ namespace dim {
 
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
 			{ parser::NodeType::SCOPE, &EvaluateScopeExpression },
+			{ parser::NodeType::NUL, &EvaluateNullExpression },
 			{ parser::NodeType::NUMBER, &EvaluateNumberExpression },
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
 		};

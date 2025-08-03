@@ -21,6 +21,12 @@ namespace dim {
 			return scopeValue;
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			return std::make_shared<NullValue>();
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {

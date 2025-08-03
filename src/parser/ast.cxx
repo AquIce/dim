@@ -48,6 +48,22 @@ namespace dim {
 			return NodeType::SCOPE;
 		}
 
+		NullExpression::NullExpression() :
+			Expression()
+		{}
+
+		std::string NullExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "null";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+
+		NodeType NullExpression::Type() {
+			return NodeType::NUL;
+		}
+
 		NumberExpression::NumberExpression(
 			std::string value
 		) :

@@ -18,6 +18,12 @@ namespace dim {
 			switch(token.type) {
 				case TokenType::NONE:
 					return "NONE";
+				
+				case TokenType::EOL:
+					return token.value;
+
+				case TokenType::NUL:
+					return "NULL";
 
 				case TokenType::NUMBER:
 					return "NUMBER(" + token.value + ")";
@@ -26,9 +32,6 @@ namespace dim {
 					return token.value;
 				
 				case TokenType::PARENTHESIS:
-					return token.value;
-				
-				case TokenType::EOL:
 					return token.value;
 				
 				default:
@@ -48,6 +51,20 @@ namespace dim {
 			}
 
 			return std::unexpected("Invalid EOL " + src.front());
+		}
+
+		std::expected<struct Token, std::string> LexNull(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("null", 0) == 0) {
+				return MakeToken(
+					TokenType::NUL,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No null token found");
 		}
 
 		std::expected<struct Token, std::string> LexNumber(

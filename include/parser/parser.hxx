@@ -56,6 +56,13 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_null_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_number_expression(
 			std::vector<struct lexer::Token>& tokens
 		);

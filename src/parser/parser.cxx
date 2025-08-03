@@ -55,19 +55,33 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_number_expression(
+		> parse_null_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			lexer::Token token;
+			struct lexer::Token token;
+
 			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
 				expect,
 				token,
 				tokens,
-				lexer::MakeToken(lexer::TokenType::NUMBER)
+				lexer::MakeToken(lexer::TokenType::NUL)
 			)
 
+			return std::make_shared<NullExpression>();
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_number_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.front().type != lexer::TokenType::NUMBER) {
+				return parse_null_expression(tokens);
+			}
+
 			return std::make_shared<NumberExpression>(
-				token.value
+				eat(tokens).value().value
 			);
 		}
 

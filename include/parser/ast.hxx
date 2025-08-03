@@ -10,6 +10,7 @@ namespace dim {
 		enum class NodeType {
 			NONE = 0,
 			SCOPE,
+			NUL,
 			NUMBER,
 			BINARY
 		};
@@ -42,6 +43,16 @@ namespace dim {
 
 		private:
 			std::vector<std::shared_ptr<Expression>> m_expressions;
+		};
+
+		class NullExpression : public Expression {
+		public:
+			NullExpression();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
 		};
 
 		class NumberExpression : public Expression {
