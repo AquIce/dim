@@ -12,6 +12,7 @@ namespace dim {
 			SCOPE,
 			NUL,
 			NUMBER,
+			BOOLEAN,
 			BINARY
 		};
 
@@ -53,6 +54,23 @@ namespace dim {
 				size_t indent = 0
 			) override;
 			NodeType Type() override;
+		};
+
+		class BooleanExpression : public Expression {
+		public:
+			BooleanExpression(
+				std::string value
+			);
+
+			std::string GetValue();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::string m_value;
 		};
 
 		class NumberExpression : public Expression {

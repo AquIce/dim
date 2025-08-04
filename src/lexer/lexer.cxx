@@ -34,6 +34,9 @@ namespace dim {
 				case TokenType::PARENTHESIS:
 					return token.value;
 				
+				case TokenType::BOOLEAN:
+					return "BOOLEAN(" + token.value + ")";
+				
 				default:
 					return "UNKNOWN";
 			}
@@ -132,6 +135,26 @@ namespace dim {
 				default:
 					return std::unexpected("Invalid parenthesis " + src.front());
 			}
+		}
+
+		std::expected<struct Token, std::string> LexBoolean(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("true", 0) == 0) {
+				return MakeToken(
+					TokenType::BOOLEAN,
+					utils::shift(src, 4)
+				);
+			}
+			if(src.rfind("false", 0) == 0) {
+				return MakeToken(
+					TokenType::BOOLEAN,
+					utils::shift(src, 5)
+				);
+			}
+
+			return std::unexpected("No null token found");
 		}
 
 		std::expected<Success, std::string> Lex(

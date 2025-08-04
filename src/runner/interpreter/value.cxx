@@ -193,5 +193,61 @@ namespace dim {
 				);
 			}
 		}
+
+		BooleanValue::BooleanValue(
+			bool value
+		):
+			Value(),
+			m_value(value)
+		{}
+
+		bool BooleanValue::GetValue() {
+			return m_value;
+		}
+		void BooleanValue::SetValue(
+			bool value
+		) {
+			m_value = value;
+		}
+
+		std::string BooleanValue::Repr() {
+			return m_value ? "true" : "false";
+		}
+		ValueType BooleanValue::Type() {
+			return ValueType::BOOLEAN;
+		}
+
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> BooleanValue::operator+(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '+' operator on boolean value");
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> BooleanValue::operator-(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '-' operator on boolean value");
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> BooleanValue::operator*(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '*' operator on boolean value");
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> BooleanValue::operator/(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '/' operator on boolean value");
+		}
 	}
 }

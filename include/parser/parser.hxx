@@ -70,6 +70,13 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_boolean_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_parenthesis_expression(
 			std::vector<struct lexer::Token>& tokens
 		);

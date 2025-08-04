@@ -87,6 +87,29 @@ namespace dim {
 			return NodeType::NUMBER;
 		}
 
+		BooleanExpression::BooleanExpression(
+			std::string value
+		) :
+			Expression(),
+			m_value(value)
+		{}
+
+		std::string BooleanExpression::GetValue() {
+			return m_value;
+		}
+
+		std::string BooleanExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "BooleanExpression(" + m_value + ")";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+
+		NodeType BooleanExpression::Type() {
+			return NodeType::BOOLEAN;
+		}
+
 		BinaryExpression::BinaryExpression(
 			std::shared_ptr<Expression> left,
 			std::string operatorSymbol,

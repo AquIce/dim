@@ -11,13 +11,15 @@ namespace dim {
 		enum class ValueType {
 			NONE = 0,
 			NUL,
-			NUMBER
+			NUMBER,
+			BOOLEAN
 		};
 
-		const std::array<std::string_view, 3> ValueTypeStr = {
+		const std::array<std::string_view, 4> ValueTypeStr = {
 			"NONE",
 			"NULL",
-			"NUMBER"
+			"NUMBER",
+			"BOOLEAN"
 		};
 
 		class Value {
@@ -86,6 +88,50 @@ namespace dim {
 			> operator/(
 				std::shared_ptr<Value> other
 			) override; 
+		};
+
+		class BooleanValue : public Value {
+		public:
+
+			BooleanValue(
+				bool value
+			);
+
+			bool GetValue();
+			void SetValue(
+				bool value
+			);
+
+			ValueType Type() override;
+			std::string Repr() override;
+
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator+(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator-(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator*(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator/(
+				std::shared_ptr<Value> other
+			) override; 
+
+		private:
+			bool m_value;
 		};
 
 		class NumberValue : public Value {
