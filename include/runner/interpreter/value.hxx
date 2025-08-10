@@ -12,7 +12,8 @@ namespace dim {
 			NONE = 0,
 			NUL,
 			NUMBER,
-			BOOLEAN
+			BOOLEAN,
+			STRING
 		};
 
 		const std::array<std::string_view, 4> ValueTypeStr = {
@@ -90,6 +91,50 @@ namespace dim {
 			) override; 
 		};
 
+		class NumberValue : public Value {
+		public:
+
+			NumberValue(
+				double value
+			);
+
+			double GetValue();
+			void SetValue(
+				double value
+			);
+
+			ValueType Type() override;
+			std::string Repr() override;
+
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator+(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator-(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator*(
+				std::shared_ptr<Value> other
+			) override;
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator/(
+				std::shared_ptr<Value> other
+			) override; 
+
+		private:
+			double m_value;
+		};
+
 		class BooleanValue : public Value {
 		public:
 
@@ -134,16 +179,16 @@ namespace dim {
 			bool m_value;
 		};
 
-		class NumberValue : public Value {
+		class StringValue : public Value {
 		public:
 
-			NumberValue(
-				double value
+			StringValue(
+				std::string value
 			);
 
-			double GetValue();
+			std::string GetValue();
 			void SetValue(
-				double value
+				std::string value
 			);
 
 			ValueType Type() override;
@@ -175,7 +220,7 @@ namespace dim {
 			) override; 
 
 		private:
-			double m_value;
+			std::string m_value;
 		};
 	}
 }

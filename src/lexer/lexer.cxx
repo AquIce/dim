@@ -36,6 +36,9 @@ namespace dim {
 				
 				case TokenType::BOOLEAN:
 					return "BOOLEAN(" + token.value + ")";
+
+				case TokenType::STRING:
+					return "STRING(\"" + token.value + "\")";
 				
 				default:
 					return "UNKNOWN";
@@ -154,7 +157,49 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No null token found");
+			return std::unexpected("No boolean token found");
+		}
+
+		std::expected<struct Token, std::string> LexString(
+			std::string& src
+		) noexcept {
+
+			if(src.at(0) != '"') {
+				return std::unexpected("No string token found");
+			}
+			(void)utils::shift(src);
+
+			std::string str = "";
+			bool isBackslashed = false;
+
+			while(src.length() > 0) {
+				char first = utils::shift(src);
+
+				if(isBackslashed) {
+					isBackslashed = false;
+					if(first == '"') {
+						str += first;
+						continue;
+					}
+				}
+
+				if(first == '\\') {
+					str += first;
+					isBackslashed = true;
+					continue;
+				}
+
+				if(first == '"') {
+					break;
+				}
+
+				str += first;
+			}
+			
+			return MakeToken(
+				TokenType::STRING,
+				str
+			);
 		}
 
 		std::expected<Success, std::string> Lex(

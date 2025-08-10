@@ -88,11 +88,26 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_string_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.front().type != lexer::TokenType::STRING) {
+				return parse_boolean_expression(tokens);
+			}
+
+			return std::make_shared<StringExpression>(
+				eat(tokens).value().value
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_number_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			if(tokens.front().type != lexer::TokenType::NUMBER) {
-				return parse_boolean_expression(tokens);
+				return parse_string_expression(tokens);
 			}
 
 			return std::make_shared<NumberExpression>(

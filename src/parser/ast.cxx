@@ -110,6 +110,29 @@ namespace dim {
 			return NodeType::BOOLEAN;
 		}
 
+		StringExpression::StringExpression(
+			std::string value
+		) :
+			Expression(),
+			m_value(value)
+		{}
+
+		std::string StringExpression::GetValue() {
+			return m_value;
+		}
+
+		std::string StringExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "StringExpression(\"" + m_value + "\")";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+
+		NodeType StringExpression::Type() {
+			return NodeType::STRING;
+		}
+
 		BinaryExpression::BinaryExpression(
 			std::shared_ptr<Expression> left,
 			std::string operatorSymbol,

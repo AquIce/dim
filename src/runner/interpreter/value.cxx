@@ -249,5 +249,73 @@ namespace dim {
 		) {
 			return std::unexpected("Cannot use '/' operator on boolean value");
 		}
+
+		StringValue::StringValue(
+			std::string value
+		):
+			Value(),
+			m_value(value)
+		{}
+
+		std::string StringValue::GetValue() {
+			return m_value;
+		}
+		void StringValue::SetValue(
+			std::string value
+		) {
+			m_value = value;
+		}
+
+		std::string StringValue::Repr() {
+			return "\"" + m_value + "\"";
+		}
+		ValueType StringValue::Type() {
+			return ValueType::STRING;
+		}
+
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StringValue::operator+(
+			std::shared_ptr<Value> other
+		) {
+			switch(other->Type()) {
+			case ValueType::STRING: {
+				std::string value = std::dynamic_pointer_cast<StringValue>(other)->GetValue();
+				return std::make_shared<StringValue>(
+					this->GetValue() + value
+				);
+			}
+			default:
+				return std::unexpected(
+					std::string("Cannot use '+' operator on string value and ")
+					+ std::string(ValueTypeStr.at(int(other->Type())))
+				);
+			}
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StringValue::operator-(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '-' operator on string value");
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StringValue::operator*(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '*' operator on string value");
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StringValue::operator/(
+			std::shared_ptr<Value> other
+		) {
+			return std::unexpected("Cannot use '/' operator on string value");
+		}
 	}
 }

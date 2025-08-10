@@ -46,6 +46,16 @@ namespace dim {
 				booleanExpression->GetValue() == "true"
 			);
 		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto stringExpression = std::dynamic_pointer_cast<parser::StringExpression>(expression);
+
+			return std::make_shared<StringValue>(
+				stringExpression->GetValue()
+			);
+		}
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
 			std::shared_ptr<parser::Expression> expression

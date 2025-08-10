@@ -21,17 +21,19 @@ namespace dim {
 			NUMBER,
 			BINARY_OPERATOR,
 			PARENTHESIS,
-			BOOLEAN
+			BOOLEAN,
+			STRING
 		};
 
-		const std::array<std::string_view, 7> TokenTypeStr = {
+		const std::array<std::string_view, 8> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
 			"NUMBER",
 			"BINARY_OPERATOR",
 			"PARENTHESIS",
-			"BOOLEAN"
+			"BOOLEAN",
+			"STRING"
 		};
 
 		struct Token {
@@ -76,13 +78,18 @@ namespace dim {
 			std::string& str
 		) noexcept;
 
-		const std::array<const LexFunction, 6> LexFunctionsList = {
+		std::expected<struct Token, std::string> LexString(
+			std::string& str
+		) noexcept;
+
+		const std::array<const LexFunction, 7> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
 			&LexBinaryOperator,
 			&LexParenthesis,
-			&LexBoolean
+			&LexBoolean,
+			&LexString
 		};
 		
 		std::expected<Success, std::string> Lex(
