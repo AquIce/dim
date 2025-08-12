@@ -312,8 +312,7 @@ namespace dim {
 			repr += "\n)";
 			repr.insert(repr.size() - 1, indent, '\t');
 			repr += m_scope->Repr(indent) + " ";
-			repr += m_orExpression->Repr(indent + 1) + "\n)";
-			repr.insert(repr.size() - 1, indent, '\t');
+			repr += m_orExpression->Repr(indent);
 			return repr;
 		}
 		NodeType WhileLoopExpression::Type() {
