@@ -16,7 +16,9 @@ namespace dim {
 			STRING,
 			BINARY,
 			IFELSE_EXPR,
-			IFELSE_STRUCT
+			IFELSE_STRUCT,
+			LOOP,
+			BREAK
 		};
 
 		class Expression {
@@ -168,6 +170,40 @@ namespace dim {
 
 		private:
 			std::vector<std::shared_ptr<IfElseExpression>> m_expressions;
+		};
+
+		class LoopExpression : public Expression {
+		public:
+			LoopExpression(
+				std::shared_ptr<ScopeExpression> scope
+			);
+
+			std::shared_ptr<ScopeExpression> GetScope();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<ScopeExpression> m_scope;
+		};
+
+		class BreakExpression : public Expression {
+		public:
+			BreakExpression(
+				std::shared_ptr<Expression> expression
+			);
+
+			std::shared_ptr<Expression> GetExpression();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<Expression> m_expression;
 		};
 	}
 }

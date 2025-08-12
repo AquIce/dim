@@ -16,6 +16,9 @@ namespace dim {
 					expression,
 					scopeValue
 				)
+				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+					return scopeValue;
+				}
 			}
 
 			return scopeValue;
@@ -25,16 +28,6 @@ namespace dim {
 			std::shared_ptr<parser::Expression> expression
 		) {
 			return std::make_shared<NullValue>();
-		}
-
-		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
-			std::shared_ptr<parser::Expression> expression
-		) {
-			auto numberExpression = std::dynamic_pointer_cast<parser::NumberExpression>(expression);
-
-			return std::make_shared<NumberValue>(
-				std::stod(numberExpression->GetValue())
-			);
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBooleanExpression(
@@ -47,6 +40,16 @@ namespace dim {
 			);
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto numberExpression = std::dynamic_pointer_cast<parser::NumberExpression>(expression);
+
+			return std::make_shared<NumberValue>(
+				std::stod(numberExpression->GetValue())
+			);
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {
@@ -55,6 +58,22 @@ namespace dim {
 			return std::make_shared<StringValue>(
 				stringExpression->GetValue()
 			);
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateBreakExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto breakExpression = std::dynamic_pointer_cast<parser::BreakExpression>(expression);
+
+			std::shared_ptr<Value> breakValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				breakExpression->GetExpression(),
+				breakValue
+			);
+
+			breakValue->SetFlag(ValueFlag::BREAK);
+			return breakValue;
 		}
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
@@ -149,6 +168,27 @@ namespace dim {
 			}
 
 			return std::unexpected("Missing 'else' clause in if-else structure.");
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto loopExpression = std::dynamic_pointer_cast<parser::LoopExpression>(expression);
+
+			std::shared_ptr<Value> scopeValue;
+
+			while(true) {
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateScopeExpression,
+					loopExpression->GetScope(),
+					scopeValue
+				)
+				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+					break;
+				}
+			}
+
+			return scopeValue;
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(

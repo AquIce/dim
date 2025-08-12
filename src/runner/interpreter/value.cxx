@@ -14,6 +14,15 @@ namespace dim {
 			return ValueType::NONE;
 		}
 
+		ValueFlag Value::GetFlag() {
+			return m_flag;
+		}
+		void Value::SetFlag(
+			ValueFlag flag
+		) {
+			m_flag = flag;
+		}
+
  		std::expected<
 			std::shared_ptr<Value>,
 			std::string

@@ -84,6 +84,13 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_break_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_parenthesis_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
@@ -121,6 +128,13 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_ifelse_structure(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_loop_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 

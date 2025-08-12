@@ -43,15 +43,19 @@ namespace dim {
 			std::shared_ptr<parser::Expression> expression
 		);
 
-		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
-			std::shared_ptr<parser::Expression> expression
-		);
-
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBooleanExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateBreakExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
 		
@@ -62,6 +66,10 @@ namespace dim {
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateIfElseStructure(
 			std::shared_ptr<parser::Expression> expression
 		);
+		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression
@@ -70,11 +78,13 @@ namespace dim {
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
 			{ parser::NodeType::SCOPE, &EvaluateScopeExpression },
 			{ parser::NodeType::NUL, &EvaluateNullExpression },
-			{ parser::NodeType::NUMBER, &EvaluateNumberExpression },
 			{ parser::NodeType::BOOLEAN, &EvaluateBooleanExpression },
+			{ parser::NodeType::NUMBER, &EvaluateNumberExpression },
 			{ parser::NodeType::STRING, &EvaluateStringExpression },
+			{ parser::NodeType::BREAK, &EvaluateBreakExpression },
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
 			{ parser::NodeType::IFELSE_STRUCT, &EvaluateIfElseStructure },
+			{ parser::NodeType::LOOP, &EvaluateLoopExpression },
 		};
 
 	}

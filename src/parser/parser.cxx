@@ -75,7 +75,7 @@ namespace dim {
 		> parse_boolean_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			if(tokens.front().type != lexer::TokenType::BOOLEAN) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BOOLEAN) {
 				return parse_null_expression(tokens);
 			}
 
@@ -90,7 +90,7 @@ namespace dim {
 		> parse_string_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			if(tokens.front().type != lexer::TokenType::STRING) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::STRING) {
 				return parse_boolean_expression(tokens);
 			}
 
@@ -105,7 +105,7 @@ namespace dim {
 		> parse_number_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			if(tokens.front().type != lexer::TokenType::NUMBER) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUMBER) {
 				return parse_string_expression(tokens);
 			}
 
@@ -117,14 +117,40 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_break_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BREAK) {
+				return parse_number_expression(tokens);
+			}
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> breakExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_number_expression,
+				tokens,
+				breakExpression
+			)
+
+			return std::make_shared<BreakExpression>(
+				breakExpression
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_parenthesis_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			if(
-				tokens.front().type != lexer::TokenType::PARENTHESIS ||
-				tokens.front().value != "("
+				tokens.size() > 0 &&
+				(
+					tokens.front().type != lexer::TokenType::PARENTHESIS ||
+					tokens.front().value != "("
+				)
 			) {
-				return parse_number_expression(tokens);
+				return parse_break_expression(tokens);
 			}
 
 			__TRY_TOKEN_FUNC_WRETERR(
@@ -310,10 +336,33 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_loop_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::LOOP) {
+				return parse_ifelse_structure(tokens);
+			}
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> scope;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_scope_expression,
+				tokens,
+				scope
+			)
+
+			return std::make_shared<LoopExpression>(
+				std::dynamic_pointer_cast<ScopeExpression>(scope)
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			return parse_ifelse_structure(tokens);
+			return parse_loop_expression(tokens);
 		}
 
 		std::expected<

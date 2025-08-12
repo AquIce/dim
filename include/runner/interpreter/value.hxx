@@ -16,6 +16,11 @@ namespace dim {
 			STRING
 		};
 
+		enum class ValueFlag {
+			NONE = 0,
+			BREAK
+		};
+
 		const std::array<std::string_view, 4> ValueTypeStr = {
 			"NONE",
 			"NULL",
@@ -32,6 +37,11 @@ namespace dim {
 			virtual ValueType Type();
 
 			Value() = default;
+
+			ValueFlag GetFlag();
+			void SetFlag(
+				ValueFlag flag
+			);
 
 			virtual std::expected<
 				std::shared_ptr<Value>,
@@ -56,7 +66,10 @@ namespace dim {
 				std::string
 			> operator/(
 				std::shared_ptr<Value> other
-			); 
+			);
+
+		private:
+			ValueFlag m_flag;
 		};
 
 		class NullValue : public Value {

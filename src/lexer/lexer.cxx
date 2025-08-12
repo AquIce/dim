@@ -36,6 +36,8 @@ namespace dim {
 				case TokenType::PARENTHESIS:
 				case TokenType::BRACE:
 				case TokenType::IFELSE:
+				case TokenType::LOOP:
+				case TokenType::BREAK:
 					return token.value;
 				
 				default:
@@ -240,6 +242,34 @@ namespace dim {
 			}
 
 			return std::unexpected("No if-else token found");
+		}
+
+		std::expected<struct Token, std::string> LexLoop(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("loop", 0) == 0) {
+				return MakeToken(
+					TokenType::LOOP,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No loop token found");
+		}
+
+		std::expected<struct Token, std::string> LexBreak(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("break", 0) == 0) {
+				return MakeToken(
+					TokenType::BREAK,
+					utils::shift(src, 5)
+				);
+			}
+
+			return std::unexpected("No break token found");
 		}
 
 		std::expected<Success, std::string> Lex(

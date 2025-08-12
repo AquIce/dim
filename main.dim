@@ -1,11 +1,9 @@
 {
-	if(0) {
-		1;
-	} elseif("") {
-		2;
-	} elseif(null) {
-		3;
-	} else {
-		4;
+	loop {
+		if(false) {
+			break 10;
+		} else {
+			break 1;
+		};
 	};
 };

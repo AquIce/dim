@@ -15,6 +15,8 @@ namespace dim {
 			return NodeType::NONE;
 		}
 
+
+
 		ScopeExpression::ScopeExpression(
 			std::vector<std::shared_ptr<Expression>> expressions
 		) :
@@ -47,6 +49,8 @@ namespace dim {
 			return NodeType::SCOPE;
 		}
 
+
+
 		NullExpression::NullExpression() :
 			Expression()
 		{}
@@ -62,6 +66,8 @@ namespace dim {
 		NodeType NullExpression::Type() {
 			return NodeType::NUL;
 		}
+
+
 
 		NumberExpression::NumberExpression(
 			std::string value
@@ -86,6 +92,8 @@ namespace dim {
 			return NodeType::NUMBER;
 		}
 
+
+
 		BooleanExpression::BooleanExpression(
 			std::string value
 		) :
@@ -109,6 +117,8 @@ namespace dim {
 			return NodeType::BOOLEAN;
 		}
 
+
+
 		StringExpression::StringExpression(
 			std::string value
 		) :
@@ -131,6 +141,8 @@ namespace dim {
 		NodeType StringExpression::Type() {
 			return NodeType::STRING;
 		}
+
+
 
 		BinaryExpression::BinaryExpression(
 			std::shared_ptr<Expression> left,
@@ -173,6 +185,8 @@ namespace dim {
 			return NodeType::BINARY;
 		}
 
+
+
 		IfElseExpression::IfElseExpression(
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition
@@ -208,6 +222,8 @@ namespace dim {
 			return NodeType::IFELSE_EXPR;
 		}
 
+
+
 		IfElseStructure::IfElseStructure(
 			std::vector<std::shared_ptr<IfElseExpression>> expressions
 		) :
@@ -242,6 +258,55 @@ namespace dim {
 
 		NodeType IfElseStructure::Type() {
 			return NodeType::IFELSE_STRUCT;
+		}
+
+
+
+		LoopExpression::LoopExpression(
+			std::shared_ptr<ScopeExpression> scope
+		) :
+			Expression(),
+			m_scope(scope)
+		{}
+
+		std::shared_ptr<ScopeExpression> LoopExpression::GetScope() {
+			return m_scope;
+		}
+
+		std::string LoopExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "loop " + m_scope->Repr(indent);
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType LoopExpression::Type() {
+			return NodeType::LOOP;
+		}
+
+
+
+		BreakExpression::BreakExpression(
+			std::shared_ptr<Expression> expression
+		) :
+			Expression(),
+			m_expression(expression)
+		{}
+
+		std::shared_ptr<Expression> BreakExpression::GetExpression() {
+			return m_expression;
+		}
+
+		std::string BreakExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "break(\n" + m_expression->Repr(indent + 1) + "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType BreakExpression::Type() {
+			return NodeType::BREAK;
 		}
 	}
 }
