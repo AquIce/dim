@@ -38,6 +38,7 @@ namespace dim {
 				case TokenType::IFELSE:
 				case TokenType::LOOP:
 				case TokenType::BREAK:
+				case TokenType::OR:
 					return token.value;
 				
 				default:
@@ -272,6 +273,20 @@ namespace dim {
 			return std::unexpected("No break token found");
 		}
 
+		std::expected<struct Token, std::string> LexOr(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("or", 0) == 0) {
+				return MakeToken(
+					TokenType::OR,
+					utils::shift(src, 2)
+				);
+			}
+
+			return std::unexpected("No or token found");
+		}
+
 		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
 			std::string& src
@@ -299,7 +314,7 @@ namespace dim {
 
 				if(!token_added) {
 					return std::unexpected(
-						"[ERR] Got error (No valid token found) while lexing source. \""
+						"[ERR::LEXER] Got error :\n\t\"No valid token found\"\nwhile lexing source. \""
 						+ src
 					);
 				}

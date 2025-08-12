@@ -59,6 +59,10 @@ namespace dim {
 			std::shared_ptr<parser::Expression> expression
 		);
 		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateOrExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
@@ -68,6 +72,10 @@ namespace dim {
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateWhileLoopExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
 
@@ -82,9 +90,11 @@ namespace dim {
 			{ parser::NodeType::NUMBER, &EvaluateNumberExpression },
 			{ parser::NodeType::STRING, &EvaluateStringExpression },
 			{ parser::NodeType::BREAK, &EvaluateBreakExpression },
+			{ parser::NodeType::OR, &EvaluateOrExpression },
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
 			{ parser::NodeType::IFELSE_STRUCT, &EvaluateIfElseStructure },
 			{ parser::NodeType::LOOP, &EvaluateLoopExpression },
+			{ parser::NodeType::WHILE, &EvaluateWhileLoopExpression},
 		};
 
 	}

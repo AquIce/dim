@@ -1,5 +1,5 @@
 #include <runner/interpreter/interpreter.hxx>
-
+#include <iostream>
 namespace dim {
 	namespace interpreter {
 
@@ -74,6 +74,21 @@ namespace dim {
 
 			breakValue->SetFlag(ValueFlag::BREAK);
 			return breakValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateOrExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto orExpression = std::dynamic_pointer_cast<parser::OrExpression>(expression);
+
+			std::shared_ptr<Value> orValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				orExpression->GetExpression(),
+				orValue
+			);
+
+			return orValue;
 		}
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
@@ -186,6 +201,40 @@ namespace dim {
 				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
 					break;
 				}
+			}
+
+			return scopeValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateWhileLoopExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto whileLoopExpression = std::dynamic_pointer_cast<parser::WhileLoopExpression>(expression);
+
+			std::shared_ptr<Value> conditionValue;
+			std::shared_ptr<Value> scopeValue = nullptr;
+
+			while(true) {
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateExpression,
+					whileLoopExpression->GetCondition(),
+					conditionValue
+				)
+				if(!conditionValue->IsTrue()) {
+					break;
+				}
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateScopeExpression,
+					whileLoopExpression->GetScope(),
+					scopeValue
+				)
+				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+					break;
+				}
+			}
+
+			if(scopeValue == nullptr) {
+				return EvaluateOrExpression(whileLoopExpression->GetOrExpression());
 			}
 
 			return scopeValue;

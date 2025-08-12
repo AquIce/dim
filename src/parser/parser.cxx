@@ -138,6 +138,29 @@ namespace dim {
 		}
 
 		std::expected<
+			std::shared_ptr<OrExpression>,
+			std::string
+		> parse_or_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::OR) {
+				return std::unexpected("No or expression found.");
+			}
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> orExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_expression,
+				tokens,
+				orExpression
+			)
+
+			return std::make_shared<OrExpression>(
+				orExpression
+			);
+		}
+
+		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_parenthesis_expression(
@@ -344,12 +367,39 @@ namespace dim {
 			}
 			(void)eat(tokens);
 
+			std::shared_ptr<Expression> condition = nullptr;
+
+			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::PARENTHESIS) {
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_parenthesis_expression,
+					tokens,
+					condition
+				)
+			}
+
 			std::shared_ptr<Expression> scope;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
 				tokens,
 				scope
 			)
+
+			if(condition != nullptr) {
+				std::shared_ptr<OrExpression> orExpression;
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
+					parse_or_expression,
+					std::shared_ptr<OrExpression>,
+					std::string,
+					orExpression,
+					tokens
+				)
+
+				return std::make_shared<WhileLoopExpression>(
+					std::dynamic_pointer_cast<ScopeExpression>(scope),
+					condition,
+					orExpression
+				);
+			}
 
 			return std::make_shared<LoopExpression>(
 				std::dynamic_pointer_cast<ScopeExpression>(scope)
@@ -427,14 +477,19 @@ namespace dim {
 		> Parse(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			std::shared_ptr<Expression> program_expr;
-			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_scope_expression,
-				tokens,
-				program_expr
-			);
+			std::expected<
+				std::shared_ptr<Expression>,
+				std::string
+			> result = parse_scope_expression(tokens);
 
-			return std::dynamic_pointer_cast<ScopeExpression>(program_expr);
+			if(!result) {
+				return std::unexpected(
+					std::string("[ERR::PARSER] Got error :\n\t\"") + result.error()
+					+ "\"\nwhile parsing tokens."
+				);
+			}
+
+			return std::dynamic_pointer_cast<ScopeExpression>(result.value());
 		}
 	}
 }

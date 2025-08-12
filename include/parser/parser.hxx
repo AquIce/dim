@@ -2,6 +2,8 @@
 
 #include <lexer/lexer.hxx>
 
+#include<utils/utils.hxx>
+
 #include <expected>
 #include <memory>
 #include <string>
@@ -89,6 +91,13 @@ namespace dim {
 		);
 
 		std::expected<
+			std::shared_ptr<OrExpression>,
+			std::string
+		> parse_or_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_parenthesis_expression(
@@ -135,6 +144,13 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_loop_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_while_loop_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 

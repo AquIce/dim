@@ -1,9 +1,9 @@
 {
-	loop {
+	loop(false) {
 		if(false) {
 			break 10;
 		} else {
 			break 1;
 		};
-	};
+	} or 0;
 };

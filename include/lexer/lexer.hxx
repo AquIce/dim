@@ -30,10 +30,11 @@ namespace dim {
 			
 			IFELSE,
 			LOOP,
-			BREAK
+			BREAK,
+			OR
 		};
 
-		const std::array<std::string_view, 12> TokenTypeStr = {
+		const std::array<std::string_view, 13> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -45,7 +46,8 @@ namespace dim {
 			"BRACE",
 			"IFELSE",
 			"LOOP",
-			"BREAK"
+			"BREAK",
+			"OR"
 		};
 
 		struct Token {
@@ -110,7 +112,11 @@ namespace dim {
 			std::string& str
 		) noexcept;
 
-		const std::array<const LexFunction, 11> LexFunctionsList = {
+		std::expected<struct Token, std::string> LexOr(
+			std::string& str
+		) noexcept;
+
+		const std::array<const LexFunction, 12> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
@@ -121,7 +127,8 @@ namespace dim {
 			&LexBrace,
 			&LexIfElse,
 			&LexLoop,
-			&LexBreak
+			&LexBreak,
+			&LexOr
 		};
 		
 		std::expected<Success, std::string> Lex(

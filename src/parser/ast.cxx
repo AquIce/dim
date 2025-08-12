@@ -285,28 +285,98 @@ namespace dim {
 		}
 
 
+		WhileLoopExpression::WhileLoopExpression(
+			std::shared_ptr<ScopeExpression> scope,
+			std::shared_ptr<Expression> condition,
+			std::shared_ptr<OrExpression> orExpression
+		) :
+			LoopExpression(scope),
+			m_condition(condition),
+			m_orExpression(orExpression)
+		{}
 
-		BreakExpression::BreakExpression(
+		std::shared_ptr<Expression> WhileLoopExpression::GetCondition() {
+			return m_condition;
+		}
+
+		std::shared_ptr<Expression> WhileLoopExpression::GetOrExpression() {
+			return m_orExpression;
+		}
+
+		std::string WhileLoopExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "loop(\n";
+			repr.insert(0, indent, '\t');
+			repr += m_condition->Repr(indent + 1);
+			repr += "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
+			repr += m_scope->Repr(indent) + " ";
+			repr += m_orExpression->Repr(indent + 1) + "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType WhileLoopExpression::Type() {
+			return NodeType::WHILE;
+		}
+
+
+		NestedExpression::NestedExpression(
 			std::shared_ptr<Expression> expression
 		) :
 			Expression(),
 			m_expression(expression)
 		{}
 
-		std::shared_ptr<Expression> BreakExpression::GetExpression() {
+		std::shared_ptr<Expression> NestedExpression::GetExpression() {
 			return m_expression;
 		}
+
+		std::string NestedExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "(\n" + m_expression->Repr(indent + 1) + "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType NestedExpression::Type() {
+			return NodeType::NESTED;
+		}
+
+
+
+		BreakExpression::BreakExpression(
+			std::shared_ptr<Expression> expression
+		) :
+			NestedExpression(expression)
+		{}
 
 		std::string BreakExpression::Repr(
 			size_t indent
 		) {
-			std::string repr = "break(\n" + m_expression->Repr(indent + 1) + "\n)";
+			std::string repr = "break" + NestedExpression::Repr(indent);
 			repr.insert(0, indent, '\t');
-			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;
 		}
 		NodeType BreakExpression::Type() {
 			return NodeType::BREAK;
+		}
+
+
+
+		OrExpression::OrExpression(
+			std::shared_ptr<Expression> expression
+		) :
+			NestedExpression(expression)
+		{}
+
+		std::string OrExpression::Repr(
+			size_t indent
+		) {
+			return "or" + NestedExpression::Repr(indent);
+		}
+		NodeType OrExpression::Type() {
+			return NodeType::OR;
 		}
 	}
 }

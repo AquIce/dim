@@ -6,6 +6,21 @@
 
 namespace dim {
 	namespace parser {
+
+		class Expression;
+		class ScopeExpression;
+		class NullExpression;
+		class NumberExpression;
+		class BooleanExpression;
+		class StringExpression;
+		class BinaryExpression;
+		class IfElseExpression;
+		class IfElseStructure;
+		class LoopExpression;
+		class WhileLoopExpression;
+		class NestedExpression;
+		class BreakExpression;
+		class OrExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -18,7 +33,10 @@ namespace dim {
 			IFELSE_EXPR,
 			IFELSE_STRUCT,
 			LOOP,
-			BREAK
+			WHILE,
+			NESTED,
+			BREAK,
+			OR
 		};
 
 		class Expression {
@@ -185,13 +203,34 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 
-		private:
+		protected:
 			std::shared_ptr<ScopeExpression> m_scope;
 		};
 
-		class BreakExpression : public Expression {
+		class WhileLoopExpression : public LoopExpression {
 		public:
-			BreakExpression(
+			WhileLoopExpression(
+				std::shared_ptr<ScopeExpression> scope,
+				std::shared_ptr<Expression> condition,
+				std::shared_ptr<OrExpression> orExpression
+			);
+
+			std::shared_ptr<Expression> GetCondition();
+			std::shared_ptr<Expression> GetOrExpression();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		protected:
+			std::shared_ptr<Expression> m_condition;
+			std::shared_ptr<Expression> m_orExpression;
+		};
+
+		class NestedExpression : public Expression {
+		public:
+			NestedExpression(
 				std::shared_ptr<Expression> expression
 			);
 
@@ -204,6 +243,30 @@ namespace dim {
 
 		private:
 			std::shared_ptr<Expression> m_expression;
+		};
+
+		class BreakExpression : public NestedExpression {
+		public:
+			BreakExpression(
+				std::shared_ptr<Expression> expression
+			);
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+		};
+
+		class OrExpression : public NestedExpression {
+		public:
+			OrExpression(
+				std::shared_ptr<Expression> expression
+			);
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
 		};
 	}
 }
