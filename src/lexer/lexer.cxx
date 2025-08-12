@@ -19,26 +19,24 @@ namespace dim {
 				case TokenType::NONE:
 					return "NONE";
 				
-				case TokenType::EOL:
-					return token.value;
-
 				case TokenType::NUL:
 					return "NULL";
 
 				case TokenType::NUMBER:
 					return "NUMBER(" + token.value + ")";
 				
-				case TokenType::BINARY_OPERATOR:
-					return token.value;
-				
-				case TokenType::PARENTHESIS:
-					return token.value;
-				
 				case TokenType::BOOLEAN:
 					return "BOOLEAN(" + token.value + ")";
 
 				case TokenType::STRING:
 					return "STRING(\"" + token.value + "\")";
+				
+				case TokenType::EOL:
+				case TokenType::BINARY_OPERATOR:
+				case TokenType::PARENTHESIS:
+				case TokenType::BRACE:
+				case TokenType::IFELSE:
+					return token.value;
 				
 				default:
 					return "UNKNOWN";
@@ -106,40 +104,6 @@ namespace dim {
 			);
 		}
 
-		std::expected<struct Token, std::string> LexBinaryOperator(
-			std::string& src
-		) noexcept {
-
-			switch(src.front()) {
-				case '+':
-				case '-':
-				case '*':
-				case '/':
-					return MakeToken(
-						TokenType::BINARY_OPERATOR,
-						std::string(1, utils::shift(src))
-					);
-				default:
-					return std::unexpected("Invalid operator " + src.front());
-			}
-		}
-
-		std::expected<struct Token, std::string> LexParenthesis(
-			std::string& src
-		) noexcept {
-
-			switch(src.front()) {
-				case '(':
-				case ')':
-					return MakeToken(
-						TokenType::PARENTHESIS,
-						std::string(1, utils::shift(src))
-					);
-				default:
-					return std::unexpected("Invalid parenthesis " + src.front());
-			}
-		}
-
 		std::expected<struct Token, std::string> LexBoolean(
 			std::string& src
 		) noexcept {
@@ -200,6 +164,82 @@ namespace dim {
 				TokenType::STRING,
 				str
 			);
+		}
+
+		std::expected<struct Token, std::string> LexBinaryOperator(
+			std::string& src
+		) noexcept {
+
+			switch(src.front()) {
+				case '+':
+				case '-':
+				case '*':
+				case '/':
+					return MakeToken(
+						TokenType::BINARY_OPERATOR,
+						std::string(1, utils::shift(src))
+					);
+				default:
+					return std::unexpected("Invalid operator " + src.front());
+			}
+		}
+
+		std::expected<struct Token, std::string> LexParenthesis(
+			std::string& src
+		) noexcept {
+
+			switch(src.front()) {
+				case '(':
+				case ')':
+					return MakeToken(
+						TokenType::PARENTHESIS,
+						std::string(1, utils::shift(src))
+					);
+				default:
+					return std::unexpected("Invalid parenthesis " + src.front());
+			}
+		}
+
+		std::expected<struct Token, std::string> LexBrace(
+			std::string& src
+		) noexcept {
+
+			switch(src.front()) {
+				case '{':
+				case '}':
+					return MakeToken(
+						TokenType::BRACE,
+						std::string(1, utils::shift(src))
+					);
+				default:
+					return std::unexpected("Invalid brace " + src.front());
+			}
+		}
+
+		std::expected<struct Token, std::string> LexIfElse(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("elseif", 0) == 0) {
+				return MakeToken(
+					TokenType::IFELSE,
+					utils::shift(src, 6)
+				);
+			}
+			if(src.rfind("if", 0) == 0) {
+				return MakeToken(
+					TokenType::IFELSE,
+					utils::shift(src, 2)
+				);
+			}
+			if(src.rfind("else", 0) == 0) {
+				return MakeToken(
+					TokenType::IFELSE,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No if-else token found");
 		}
 
 		std::expected<Success, std::string> Lex(

@@ -35,7 +35,6 @@ namespace dim {
 			size_t indent
 		) {
 			std::string repr = "{\n";
-			repr.insert(0, indent, '\t');
 			for(const auto& expression : m_expressions) {
 				repr += expression->Repr(indent + 1) + "\n";
 			}
@@ -172,6 +171,77 @@ namespace dim {
 
 		NodeType BinaryExpression::Type() {
 			return NodeType::BINARY;
+		}
+
+		IfElseExpression::IfElseExpression(
+			std::shared_ptr<ScopeExpression> scope,
+			std::shared_ptr<Expression> condition
+		) :
+			Expression(),
+			m_scope(scope),
+			m_condition(condition)
+		{}
+
+		std::shared_ptr<ScopeExpression> IfElseExpression::GetScope() {
+			return m_scope;
+		}
+		std::shared_ptr<Expression> IfElseExpression::GetCondition() {
+			return m_condition;
+		}
+
+		std::string IfElseExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "";
+
+			if(m_condition) {
+				repr += "(\n" + m_condition->Repr(indent + 1) + "\n)";
+				repr.insert(repr.size() - 1, indent, '\t');
+			}
+
+			repr += " " + m_scope->Repr(indent);
+
+			return repr;
+		}
+
+		NodeType IfElseExpression::Type() {
+			return NodeType::IFELSE_EXPR;
+		}
+
+		IfElseStructure::IfElseStructure(
+			std::vector<std::shared_ptr<IfElseExpression>> expressions
+		) :
+			Expression(),
+			m_expressions(expressions)
+		{}
+
+		std::vector<std::shared_ptr<IfElseExpression>> IfElseStructure::GetExpressions() {
+			return m_expressions;
+		}
+
+		std::string IfElseStructure::Repr(
+			size_t indent
+		) {
+			std::string repr = "";
+
+			for(size_t i = 0; i < m_expressions.size(); i++) {
+				if(i == 0) {
+					repr += "if";
+				} else if(i == m_expressions.size() - 1) {
+					repr += " else";
+				} else {
+					repr += " elseif";
+				}
+				repr += m_expressions.at(i)->Repr(indent);
+			}
+
+			repr.insert(0, indent, '\t');
+
+			return repr;
+		}
+
+		NodeType IfElseStructure::Type() {
+			return NodeType::IFELSE_STRUCT;
 		}
 	}
 }

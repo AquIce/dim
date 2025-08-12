@@ -34,6 +34,7 @@ namespace dim {
 			struct lexer::Token tk = result.value();
 
 			if(tk.type != expected.type && expected.value == "") {
+				tokens.insert(tokens.begin(), tk);
 				return std::unexpected(
 					std::string("Invalid token type: got ")
 					+ std::string(lexer::TokenTypeStr.at(int(tk.type))) + " expected "
@@ -43,6 +44,7 @@ namespace dim {
 			}
 
 			if(tk.type != expected.type && tk.value != expected.value) {
+				tokens.insert(tokens.begin(), tk);
 				return std::unexpected(
 					std::string("Invalid token value: got ")
 					+ tk.value + " expected " + expected.value
@@ -58,11 +60,8 @@ namespace dim {
 		> parse_null_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			struct lexer::Token token;
-
-			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+			__TRY_TOKEN_FUNC_WRETERR(
 				expect,
-				token,
 				tokens,
 				lexer::MakeToken(lexer::TokenType::NUL)
 			)
@@ -238,21 +237,112 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_expression(
-			std::vector<struct lexer::Token>& tokens
+		> parse_ifelse_expression(
+			std::vector<struct lexer::Token>& tokens,
+			const bool allow_if
 		) {
-			return parse_binary_expression(tokens);
+			struct lexer::Token keyword;
+
+			if(
+				tokens.size() > 0 && tokens.front().type == lexer::TokenType::IFELSE
+				&& !allow_if && tokens.front().value == "if"
+			) {
+				return std::unexpected("Start of a new structure");
+			}
+
+			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+				expect,
+				keyword,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::IFELSE)
+			)
+
+			std::shared_ptr<Expression> condition = nullptr;
+			if(keyword.value != "else") {
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_parenthesis_expression,
+					tokens,
+					condition
+				)
+			}
+
+			std::shared_ptr<Expression> scope;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_scope_expression,
+				tokens,
+				scope
+			)
+
+			return std::make_shared<IfElseExpression>(
+				std::dynamic_pointer_cast<ScopeExpression>(scope),
+				condition
+			);
 		}
 
 		std::expected<
-			std::shared_ptr<ScopeExpression>,
+			std::shared_ptr<Expression>,
 			std::string
-		> Parse(
+		> parse_ifelse_structure(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			auto program = std::make_shared<ScopeExpression>();
+			std::expected<
+				std::shared_ptr<Expression>,
+				std::string
+			> result = parse_ifelse_expression(tokens);
+
+			if(!result) {
+				return parse_binary_expression(tokens);
+			}
+
+			std::vector<std::shared_ptr<IfElseExpression>> expressions = {};
+			while(result) {
+				expressions.push_back(
+					std::dynamic_pointer_cast<IfElseExpression>(result.value())
+				);
+				result = parse_ifelse_expression(tokens, false);
+			}
+
+			return std::make_shared<IfElseStructure>(
+				expressions
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			return parse_ifelse_structure(tokens);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_scope_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::BRACE, "{")
+			)
+
+			auto scope = std::make_shared<ScopeExpression>();
+
+			bool closingBraceFound = false;
 
 			while(tokens.size() > 0) {
+
+				if(
+					tokens.front().type == lexer::TokenType::BRACE
+					&& tokens.front().value == "}"
+				) {
+					(void)eat(tokens);
+					closingBraceFound = true;
+					break;
+				}
+
 				std::shared_ptr<Expression> expr;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
@@ -260,7 +350,7 @@ namespace dim {
 					expr
 				)
 
-				program->AddExpression(
+				scope->AddExpression(
 					expr
 				);
 				
@@ -271,7 +361,31 @@ namespace dim {
 				)
 			}
 
-			return program;
+			if(!closingBraceFound) {
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::BRACE, "}")
+				)
+			}
+
+			return scope;
+		}
+
+		std::expected<
+			std::shared_ptr<ScopeExpression>,
+			std::string
+		> Parse(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			std::shared_ptr<Expression> program_expr;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_scope_expression,
+				tokens,
+				program_expr
+			);
+
+			return std::dynamic_pointer_cast<ScopeExpression>(program_expr);
 		}
 	}
 }

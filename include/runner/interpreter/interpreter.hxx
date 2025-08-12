@@ -58,6 +58,10 @@ namespace dim {
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
+		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateIfElseStructure(
+			std::shared_ptr<parser::Expression> expression
+		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression
@@ -70,6 +74,7 @@ namespace dim {
 			{ parser::NodeType::BOOLEAN, &EvaluateBooleanExpression },
 			{ parser::NodeType::STRING, &EvaluateStringExpression },
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
+			{ parser::NodeType::IFELSE_STRUCT, &EvaluateIfElseStructure },
 		};
 
 	}

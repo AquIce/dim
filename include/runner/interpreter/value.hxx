@@ -26,6 +26,8 @@ namespace dim {
 		class Value {
 		public:
 
+			virtual bool IsTrue();
+
 			virtual std::string Repr();
 			virtual ValueType Type();
 
@@ -61,6 +63,8 @@ namespace dim {
 		public:
 
 			NullValue();
+
+			bool IsTrue() override;
 
 			ValueType Type() override;
 			std::string Repr() override;
@@ -102,6 +106,8 @@ namespace dim {
 			void SetValue(
 				double value
 			);
+
+			bool IsTrue() override;
 
 			ValueType Type() override;
 			std::string Repr() override;
@@ -147,6 +153,8 @@ namespace dim {
 				bool value
 			);
 
+			bool IsTrue() override;
+
 			ValueType Type() override;
 			std::string Repr() override;
 
@@ -190,6 +198,8 @@ namespace dim {
 			void SetValue(
 				std::string value
 			);
+
+			bool IsTrue() override;
 
 			ValueType Type() override;
 			std::string Repr() override;

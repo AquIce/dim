@@ -1,5 +1,11 @@
-(1 - (2 + 5)) * 3 + 4;
-true;
-false;
-null;
-"abc\\f\"";
+{
+	if(0) {
+		1;
+	} elseif("") {
+		2;
+	} elseif(null) {
+		3;
+	} else {
+		4;
+	};
+};

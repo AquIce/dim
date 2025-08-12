@@ -1,5 +1,7 @@
 #include <string>
 
+#define NOIMP return std::unexpected("NOIMP")
+
 #define FILEINFO std::string(__FILE__) + ":" + std::to_string(__LINE__)
 
 #define __TRY_EXPECTED_FUNC_WRETERR(func, _Value, _Err, ...) \

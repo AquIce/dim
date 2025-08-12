@@ -17,23 +17,31 @@ namespace dim {
 		enum class TokenType {
 			NONE = 0,
 			EOL,
+
 			NUL,
 			NUMBER,
-			BINARY_OPERATOR,
-			PARENTHESIS,
 			BOOLEAN,
-			STRING
+			STRING,
+			
+			BINARY_OPERATOR,
+			
+			PARENTHESIS,
+			BRACE,
+			
+			IFELSE
 		};
 
-		const std::array<std::string_view, 8> TokenTypeStr = {
+		const std::array<std::string_view, 10> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
 			"NUMBER",
+			"BOOLEAN",
+			"STRING",
 			"BINARY_OPERATOR",
 			"PARENTHESIS",
-			"BOOLEAN",
-			"STRING"
+			"BRACE",
+			"IFELSE"
 		};
 
 		struct Token {
@@ -66,14 +74,6 @@ namespace dim {
 			std::string& src
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexBinaryOperator(
-			std::string& str
-		) noexcept;
-
-		std::expected<struct Token, std::string> LexParenthesis(
-			std::string& str
-		) noexcept;
-
 		std::expected<struct Token, std::string> LexBoolean(
 			std::string& str
 		) noexcept;
@@ -82,14 +82,32 @@ namespace dim {
 			std::string& str
 		) noexcept;
 
-		const std::array<const LexFunction, 7> LexFunctionsList = {
+		std::expected<struct Token, std::string> LexBinaryOperator(
+			std::string& str
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexParenthesis(
+			std::string& str
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexBrace(
+			std::string& str
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexIfElse(
+			std::string& str
+		) noexcept;
+
+		const std::array<const LexFunction, 9> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
+			&LexBoolean,
+			&LexString,
 			&LexBinaryOperator,
 			&LexParenthesis,
-			&LexBoolean,
-			&LexString
+			&LexBrace,
+			&LexIfElse
 		};
 		
 		std::expected<Success, std::string> Lex(

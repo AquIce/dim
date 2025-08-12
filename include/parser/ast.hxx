@@ -14,7 +14,9 @@ namespace dim {
 			NUMBER,
 			BOOLEAN,
 			STRING,
-			BINARY
+			BINARY,
+			IFELSE_EXPR,
+			IFELSE_STRUCT
 		};
 
 		class Expression {
@@ -129,6 +131,43 @@ namespace dim {
 			std::shared_ptr<Expression> m_left;
 			std::string m_operatorSymbol;
 			std::shared_ptr<Expression> m_right;
+		};
+
+		class IfElseExpression : public Expression {
+		public:
+			IfElseExpression(
+				std::shared_ptr<ScopeExpression> scope,
+				std::shared_ptr<Expression> condition
+			);
+
+			std::shared_ptr<ScopeExpression> GetScope();
+			std::shared_ptr<Expression> GetCondition();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<ScopeExpression> m_scope;
+			std::shared_ptr<Expression> m_condition;
+		};
+
+		class IfElseStructure : public Expression {
+		public:
+			IfElseStructure(
+				std::vector<std::shared_ptr<IfElseExpression>> expressions
+			);
+
+			std::vector<std::shared_ptr<IfElseExpression>> GetExpressions();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::vector<std::shared_ptr<IfElseExpression>> m_expressions;
 		};
 	}
 }

@@ -3,6 +3,10 @@
 namespace dim {
 	namespace interpreter {
 
+		bool Value::IsTrue() {
+			return false;
+		}
+
 		std::string Value::Repr() {
 			return "INVALID";
 		}
@@ -48,6 +52,10 @@ namespace dim {
 			Value()
 		{}
 
+		bool NullValue::IsTrue() {
+			return false;
+		}
+
 		std::string NullValue::Repr() {
 			return "null";
 		}
@@ -77,7 +85,7 @@ namespace dim {
 		> NullValue::operator*(
 			std::shared_ptr<Value> other
 		) {
-			return std::unexpected("Cannot use '+' operator on null value");
+			return std::unexpected("Cannot use '*' operator on null value");
 		}
 		std::expected<
 			std::shared_ptr<Value>,
@@ -85,7 +93,7 @@ namespace dim {
 		> NullValue::operator/(
 			std::shared_ptr<Value> other
 		) {
-			return std::unexpected("Cannot use '+' operator on null value");
+			return std::unexpected("Cannot use '/' operator on null value");
 		} 
 
 
@@ -104,6 +112,10 @@ namespace dim {
 			double value
 		) {
 			m_value = value;
+		}
+
+		bool NumberValue::IsTrue() {
+			return m_value != 0;
 		}
 
 		std::string NumberValue::Repr() {
@@ -210,6 +222,10 @@ namespace dim {
 			m_value = value;
 		}
 
+		bool BooleanValue::IsTrue() {
+			return m_value;
+		}
+
 		std::string BooleanValue::Repr() {
 			return m_value ? "true" : "false";
 		}
@@ -264,6 +280,10 @@ namespace dim {
 			std::string value
 		) {
 			m_value = value;
+		}
+
+		bool StringValue::IsTrue() {
+			return m_value.size() > 0;
 		}
 
 		std::string StringValue::Repr() {

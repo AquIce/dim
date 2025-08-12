@@ -119,6 +119,38 @@ namespace dim {
 			}
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateIfElseStructure(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto ifElseStructure = std::dynamic_pointer_cast<parser::IfElseStructure>(expression);
+
+			for(const auto& ifElseExpression : ifElseStructure->GetExpressions()) {
+				std::shared_ptr<parser::Expression> condition = ifElseExpression->GetCondition();
+				if(condition == nullptr) {
+					return EvaluateScopeExpression(ifElseExpression->GetScope());
+				}
+
+				std::shared_ptr<Value> condition_value;
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateExpression,
+					condition,
+					condition_value
+				)
+
+				if(condition_value->IsTrue()) {
+					std::shared_ptr<Value> result_value;
+					__TRY_VALUE_FUNC_WRETERR_WSAVE(
+						EvaluateScopeExpression,
+						ifElseExpression->GetScope(),
+						result_value
+					)
+					return result_value;
+				}
+			}
+
+			return std::unexpected("Missing 'else' clause in if-else structure.");
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {
