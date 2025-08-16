@@ -88,9 +88,18 @@ namespace dim {
 				lexer::MakeToken(lexer::TokenType::IDENTIFIER)
 			)
 
-			return std::make_shared<IdentifierExpression>(
-				identifier.value
-			);
+			std::expected<
+				std::shared_ptr<IdentifierExpression>,
+				std::string
+			> result = GetIdentifier(identifier.value);
+
+			if(!result) {
+				return std::make_shared<IdentifierExpression>(
+					identifier.value
+				);
+			}
+
+			return result.value();
 		}
 
 		std::expected<

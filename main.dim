@@ -2,4 +2,5 @@
 	const a: i32 = 12;
 	var b := false;
 	b = true;
+	1 + a * a;
 };
