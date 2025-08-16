@@ -1,3 +1,7 @@
+// TODO
+//	- Add type checking
+// 	- Check const correctness
+
 #include <lexer/lexer.hxx>
 #include <parser/parser.hxx>
 #include <runner/interpreter/interpreter.hxx>

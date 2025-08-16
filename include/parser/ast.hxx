@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,6 +22,9 @@ namespace dim {
 		class NestedExpression;
 		class BreakExpression;
 		class OrExpression;
+		class IdentifierExpression;
+		class AssignationExpression;
+		class DeclarationExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -36,7 +40,46 @@ namespace dim {
 			WHILE,
 			NESTED,
 			BREAK,
-			OR
+			OR,
+			IDENTIFIER,
+			ASSIGN,
+			DECL,
+		};
+
+		const std::array<std::string_view, 17> NodeTypeToStr = {
+			"NONE",
+			"SCOPE",
+			"NUL",
+			"NUMBER",
+			"BOOLEAN",
+			"STRING",
+			"BINARY",
+			"IFELSE_EXPR",
+			"IFELSE_STRUCT",
+			"LOOP",
+			"WHILE",
+			"NESTED",
+			"BREAK",
+			"OR",
+			"IDENTIFIER",
+			"ASSIGN",
+			"DECL",
+		};
+
+		enum class Datatype {
+			INFER = 0,
+			I8, I16, I32, I64,
+			U8, U16, U32, U64,
+			F32, F64,
+			BOOL, CHAR, STR,
+		};
+
+		const std::array<std::string_view, 14> DatatypeToStr = {
+			"INFER",
+			"i8", "i16", "i32", "i64",
+			"u8", "u16", "u32", "u64",
+			"f32", "f64",
+			"bool", "char", "str",
 		};
 
 		class Expression {
@@ -241,7 +284,7 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 
-		private:
+		protected:
 			std::shared_ptr<Expression> m_expression;
 		};
 
@@ -267,6 +310,77 @@ namespace dim {
 				size_t indent = 0
 			) override;
 			NodeType Type() override;
+		};
+
+		class IdentifierExpression : public NestedExpression {
+		public:
+			IdentifierExpression(
+				std::string name,
+				bool isConst = true,
+				std::shared_ptr<Expression> expression = nullptr,
+				Datatype datatype = Datatype::INFER
+			);
+
+			std::string GetName();
+			bool GetIsConst();
+			void SetIsConst(
+				bool isConst
+			);
+			void SetExpression(
+				std::shared_ptr<Expression> expression
+			);
+			Datatype GetDatatype();
+			void SetDatatype(
+				Datatype datatype
+			);
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::string m_name;
+			bool m_isConst;
+			Datatype m_datatype;
+		};
+
+		class AssignationExpression : public Expression {
+		public:
+			AssignationExpression(
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::shared_ptr<Expression> expression
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
+		};
+
+		class DeclarationExpression : public Expression {
+		public:
+			DeclarationExpression(
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::shared_ptr<Expression> expression,
+				Datatype datatype,
+				bool isConst
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
 		};
 	}
 }

@@ -377,5 +377,111 @@ namespace dim {
 		NodeType OrExpression::Type() {
 			return NodeType::OR;
 		}
+
+		IdentifierExpression::IdentifierExpression(
+			std::string name,
+			bool isConst,
+			std::shared_ptr<Expression> expression,
+			Datatype datatype
+		) :
+			NestedExpression(expression),
+			m_name(name),
+			m_isConst(isConst),
+			m_datatype(datatype)
+		{}
+
+		std::string IdentifierExpression::GetName() {
+			return m_name;
+		}
+		bool IdentifierExpression::GetIsConst() {
+			return m_isConst;
+		}
+		void IdentifierExpression::SetIsConst(
+			bool isConst
+		) {
+			m_isConst = isConst;
+		}
+		void IdentifierExpression::SetExpression(
+			std::shared_ptr<Expression> expression
+		) {
+			m_expression = expression;
+		}
+		Datatype IdentifierExpression::GetDatatype() {
+			return m_datatype;
+		}
+		void IdentifierExpression::SetDatatype(
+			Datatype datatype
+		) {
+			m_datatype = datatype;
+		}
+
+		std::string IdentifierExpression::Repr(
+			size_t indent
+		) {
+			std::string repr =
+				std::string(m_isConst ? "const " : "var ")
+				+ m_name + ": "
+				+ std::string(DatatypeToStr.at(int(m_datatype)))
+				+ " = (\n" + m_expression->Repr(indent + 1) + "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType IdentifierExpression::Type() {
+			return NodeType::IDENTIFIER;
+		}
+
+
+
+		AssignationExpression::AssignationExpression(
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::shared_ptr<Expression> expression
+		) :
+			m_identifier(identifier)
+		{
+			m_identifier->SetExpression(expression);
+		}
+
+		std::shared_ptr<IdentifierExpression> AssignationExpression::GetIdentifier() {
+			return m_identifier;
+		}
+
+		std::string AssignationExpression::Repr(
+			size_t indent
+		) {
+			return m_identifier->Repr(indent);
+		}
+		NodeType AssignationExpression::Type() {
+			return NodeType::ASSIGN;
+		}
+
+		DeclarationExpression::DeclarationExpression(
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::shared_ptr<Expression> expression,
+			Datatype datatype,
+			bool isConst
+		) :
+			m_identifier(identifier)
+		{
+			m_identifier->SetExpression(expression);
+			m_identifier->SetDatatype(datatype);
+			m_identifier->SetIsConst(isConst);
+		}
+
+		std::shared_ptr<IdentifierExpression> DeclarationExpression::GetIdentifier() {
+			return m_identifier;
+		}
+
+		std::string DeclarationExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "DECL(\n" + m_identifier->Repr(indent + 1) + "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType DeclarationExpression::Type() {
+			return NodeType::DECL;
+		}
 	}
 }

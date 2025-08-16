@@ -35,11 +35,18 @@ namespace dim {
 				case TokenType::BINARY_OPERATOR:
 				case TokenType::PARENTHESIS:
 				case TokenType::BRACE:
+				case TokenType::COLON:
+				case TokenType::EQUALS:
 				case TokenType::IFELSE:
 				case TokenType::LOOP:
 				case TokenType::BREAK:
 				case TokenType::OR:
+				case TokenType::DECL:
+				case TokenType::TYPE:
 					return token.value;
+
+				case TokenType::IDENTIFIER:
+					return "ID(" + token.value + ")";
 				
 				default:
 					return "UNKNOWN";
@@ -219,6 +226,30 @@ namespace dim {
 			}
 		}
 
+		std::expected<struct Token, std::string> LexColon(
+			std::string& src
+		) noexcept {
+			if(src.front() == ':') {
+				return MakeToken(
+					TokenType::COLON,
+					std::string(1, utils::shift(src))
+				);
+			}
+			return std::unexpected("No colon token found.");
+		}
+
+		std::expected<struct Token, std::string> LexEquals(
+			std::string& src
+		) noexcept {
+			if(src.front() == '=') {
+				return MakeToken(
+					TokenType::EQUALS,
+					std::string(1, utils::shift(src))
+				);
+			}
+			return std::unexpected("No equals token found.");
+		}
+
 		std::expected<struct Token, std::string> LexIfElse(
 			std::string& src
 		) noexcept {
@@ -287,6 +318,95 @@ namespace dim {
 			return std::unexpected("No or token found");
 		}
 
+		std::expected<struct Token, std::string> LexDecl(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("var", 0) == 0) {
+				return MakeToken(
+					TokenType::DECL,
+					utils::shift(src, 3)
+				);
+			}
+			if(src.rfind("const", 0) == 0) {
+				return MakeToken(
+					TokenType::DECL,
+					utils::shift(src, 5)
+				);
+			}
+
+			return std::unexpected("No var/const token found");
+		}
+
+		std::expected<struct Token, std::string> LexType(
+			std::string& src
+		) noexcept {
+
+			if(
+				src.rfind("i8", 0) == 0
+				|| src.rfind("u8", 0) == 0
+			) {
+				return MakeToken(
+					TokenType::TYPE,
+					utils::shift(src, 2)
+				);
+			}
+			if(
+				src.rfind("i16", 0) == 0
+				|| src.rfind("i32", 0) == 0
+				|| src.rfind("i64", 0) == 0
+				|| src.rfind("u16", 0) == 0
+				|| src.rfind("u32", 0) == 0
+				|| src.rfind("u64", 0) == 0
+				|| src.rfind("f32", 0) == 0
+				|| src.rfind("f64", 0) == 0
+				|| src.rfind("str", 0) == 0
+			) {
+				return MakeToken(
+					TokenType::TYPE,
+					utils::shift(src, 3)
+				);
+			}
+			if(
+				src.rfind("char", 0) == 0
+				|| src.rfind("bool", 0) == 0
+			) {
+				return MakeToken(
+					TokenType::TYPE,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No type token found");
+		}
+
+		std::expected<struct Token, std::string> LexIdentifier(
+			std::string& src
+		) noexcept {
+			std::string identifier = "";
+
+			while(
+				src.size() > 0 && (
+					std::isalpha(src.front()) ||
+					std::isdigit(src.front()) ||
+					src.front() == '_'
+				)
+			) {
+				identifier += utils::shift(src);
+			}
+			
+			if(
+				identifier.size() == 0
+			) {
+				return std::unexpected("Invalid identifier found.");
+			}
+
+			return MakeToken(
+				TokenType::IDENTIFIER,
+				identifier
+			);
+		}
+
 		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
 			std::string& src
@@ -299,22 +419,23 @@ namespace dim {
 					break;
 				}
 
-				bool token_added = false;
+				std::string error = "";
 				for(const auto& lexFunction : LexFunctionsList) {
 					
 					std::expected<struct Token, std::string> result = lexFunction(src);
 					if(!result) {
+						error = result.error();
 						continue;
 					}
 
 					tokens.push_back(result.value());
-					token_added = true;
+					error = "";
 					break;
 				}
 
-				if(!token_added) {
+				if(error.size() > 0) {
 					return std::unexpected(
-						"[ERR::LEXER] Got error :\n\t\"No valid token found\"\nwhile lexing source. \""
+						"[ERR::LEXER] Got error :\n\t\"" + error + "\"\nwhile lexing source. \""
 						+ src
 					);
 				}

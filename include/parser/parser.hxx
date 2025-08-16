@@ -1,3 +1,5 @@
+#pragma once
+
 #include <parser/ast.hxx>
 
 #include <lexer/lexer.hxx>
@@ -5,6 +7,7 @@
 #include<utils/utils.hxx>
 
 #include <expected>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,6 +47,17 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 namespace dim {
 	namespace parser {
 
+		extern std::vector<
+			std::shared_ptr<IdentifierExpression>
+		> Identifiers;
+
+		std::expected<
+			std::shared_ptr<IdentifierExpression>,
+			std::string
+		> GetIdentifier(
+			std::string name
+		);
+
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> eat(
 			std::vector<struct lexer::Token>& tokens
@@ -53,6 +67,13 @@ namespace dim {
 		std::expected<struct lexer::Token, std::string> expect(
 			std::vector<struct lexer::Token>& tokens,
 			struct lexer::Token expected
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_identifier_expression(
+			std::vector<struct lexer::Token>& tokens
 		);
 
 		std::expected<
@@ -151,6 +172,20 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_while_loop_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_assignation_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_declaration_expression(
 			std::vector<struct lexer::Token>& tokens
 		);
 

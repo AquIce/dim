@@ -3,13 +3,12 @@
 #include <utils/utils.hxx>
 
 #include <array>
+#include <cctype>
 #include <expected>
 #include <functional>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-typedef struct Success {} Success;
 
 namespace dim {
 	namespace lexer {
@@ -28,13 +27,21 @@ namespace dim {
 			PARENTHESIS,
 			BRACE,
 			
+			COLON,
+			EQUALS,
+			
 			IFELSE,
 			LOOP,
 			BREAK,
-			OR
+			OR,
+
+			DECL,
+			TYPE,
+
+			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 13> TokenTypeStr = {
+		const std::array<std::string_view, 18> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -44,10 +51,15 @@ namespace dim {
 			"BINARY_OPERATOR",
 			"PARENTHESIS",
 			"BRACE",
+			"COLON",
+			"EQUALS"
 			"IFELSE",
 			"LOOP",
 			"BREAK",
-			"OR"
+			"OR",
+			"DECL",
+			"TYPE",
+			"IDENTIFIER",
 		};
 
 		struct Token {
@@ -81,42 +93,62 @@ namespace dim {
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexBoolean(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexString(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexBinaryOperator(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexParenthesis(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexBrace(
-			std::string& str
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexColon(
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexEquals(
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexIfElse(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexLoop(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexBreak(
-			std::string& str
+			std::string& src
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexOr(
-			std::string& str
+			std::string& src
 		) noexcept;
 
-		const std::array<const LexFunction, 12> LexFunctionsList = {
+		std::expected<struct Token, std::string> LexDecl(
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexType(
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexIdentifier(
+			std::string& src
+		) noexcept;
+
+		const std::array<const LexFunction, 17> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
@@ -125,10 +157,15 @@ namespace dim {
 			&LexBinaryOperator,
 			&LexParenthesis,
 			&LexBrace,
+			&LexColon,
+			&LexEquals,
 			&LexIfElse,
 			&LexLoop,
 			&LexBreak,
-			&LexOr
+			&LexOr,
+			&LexDecl,
+			&LexType,
+			&LexIdentifier,
 		};
 		
 		std::expected<Success, std::string> Lex(

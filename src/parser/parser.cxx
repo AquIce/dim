@@ -1,7 +1,27 @@
 #include <parser/parser.hxx>
-
+#include <iostream>
 namespace dim {
 	namespace parser {
+
+		std::vector<std::shared_ptr<IdentifierExpression>> Identifiers = {};
+
+		std::expected<
+			std::shared_ptr<IdentifierExpression>,
+			std::string
+		> GetIdentifier(
+			std::string name
+		) {
+			std::vector<std::shared_ptr<IdentifierExpression>>::iterator identifier = std::find_if(
+				Identifiers.begin(), Identifiers.end(),
+				[&name](const std::shared_ptr<IdentifierExpression>& ident) {
+					return name == ident->GetName();
+				}
+			);
+			if(identifier == Identifiers.end()) {
+				return std::unexpected("Trying to get non existing identifier.");
+			}
+			return *identifier;
+		}
 
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> eat(
@@ -57,15 +77,33 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_identifier_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			lexer::Token identifier;
+			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+				expect,
+				identifier,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::IDENTIFIER)
+			)
+
+			return std::make_shared<IdentifierExpression>(
+				identifier.value
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_null_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			__TRY_TOKEN_FUNC_WRETERR(
-				expect,
-				tokens,
-				lexer::MakeToken(lexer::TokenType::NUL)
-			)
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUL) {
+				return parse_identifier_expression(tokens);
+			}
 
+			(void)eat(tokens);
 			return std::make_shared<NullExpression>();
 		}
 
@@ -409,10 +447,124 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_assignation_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER) {
+				return parse_loop_expression(tokens);
+			}
+
+			std::shared_ptr<Expression> identifierExpression = parse_identifier_expression(tokens).value();
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::EQUALS)
+			)
+
+			std::shared_ptr<Expression> expression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_expression,
+				tokens,
+				expression
+			)
+
+			std::string name = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName();
+
+			std::expected<
+				std::shared_ptr<IdentifierExpression>,
+				std::string
+			> result = GetIdentifier(name);
+
+			if(!result) {
+				return std::unexpected("Variable name '" + name + "' does not exist yet");
+			}
+
+			std::shared_ptr<IdentifierExpression> identifier = result.value();
+
+			if(identifier->GetIsConst()) {
+				return std::unexpected("Trying to set constant '" + name + "'");
+			}
+
+			identifier->SetExpression(expression);
+
+			return std::make_shared<AssignationExpression>(
+				identifier,
+				expression
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_declaration_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DECL) {
+				return parse_assignation_expression(tokens);
+			}
+			bool isConst = eat(tokens).value().value == "const";
+
+			std::shared_ptr<Expression> identifierExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_identifier_expression,
+				tokens,
+				identifierExpression
+			)
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::COLON)
+			)
+
+			Datatype datatype = Datatype::INFER;
+			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::TYPE) {
+				datatype = Datatype(
+					utils::indexOfUnsafe(
+						std::begin(DatatypeToStr),
+						std::end(DatatypeToStr),
+						eat(tokens).value().value
+					)
+				);
+			}
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::EQUALS)
+			)
+
+			std::shared_ptr<Expression> expression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_expression,
+				tokens,
+				expression
+			)
+
+			std::shared_ptr<IdentifierExpression> identifier = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression);
+
+			if(GetIdentifier(identifier->GetName())) {
+				return std::unexpected("Variable name '" + identifier->GetName() + "' already exists");
+			}
+
+			Identifiers.push_back(identifier);
+
+			return std::make_shared<DeclarationExpression>(
+				identifier,
+				expression,
+				datatype,
+				isConst
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			return parse_loop_expression(tokens);
+			return parse_declaration_expression(tokens);
 		}
 
 		std::expected<

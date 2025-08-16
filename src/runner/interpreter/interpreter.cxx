@@ -3,6 +3,8 @@
 namespace dim {
 	namespace interpreter {
 
+		RegisterManager registerManager = RegisterManager();
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateScopeExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {
@@ -23,6 +25,24 @@ namespace dim {
 
 			return scopeValue;
 		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateIdentifierExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto identifierExpression = std::dynamic_pointer_cast<parser::IdentifierExpression>(expression);
+
+			std::expected<
+				RegisterValue,
+				std::string
+			> result = registerManager.Get(identifierExpression->GetName());
+
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+
+			return result.value().value;
+		}
+
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
 			std::shared_ptr<parser::Expression> expression
@@ -240,6 +260,50 @@ namespace dim {
 			return scopeValue;
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateAssignationExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto assignationExpression = std::dynamic_pointer_cast<parser::AssignationExpression>(expression);
+
+			std::string name = assignationExpression->GetIdentifier()->GetName();
+
+			std::shared_ptr<Value> identifierValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				assignationExpression->GetIdentifier()->GetExpression(),
+				identifierValue
+			)
+
+			std::expected<
+				Success,
+				std::string
+			> result = registerManager.Set(name, RegisterValue{ identifierValue });
+
+			return identifierValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto declarationExpression = std::dynamic_pointer_cast<parser::DeclarationExpression>(expression);
+
+			std::string name = declarationExpression->GetIdentifier()->GetName();
+
+			std::shared_ptr<Value> identifierValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				declarationExpression->GetIdentifier()->GetExpression(),
+				identifierValue
+			)
+
+			std::expected<
+				Success,
+				std::string
+			> result = registerManager.Register(name, RegisterValue{ identifierValue });
+
+			return identifierValue;
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {
@@ -254,7 +318,7 @@ namespace dim {
 			} catch(...) {
 				return std::unexpected(
 					std::string("Invalid expression type :")
-					+ std::to_string(int(expression->Type()))
+					+ std::string(parser::NodeTypeToStr.at(int(expression->Type())))
 				);
 			}
 

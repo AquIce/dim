@@ -29,6 +29,7 @@ set(NR_SRC
 
 	${PROJECT_SOURCE_DIR}/src/runner/interpreter/value.cxx
 	${PROJECT_SOURCE_DIR}/src/runner/interpreter/interpreter.cxx
+	${PROJECT_SOURCE_DIR}/src/runner/interpreter/register.cxx
 )
 
 # Result executable

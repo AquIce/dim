@@ -1,5 +1,6 @@
 #pragma once
 
+#include <runner/interpreter/register.hxx>
 #include <runner/interpreter/value.hxx>
 #include <parser/ast.hxx>
 #include <utils/utils.hxx>
@@ -29,6 +30,8 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 namespace dim {
 	namespace interpreter {
 
+		extern RegisterManager registerManager;
+
 		typedef std::function<
 			std::expected<std::shared_ptr<Value>, std::string> (
 				std::shared_ptr<parser::Expression>
@@ -36,6 +39,10 @@ namespace dim {
 		> EvaluateFunction;
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateScopeExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateIdentifierExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
 
@@ -79,12 +86,21 @@ namespace dim {
 			std::shared_ptr<parser::Expression> expression
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateAssignationExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression
 		);
 
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
 			{ parser::NodeType::SCOPE, &EvaluateScopeExpression },
+			{ parser::NodeType::IDENTIFIER, &EvaluateIdentifierExpression },
 			{ parser::NodeType::NUL, &EvaluateNullExpression },
 			{ parser::NodeType::BOOLEAN, &EvaluateBooleanExpression },
 			{ parser::NodeType::NUMBER, &EvaluateNumberExpression },
@@ -94,7 +110,9 @@ namespace dim {
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
 			{ parser::NodeType::IFELSE_STRUCT, &EvaluateIfElseStructure },
 			{ parser::NodeType::LOOP, &EvaluateLoopExpression },
-			{ parser::NodeType::WHILE, &EvaluateWhileLoopExpression},
+			{ parser::NodeType::WHILE, &EvaluateWhileLoopExpression },
+			{ parser::NodeType::ASSIGN, &EvaluateAssignationExpression },
+			{ parser::NodeType::DECL, &EvaluateDeclarationExpression },
 		};
 
 	}
