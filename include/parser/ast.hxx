@@ -20,6 +20,7 @@ namespace dim {
 		class IfElseStructure;
 		class LoopExpression;
 		class WhileLoopExpression;
+		class ForLoopExpression;
 		class NestedExpression;
 		class BreakExpression;
 		class OrExpression;
@@ -39,6 +40,7 @@ namespace dim {
 			IFELSE_STRUCT,
 			LOOP,
 			WHILE,
+			FOR,
 			NESTED,
 			BREAK,
 			OR,
@@ -47,7 +49,7 @@ namespace dim {
 			DECL,
 		};
 
-		const std::array<std::string_view, 17> NodeTypeToStr = {
+		const std::array<std::string_view, 18> NodeTypeToStr = {
 			"NONE",
 			"SCOPE",
 			"NUL",
@@ -59,6 +61,7 @@ namespace dim {
 			"IFELSE_STRUCT",
 			"LOOP",
 			"WHILE",
+			"FOR",
 			"NESTED",
 			"BREAK",
 			"OR",
@@ -270,6 +273,29 @@ namespace dim {
 		protected:
 			std::shared_ptr<Expression> m_condition;
 			std::shared_ptr<Expression> m_orExpression;
+		};
+
+		class ForLoopExpression : public WhileLoopExpression {
+		public:
+			ForLoopExpression(
+				std::shared_ptr<ScopeExpression> scope,
+				std::shared_ptr<Expression> initialExpression,
+				std::shared_ptr<Expression> condition,
+				std::shared_ptr<Expression> updateExpression,
+				std::shared_ptr<OrExpression> orExpression
+			);
+
+			std::shared_ptr<Expression> GetInitialExpression();
+			std::shared_ptr<Expression> GetUpdateExpression();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<Expression> m_initialExpression;
+			std::shared_ptr<Expression> m_updateExpression;
 		};
 
 		class NestedExpression : public Expression {

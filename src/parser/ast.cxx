@@ -320,6 +320,49 @@ namespace dim {
 		}
 
 
+		ForLoopExpression::ForLoopExpression(
+			std::shared_ptr<ScopeExpression> scope,
+			std::shared_ptr<Expression> initialExpression,
+			std::shared_ptr<Expression> condition,
+			std::shared_ptr<Expression> updateExpression,
+			std::shared_ptr<OrExpression> orExpression
+		) :
+			WhileLoopExpression(
+				scope,
+				condition,
+				orExpression
+			),
+			m_initialExpression(initialExpression),
+			m_updateExpression(updateExpression)
+		{}
+
+		std::shared_ptr<Expression> ForLoopExpression::GetInitialExpression() {
+			return m_initialExpression;
+		}
+
+		std::shared_ptr<Expression> ForLoopExpression::GetUpdateExpression() {
+			return m_updateExpression;
+		}
+
+		std::string ForLoopExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "loop(\n";
+			repr.insert(0, indent, '\t');
+			repr += m_initialExpression->Repr(indent + 1) + ";\n";
+			repr += m_condition->Repr(indent + 1) + ";\n";
+			repr += m_updateExpression->Repr(indent + 1);
+			repr += "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
+			repr += m_scope->Repr(indent) + " ";
+			repr += m_orExpression->Repr(indent);
+			return repr;
+		}
+		NodeType ForLoopExpression::Type() {
+			return NodeType::FOR;
+		}
+
+
 		NestedExpression::NestedExpression(
 			std::shared_ptr<Expression> expression
 		) :

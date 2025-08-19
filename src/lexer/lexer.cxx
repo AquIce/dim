@@ -226,6 +226,18 @@ namespace dim {
 			}
 		}
 
+		std::expected<struct Token, std::string> LexDot(
+			std::string& src
+		) noexcept {
+			if(src.front() == '.') {
+				return MakeToken(
+					TokenType::DOT,
+					std::string(1, utils::shift(src))
+				);
+			}
+			return std::unexpected("No dot token found.");
+		}
+
 		std::expected<struct Token, std::string> LexColon(
 			std::string& src
 		) noexcept {
