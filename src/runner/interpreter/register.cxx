@@ -54,9 +54,8 @@ namespace dim {
 				return std::unexpected("Trying to set non existing value.");
 			}
 
-			m_register.insert(
-				{ name, value }
-			);
+			m_register[name] = value;
+
 			return Success{};
 		}
 

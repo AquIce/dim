@@ -419,12 +419,10 @@ namespace dim {
 			size_t indent
 		) {
 			std::string repr =
-				std::string(m_isConst ? "const " : "var ")
-				+ m_name + ": "
+				std::string("(") + m_name + ": "
 				+ std::string(DatatypeToStr.at(int(m_datatype)))
-				+ " = (\n" + m_expression->Repr(indent + 1) + "\n)";
+				+ ")";
 			repr.insert(0, indent, '\t');
-			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;
 		}
 		NodeType IdentifierExpression::Type() {
@@ -448,8 +446,13 @@ namespace dim {
 
 		std::string AssignationExpression::Repr(
 			size_t indent
-		) {
-			return m_identifier->Repr(indent);
+		) {			
+			std::string repr =
+				m_identifier->Repr(indent) + " = (\n"
+				+ m_identifier->GetExpression()->Repr(indent + 1)
+				+ "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
 		}
 		NodeType AssignationExpression::Type() {
 			return NodeType::ASSIGN;
@@ -475,7 +478,22 @@ namespace dim {
 		std::string DeclarationExpression::Repr(
 			size_t indent
 		) {
-			std::string repr = "DECL(\n" + m_identifier->Repr(indent + 1) + "\n)";
+			std::string identifierRepr = m_identifier->Repr(indent);
+			identifierRepr.erase(
+				std::remove_if(
+					identifierRepr.begin(),
+					identifierRepr.end(),
+					[](unsigned char c) {
+						return c == '\t';
+					}
+				),
+				identifierRepr.end()
+			);
+			std::string repr =
+				std::string(m_identifier->GetIsConst() ? "const " : "var ")
+				+ identifierRepr + " := (\n"
+				+ m_identifier->GetExpression()->Repr(indent + 1)
+				+ "\n)";
 			repr.insert(0, indent, '\t');
 			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;

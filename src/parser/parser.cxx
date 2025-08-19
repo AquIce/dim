@@ -3,18 +3,18 @@
 namespace dim {
 	namespace parser {
 
-		std::vector<std::shared_ptr<IdentifierExpression>> Identifiers = {};
+		std::vector<IdentifierData> Identifiers = {};
 
 		std::expected<
-			std::shared_ptr<IdentifierExpression>,
+			IdentifierData,
 			std::string
 		> GetIdentifier(
 			std::string name
 		) {
-			std::vector<std::shared_ptr<IdentifierExpression>>::iterator identifier = std::find_if(
+			std::vector<IdentifierData>::iterator identifier = std::find_if(
 				Identifiers.begin(), Identifiers.end(),
-				[&name](const std::shared_ptr<IdentifierExpression>& ident) {
-					return name == ident->GetName();
+				[&name](const IdentifierData& ident) {
+					return name == ident.name;
 				}
 			);
 			if(identifier == Identifiers.end()) {
@@ -89,7 +89,7 @@ namespace dim {
 			)
 
 			std::expected<
-				std::shared_ptr<IdentifierExpression>,
+				IdentifierData,
 				std::string
 			> result = GetIdentifier(identifier.value);
 
@@ -99,7 +99,10 @@ namespace dim {
 				);
 			}
 
-			return result.value();
+			return std::make_shared<IdentifierExpression>(
+				result.value().name,
+				result.value().isConst
+			);
 		}
 
 		std::expected<
@@ -459,17 +462,18 @@ namespace dim {
 		> parse_assignation_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER) {
+			if(
+				tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER
+				|| (tokens.size() > 1 && tokens.at(1).type != lexer::TokenType::EQUALS)
+			) {
 				return parse_loop_expression(tokens);
 			}
 
+			// We know it's an identifier
 			std::shared_ptr<Expression> identifierExpression = parse_identifier_expression(tokens).value();
 
-			__TRY_TOKEN_FUNC_WRETERR(
-				expect,
-				tokens,
-				lexer::MakeToken(lexer::TokenType::EQUALS)
-			)
+			// We know it's an EQUALS token
+			(void)eat(tokens);
 
 			std::shared_ptr<Expression> expression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -481,7 +485,7 @@ namespace dim {
 			std::string name = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName();
 
 			std::expected<
-				std::shared_ptr<IdentifierExpression>,
+				IdentifierData,
 				std::string
 			> result = GetIdentifier(name);
 
@@ -489,7 +493,10 @@ namespace dim {
 				return std::unexpected("Variable name '" + name + "' does not exist yet");
 			}
 
-			std::shared_ptr<IdentifierExpression> identifier = result.value();
+			auto identifier = std::make_shared<IdentifierExpression>(
+				result.value().name,
+				result.value().isConst
+			);
 
 			if(identifier->GetIsConst()) {
 				return std::unexpected("Trying to set constant '" + name + "'");
@@ -512,6 +519,7 @@ namespace dim {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DECL) {
 				return parse_assignation_expression(tokens);
 			}
+
 			bool isConst = eat(tokens).value().value == "const";
 
 			std::shared_ptr<Expression> identifierExpression;
@@ -557,7 +565,10 @@ namespace dim {
 				return std::unexpected("Variable name '" + identifier->GetName() + "' already exists");
 			}
 
-			Identifiers.push_back(identifier);
+			Identifiers.push_back(IdentifierData{
+				identifier->GetName(),
+				isConst
+			});
 
 			return std::make_shared<DeclarationExpression>(
 				identifier,

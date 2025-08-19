@@ -1,5 +1,5 @@
 #include <runner/interpreter/interpreter.hxx>
-#include <iostream>
+
 namespace dim {
 	namespace interpreter {
 
@@ -223,6 +223,7 @@ namespace dim {
 				}
 			}
 
+			scopeValue->SetFlag(ValueFlag::NONE);
 			return scopeValue;
 		}
 
@@ -256,6 +257,8 @@ namespace dim {
 			if(scopeValue == nullptr) {
 				return EvaluateOrExpression(whileLoopExpression->GetOrExpression());
 			}
+
+			scopeValue->SetFlag(ValueFlag::NONE);
 
 			return scopeValue;
 		}

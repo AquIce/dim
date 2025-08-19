@@ -52,7 +52,7 @@ namespace dim {
 			"PARENTHESIS",
 			"BRACE",
 			"COLON",
-			"EQUALS"
+			"EQUALS",
 			"IFELSE",
 			"LOOP",
 			"BREAK",

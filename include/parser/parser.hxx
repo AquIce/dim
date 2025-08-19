@@ -47,12 +47,15 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 namespace dim {
 	namespace parser {
 
-		extern std::vector<
-			std::shared_ptr<IdentifierExpression>
-		> Identifiers;
+		typedef struct IdentifierData {
+			std::string name;
+			bool isConst;
+		} IdentifierData;
+
+		extern std::vector<IdentifierData> Identifiers;
 
 		std::expected<
-			std::shared_ptr<IdentifierExpression>,
+			IdentifierData,
 			std::string
 		> GetIdentifier(
 			std::string name
