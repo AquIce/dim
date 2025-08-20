@@ -1,5 +1,11 @@
 {
-	loop(var i: u32 = 0; i <= 10; i = i + 1) {
-		i;
-	} or false;
+	true && false;
+	true || false;
+	3 > 2;
+	4 < 4;
+	5 >= 9;
+	4 <= 4;
+	1 == 2;
+	2 != 3;
+	!(true && false);
 };

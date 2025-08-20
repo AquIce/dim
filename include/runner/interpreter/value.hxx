@@ -38,7 +38,7 @@ std::expected< \
 > _ValueClass::operator operatorSymbol( \
 	std::shared_ptr<Value> other \
 ) { \
-	return std::unexpected("Cannot use 'operatorSymbol' operator on errorMessageName value"); \
+	return std::unexpected(std::string("Cannot use '") + #operatorSymbol + "' operator on " + #errorMessageName + " value"); \
 }
 
 #define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(_InputClass, _OutputClass, inputClassEnum, operatorSymbol) \
@@ -56,7 +56,7 @@ std::expected< \
 		); \
 	default: \
 		return std::unexpected( \
-			std::string("Cannot use 'operatorSymbol' operator on _InputClass value and ") \
+			std::string(std::string("Cannot use '") + #operatorSymbol + "' operator on " + #_InputClass + " value and ") \
 			+ std::string(ValueTypeStr.at(int(other->Type()))) \
 		); \
 	} \
@@ -112,6 +112,16 @@ namespace dim {
 			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(>=)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(&&)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(^)
+
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> operator!();
 
 		private:
 			ValueFlag m_flag;
@@ -137,6 +147,11 @@ namespace dim {
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
 		};
 
 		class NumberValue : public Value {
@@ -166,6 +181,11 @@ namespace dim {
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
 
 		private:
 			double m_value;
@@ -198,6 +218,11 @@ namespace dim {
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
 
 		private:
 			bool m_value;
@@ -230,6 +255,11 @@ namespace dim {
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
 
 		private:
 			std::string m_value;

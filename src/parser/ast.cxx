@@ -144,6 +144,50 @@ namespace dim {
 
 
 
+		UnaryExpression::UnaryExpression(
+			std::shared_ptr<Expression> term,
+			std::string operatorSymbol
+		) :
+			m_term(term),
+			m_operatorSymbol(operatorSymbol)
+		{}
+
+		std::shared_ptr<Expression> UnaryExpression::GetTerm() {
+			return m_term;
+		}
+		std::string UnaryExpression::GetOperator() {
+			return m_operatorSymbol;
+		}
+
+		std::string UnaryExpression::Repr(
+			const size_t indent
+		) {
+			std::string termRepr = m_term->Repr(indent);
+			termRepr.erase(
+				std::remove_if(
+					termRepr.begin(),
+					termRepr.end(),
+					[](unsigned char c) {
+						return c == '\t';
+					}
+				),
+				termRepr.end()
+			);
+			std::string repr = "UnaryExpression(\n";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent + 1, '\t');
+			repr += termRepr + "\n)";
+			repr.insert(repr.size() - 2, indent, '\t');
+
+			return repr;
+		}
+
+		NodeType UnaryExpression::Type() {
+			return NodeType::UNARY;
+		}
+
+
+
 		BinaryExpression::BinaryExpression(
 			std::shared_ptr<Expression> left,
 			std::string operatorSymbol,

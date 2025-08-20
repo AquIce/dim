@@ -32,6 +32,7 @@ namespace dim {
 					return "STRING(\"" + token.value + "\")";
 				
 				case TokenType::EOL:
+				case TokenType::UNARY_OPERATOR:
 				case TokenType::BINARY_OPERATOR:
 				case TokenType::PARENTHESIS:
 				case TokenType::BRACE:
@@ -185,7 +186,8 @@ namespace dim {
 				|| src.rfind("<=", 0) == 0
 				|| src.rfind("&&", 0) == 0
 				|| src.rfind("||", 0) == 0
-				|| src.rfind("^^", 0) == 0
+				|| src.rfind("==", 0) == 0
+				|| src.rfind("!=", 0) == 0
 			) {
 				return MakeToken(
 					TokenType::BINARY_OPERATOR,
@@ -200,6 +202,9 @@ namespace dim {
 				case '/':
 				case '>':
 				case '<':
+				case '&':
+				case '|':
+				case '^':
 					return MakeToken(
 						TokenType::BINARY_OPERATOR,
 						std::string(1, utils::shift(src))
@@ -207,6 +212,19 @@ namespace dim {
 				default:
 					return std::unexpected("Invalid operator " + src.front());
 			}
+		}
+
+		std::expected<struct Token, std::string> LexUnaryOperator(
+			std::string& src
+		) noexcept {
+			if(src.rfind("!", 0) == 0) {
+				return MakeToken(
+					TokenType::UNARY_OPERATOR,
+					std::string(1, utils::shift(src))
+				);
+			}
+
+			return std::unexpected("No unary operator token found.");
 		}
 
 		std::expected<struct Token, std::string> LexParenthesis(

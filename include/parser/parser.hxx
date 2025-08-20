@@ -131,6 +131,13 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_unary_expression(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_logical_expression(
 			std::vector<struct lexer::Token>& tokens
 		);

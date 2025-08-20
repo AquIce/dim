@@ -253,12 +253,36 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_unary_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::UNARY_OPERATOR) {
+				return parse_parenthesis_expression(tokens);
+			}
+			std::string operatorSymbol = eat(tokens).value().value;
+
+			std::shared_ptr<Expression> term;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_unary_expression,
+				tokens,
+				term
+			)
+
+			return std::make_shared<UnaryExpression>(
+				term,
+				operatorSymbol
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_logical_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_parenthesis_expression,
+				parse_unary_expression,
 				tokens,
 				left
 			)
@@ -273,7 +297,11 @@ namespace dim {
 					|| tokens.front().value == ">="
 					|| tokens.front().value == "&&"
 					|| tokens.front().value == "||"
-					|| tokens.front().value == "^^"
+					|| tokens.front().value == "=="
+					|| tokens.front().value == "!="
+					|| tokens.front().value == "&"
+					|| tokens.front().value == "|"
+					|| tokens.front().value == "^"
 				)
 			) {
 				std::string operatorSymbol = eat(tokens).value().value;

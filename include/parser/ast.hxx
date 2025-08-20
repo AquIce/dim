@@ -15,6 +15,7 @@ namespace dim {
 		class NumberExpression;
 		class BooleanExpression;
 		class StringExpression;
+		class UnaryExpression;
 		class BinaryExpression;
 		class IfElseExpression;
 		class IfElseStructure;
@@ -35,6 +36,7 @@ namespace dim {
 			NUMBER,
 			BOOLEAN,
 			STRING,
+			UNARY,
 			BINARY,
 			IFELSE_EXPR,
 			IFELSE_STRUCT,
@@ -49,13 +51,14 @@ namespace dim {
 			DECL,
 		};
 
-		const std::array<std::string_view, 18> NodeTypeToStr = {
+		const std::array<std::string_view, 19> NodeTypeToStr = {
 			"NONE",
 			"SCOPE",
 			"NUL",
 			"NUMBER",
 			"BOOLEAN",
 			"STRING",
+			"UNARY",
 			"BINARY",
 			"IFELSE_EXPR",
 			"IFELSE_STRUCT",
@@ -175,6 +178,26 @@ namespace dim {
 
 		private:
 			std::string m_value;
+		};
+
+		class UnaryExpression : public Expression {
+		public:
+			UnaryExpression(
+				std::shared_ptr<Expression> term,
+				std::string operatorSymbol
+			);
+
+			std::shared_ptr<Expression> GetTerm();
+			std::string GetOperator();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+
+		private:
+			std::shared_ptr<Expression> m_term;
+			std::string m_operatorSymbol;
 		};
 
 		class BinaryExpression : public Expression {

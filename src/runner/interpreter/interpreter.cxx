@@ -18,6 +18,7 @@ namespace dim {
 					registerManager,
 					scopeValue
 				)
+				LOG(scopeValue->Repr());
 				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
 					return scopeValue;
 				}
@@ -118,6 +119,29 @@ namespace dim {
 			);
 
 			return orValue;
+		}
+		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateUnaryExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto unaryExpression = std::dynamic_pointer_cast<parser::UnaryExpression>(expression);
+
+			std::string unaryOperator = unaryExpression->GetOperator();
+
+			std::shared_ptr<Value> term;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				unaryExpression->GetTerm(),
+				registerManager,
+				term
+			)
+
+			if(unaryOperator == "!") {
+				return !(*term.get());
+			}
+			
+			return std::unexpected("Invalid unary operator.");
 		}
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(

@@ -33,6 +33,20 @@ namespace dim {
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(>=)
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(&&)
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(||)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(==)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(!=)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(&)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(|)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(^)
+
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> Value::operator!() {
+			return std::make_shared<BooleanValue>(
+				!this->IsTrue()
+			);
+		}
 
 
 		NullValue::NullValue() :
@@ -60,6 +74,11 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, >=, null)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, &&, null) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ||, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ==, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, !=, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, &, null) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, |, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ^, null)
 
 
 		NumberValue::NumberValue(
@@ -123,6 +142,13 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, >=)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, &&)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, ||)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, ==)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, !=)
+
+		// Can be re-enabled when distinction between double and int is made
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, &, number) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, |, number)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, ^, number)
 
 
 
@@ -164,6 +190,12 @@ namespace dim {
 
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, &&)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ||)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ==)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, !=)
+		
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, &, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, |, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, ^, boolean)
 		
 
 		StringValue::StringValue(
@@ -193,7 +225,7 @@ namespace dim {
 			return ValueType::STRING;
 		}
 
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, StringValue, ValueType::STRING, +) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, StringValue, ValueType::STRING, +)
 		
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, -, string)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, *, string)
@@ -204,5 +236,12 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, >=, string)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, &&, string) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ||, string)
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, BooleanValue, ValueType::STRING, ==)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, BooleanValue, ValueType::STRING, !=)
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, &, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, |, string) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ^, string)
 	}
 }

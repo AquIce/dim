@@ -52,11 +52,16 @@ case valueTypeEnum: { \
 		return *lhsCast.get() && rhs; \
 	} if(binaryOperator == "||") { \
 		return *lhsCast.get() || rhs; \
-	} if(binaryOperator == "^^") { \
-		return std::make_shared<BooleanValue>( \
-			(*lhsCast.get() || rhs) \
-			&& !(*lhsCast.get() && rhs) \
-		); \
+	} if(binaryOperator == "==") { \
+		return *lhsCast.get() == rhs; \
+	} if(binaryOperator == "!=") { \
+		return *lhsCast.get() != rhs; \
+	} if(binaryOperator == "&") { \
+		return *lhsCast.get() & rhs; \
+	} if(binaryOperator == "|") { \
+		return *lhsCast.get() | rhs; \
+	} if(binaryOperator == "^") { \
+		return *lhsCast.get() ^ rhs; \
 	} else { \
 		return std::unexpected( \
 			std::string("Invalid operator ") \
@@ -115,6 +120,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateUnaryExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -168,6 +178,7 @@ namespace dim {
 			{ parser::NodeType::STRING, &EvaluateStringExpression },
 			{ parser::NodeType::BREAK, &EvaluateBreakExpression },
 			{ parser::NodeType::OR, &EvaluateOrExpression },
+			{ parser::NodeType::UNARY, &EvaluateUnaryExpression },
 			{ parser::NodeType::BINARY, &EvaluateBinaryExpression },
 			{ parser::NodeType::IFELSE_STRUCT, &EvaluateIfElseStructure },
 			{ parser::NodeType::LOOP, &EvaluateLoopExpression },
