@@ -174,13 +174,6 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_while_loop_expression(
-			std::vector<struct lexer::Token>& tokens
-		);
-
-		std::expected<
-			std::shared_ptr<Expression>,
-			std::string
 		> parse_assignation_expression(
 			std::vector<struct lexer::Token>& tokens
 		);

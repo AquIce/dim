@@ -263,6 +263,52 @@ namespace dim {
 			return scopeValue;
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateForLoopExpression(
+			std::shared_ptr<parser::Expression> expression
+		) {
+			auto forLoopExpression = std::dynamic_pointer_cast<parser::ForLoopExpression>(expression);
+
+			__TRY_VALUE_FUNC_WRETERR(
+				EvaluateExpression,
+				forLoopExpression->GetInitialExpression()
+			)
+
+			std::shared_ptr<Value> conditionValue;
+			std::shared_ptr<Value> scopeValue = nullptr;
+
+			while(true) {
+				__TRY_VALUE_FUNC_WRETERR(
+					EvaluateExpression,
+					forLoopExpression->GetUpdateExpression()
+				)
+				
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateExpression,
+					forLoopExpression->GetCondition(),
+					conditionValue
+				)
+				if(!conditionValue->IsTrue()) {
+					break;
+				}
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateScopeExpression,
+					forLoopExpression->GetScope(),
+					scopeValue
+				)
+				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+					break;
+				}
+			}
+
+			if(scopeValue == nullptr) {
+				return EvaluateOrExpression(forLoopExpression->GetOrExpression());
+			}
+
+			scopeValue->SetFlag(ValueFlag::NONE);
+
+			return scopeValue;
+		}
+		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateAssignationExpression(
 			std::shared_ptr<parser::Expression> expression
 		) {

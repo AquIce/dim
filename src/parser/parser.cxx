@@ -417,13 +417,48 @@ namespace dim {
 			}
 			(void)eat(tokens);
 
+			std::shared_ptr<Expression> initialExpression = nullptr;
 			std::shared_ptr<Expression> condition = nullptr;
+			std::shared_ptr<Expression> updateExpression = nullptr;
 
-			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::PARENTHESIS) {
+			if(
+				tokens.size() > 0
+				&& tokens.front().type == lexer::TokenType::PARENTHESIS
+				&& tokens.front().value == "("
+			) {
+				(void)eat(tokens);
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
-					parse_parenthesis_expression,
+					parse_expression,
 					tokens,
-					condition
+					initialExpression
+				)	
+
+				if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::EOL) {
+					(void)eat(tokens);
+					
+					__TRY_EXPR_FUNC_WRETERR_WSAVE(
+						parse_expression,
+						tokens,
+						condition
+					)
+
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::EOL)
+					)
+
+					__TRY_EXPR_FUNC_WRETERR_WSAVE(
+						parse_expression,
+						tokens,
+						updateExpression	
+					)
+				}
+
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::PARENTHESIS, ")")
 				)
 			}
 
@@ -434,8 +469,9 @@ namespace dim {
 				scope
 			)
 
-			if(condition != nullptr) {
-				std::shared_ptr<OrExpression> orExpression;
+			std::shared_ptr<OrExpression> orExpression;
+
+			if(initialExpression != nullptr) {
 				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
 					parse_or_expression,
 					std::shared_ptr<OrExpression>,
@@ -443,16 +479,26 @@ namespace dim {
 					orExpression,
 					tokens
 				)
+			} else {
+				return std::make_shared<LoopExpression>(
+					std::dynamic_pointer_cast<ScopeExpression>(scope)
+				);
+			}
 
-				return std::make_shared<WhileLoopExpression>(
+			if(condition) {
+				return std::make_shared<ForLoopExpression>(
 					std::dynamic_pointer_cast<ScopeExpression>(scope),
+					initialExpression,
 					condition,
+					updateExpression,
 					orExpression
 				);
 			}
 
-			return std::make_shared<LoopExpression>(
-				std::dynamic_pointer_cast<ScopeExpression>(scope)
+			return std::make_shared<WhileLoopExpression>(
+				std::dynamic_pointer_cast<ScopeExpression>(scope),
+				initialExpression,
+				orExpression
 			);
 		}
 

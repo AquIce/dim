@@ -1,12 +1,5 @@
 {
-	var a := 0;
-	loop {
-		a = a + 1;
-		if(a - 10) {
-			222;
-		} else {
-			break 111;
-		};
-	};
-	a;
+	loop(var i: u32 = 0; i - 10; i = i + 1) {
+		i;
+	} or 23;
 };
