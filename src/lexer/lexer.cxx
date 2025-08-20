@@ -179,12 +179,27 @@ namespace dim {
 		std::expected<struct Token, std::string> LexBinaryOperator(
 			std::string& src
 		) noexcept {
+			
+			if(
+				src.rfind(">=", 0) == 0
+				|| src.rfind("<=", 0) == 0
+				|| src.rfind("&&", 0) == 0
+				|| src.rfind("||", 0) == 0
+				|| src.rfind("^^", 0) == 0
+			) {
+				return MakeToken(
+					TokenType::BINARY_OPERATOR,
+					utils::shift(src, 2)
+				);
+			}
 
 			switch(src.front()) {
 				case '+':
 				case '-':
 				case '*':
 				case '/':
+				case '>':
+				case '<':
 					return MakeToken(
 						TokenType::BINARY_OPERATOR,
 						std::string(1, utils::shift(src))

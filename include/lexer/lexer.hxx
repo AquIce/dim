@@ -30,7 +30,7 @@ namespace dim {
 			DOT,
 			COLON,
 			EQUALS,
-			
+
 			IFELSE,
 			LOOP,
 			BREAK,

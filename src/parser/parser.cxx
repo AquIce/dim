@@ -253,12 +253,59 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_multiplicative_expression(
+		> parse_logical_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_parenthesis_expression,
+				tokens,
+				left
+			)
+
+			while(
+				tokens.size() != 0 &&
+				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
+				(
+					tokens.front().value == "<"
+					|| tokens.front().value == ">"
+					|| tokens.front().value == "<="
+					|| tokens.front().value == ">="
+					|| tokens.front().value == "&&"
+					|| tokens.front().value == "||"
+					|| tokens.front().value == "^^"
+				)
+			) {
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_logical_expression,
+					tokens,
+					right
+				)
+
+				left = std::make_shared<BinaryExpression>(
+					left,
+					operatorSymbol,
+					right
+				);
+			}
+
+			return left;
+		}
+
+
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_multiplicative_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_logical_expression,
 				tokens,
 				left
 			)

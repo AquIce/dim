@@ -5,6 +5,64 @@
 #include <memory>
 #include <string>
 
+#define __GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(operatorSymbol) \
+virtual std::expected< \
+	std::shared_ptr<Value>, \
+	std::string \
+> operator operatorSymbol( \
+	std::shared_ptr<Value> other \
+);
+
+#define __GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(operatorSymbol) \
+std::expected< \
+	std::shared_ptr<Value>, \
+	std::string \
+> operator operatorSymbol( \
+	std::shared_ptr<Value> other \
+) override;
+
+#define __GEN__OPERATOR_VALUE_BODY_VIRTUAL(operatorSymbol) \
+std::expected< \
+	std::shared_ptr<Value>, \
+	std::string \
+> Value::operator operatorSymbol( \
+	std::shared_ptr<Value> other \
+) { \
+	return std::unexpected("Using Value class on its own"); \
+}
+
+#define __GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(_ValueClass, operatorSymbol, errorMessageName) \
+std::expected< \
+	std::shared_ptr<Value>, \
+	std::string \
+> _ValueClass::operator operatorSymbol( \
+	std::shared_ptr<Value> other \
+) { \
+	return std::unexpected("Cannot use 'operatorSymbol' operator on errorMessageName value"); \
+}
+
+#define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(_InputClass, _OutputClass, inputClassEnum, operatorSymbol) \
+std::expected< \
+	std::shared_ptr<Value>, \
+	std::string \
+> _InputClass::operator operatorSymbol( \
+	std::shared_ptr<Value> other \
+) { \
+	switch(other->Type()) { \
+	case inputClassEnum: \
+		return std::make_shared<_OutputClass>( \
+			this->GetValue() \
+			operatorSymbol std::dynamic_pointer_cast<_InputClass>(other)->GetValue() \
+		); \
+	default: \
+		return std::unexpected( \
+			std::string("Cannot use 'operatorSymbol' operator on _InputClass value and ") \
+			+ std::string(ValueTypeStr.at(int(other->Type()))) \
+		); \
+	} \
+}
+
+
 namespace dim {
 	namespace interpreter {
 
@@ -21,11 +79,12 @@ namespace dim {
 			BREAK
 		};
 
-		const std::array<std::string_view, 4> ValueTypeStr = {
+		const std::array<std::string_view, 5> ValueTypeStr = {
 			"NONE",
 			"NULL",
 			"NUMBER",
-			"BOOLEAN"
+			"BOOLEAN",
+			"STRING"
 		};
 
 		class Value {
@@ -43,30 +102,16 @@ namespace dim {
 				ValueFlag flag
 			);
 
-			virtual std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator+(
-				std::shared_ptr<Value> other
-			);
-			virtual std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator-(
-				std::shared_ptr<Value> other
-			);
-			virtual std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator*(
-				std::shared_ptr<Value> other
-			);
-			virtual std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator/(
-				std::shared_ptr<Value> other
-			);
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(||)
 
 		private:
 			ValueFlag m_flag;
@@ -82,30 +127,16 @@ namespace dim {
 			ValueType Type() override;
 			std::string Repr() override;
 
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator+(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator-(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator*(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator/(
-				std::shared_ptr<Value> other
-			) override; 
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
 		};
 
 		class NumberValue : public Value {
@@ -125,30 +156,16 @@ namespace dim {
 			ValueType Type() override;
 			std::string Repr() override;
 
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator+(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator-(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator*(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator/(
-				std::shared_ptr<Value> other
-			) override; 
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
 
 		private:
 			double m_value;
@@ -171,30 +188,16 @@ namespace dim {
 			ValueType Type() override;
 			std::string Repr() override;
 
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator+(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator-(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator*(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator/(
-				std::shared_ptr<Value> other
-			) override; 
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
 
 		private:
 			bool m_value;
@@ -217,30 +220,16 @@ namespace dim {
 			ValueType Type() override;
 			std::string Repr() override;
 
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator+(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator-(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator*(
-				std::shared_ptr<Value> other
-			) override;
-			std::expected<
-				std::shared_ptr<Value>,
-				std::string
-			> operator/(
-				std::shared_ptr<Value> other
-			) override; 
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
 
 		private:
 			std::string m_value;

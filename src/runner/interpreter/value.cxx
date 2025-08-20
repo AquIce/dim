@@ -23,38 +23,16 @@ namespace dim {
 			m_flag = flag;
 		}
 
- 		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> Value::operator+(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Using Value class on its own");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> Value::operator-(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Using Value class on its own");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> Value::operator*(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Using Value class on its own");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> Value::operator/(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Using Value class on its own");
-		}
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(+)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(-)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(*)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(/)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(<)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(>)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(<=)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(>=)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(&&)
+ 		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(||)
 
 
 		NullValue::NullValue() :
@@ -72,39 +50,16 @@ namespace dim {
 			return ValueType::NUL;
 		}
 
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NullValue::operator+(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '+' operator on null value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NullValue::operator-(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '-' operator on null value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NullValue::operator*(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '*' operator on null value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NullValue::operator/(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '/' operator on null value");
-		} 
-
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, +, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, -, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, *, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, /, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, <, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, >, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, <=, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, >=, null)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, &&, null) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ||, null)
 
 
 		NumberValue::NumberValue(
@@ -133,64 +88,11 @@ namespace dim {
 		ValueType NumberValue::Type() {
 			return ValueType::NUMBER;
 		}
-
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NumberValue::operator+(
-			std::shared_ptr<Value> other
-		) {
-			switch(other->Type()) {
-			case ValueType::NUMBER:
-				return std::make_shared<NumberValue>(
-					this->GetValue()
-					+ std::dynamic_pointer_cast<NumberValue>(other)->GetValue()
-				);
-			default:
-				return std::unexpected(
-					std::string("Cannot use '+' operator on number value and ")
-					+ std::string(ValueTypeStr.at(int(other->Type())))
-				);
-			}
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NumberValue::operator-(
-			std::shared_ptr<Value> other
-		) {
-			switch(other->Type()) {
-			case ValueType::NUMBER:
-				return std::make_shared<NumberValue>(
-					this->GetValue()
-					- std::dynamic_pointer_cast<NumberValue>(other)->GetValue()
-				);
-			default:
-				return std::unexpected(
-					std::string("Cannot use '-' operator on number value and ")
-					+ std::string(ValueTypeStr.at(int(other->Type())))
-				);
-			}
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NumberValue::operator*(
-			std::shared_ptr<Value> other
-		) {
-			switch(other->Type()) {
-			case ValueType::NUMBER:
-				return std::make_shared<NumberValue>(
-					this->GetValue()
-					* std::dynamic_pointer_cast<NumberValue>(other)->GetValue()
-				);
-			default:
-				return std::unexpected(
-					std::string("Cannot use '*' operator on number value and ")
-					+ std::string(ValueTypeStr.at(int(other->Type())))
-				);
-			}
-		}
+		
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, +)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, -)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, *)
+		
 		std::expected<
 			std::shared_ptr<Value>,
 			std::string
@@ -214,6 +116,15 @@ namespace dim {
 				);
 			}
 		}
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, <)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, >)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, <=)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, >=)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, &&)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, ||)
+
+
 
 		BooleanValue::BooleanValue(
 			bool value
@@ -242,38 +153,18 @@ namespace dim {
 			return ValueType::BOOLEAN;
 		}
 
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> BooleanValue::operator+(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '+' operator on boolean value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> BooleanValue::operator-(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '-' operator on boolean value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> BooleanValue::operator*(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '*' operator on boolean value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> BooleanValue::operator/(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '/' operator on boolean value");
-		}
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, +, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, -, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, *, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, /, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, <, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, >, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, <=, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, >=, boolean)
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, &&)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ||)
+		
 
 		StringValue::StringValue(
 			std::string value
@@ -302,49 +193,16 @@ namespace dim {
 			return ValueType::STRING;
 		}
 
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> StringValue::operator+(
-			std::shared_ptr<Value> other
-		) {
-			switch(other->Type()) {
-			case ValueType::STRING: {
-				std::string value = std::dynamic_pointer_cast<StringValue>(other)->GetValue();
-				return std::make_shared<StringValue>(
-					this->GetValue() + value
-				);
-			}
-			default:
-				return std::unexpected(
-					std::string("Cannot use '+' operator on string value and ")
-					+ std::string(ValueTypeStr.at(int(other->Type())))
-				);
-			}
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> StringValue::operator-(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '-' operator on string value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> StringValue::operator*(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '*' operator on string value");
-		}
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> StringValue::operator/(
-			std::shared_ptr<Value> other
-		) {
-			return std::unexpected("Cannot use '/' operator on string value");
-		}
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, StringValue, ValueType::STRING, +) 
+		
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, -, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, *, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, /, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, <, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, >, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, <=, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, >=, string)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, &&, string) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ||, string)
 	}
 }

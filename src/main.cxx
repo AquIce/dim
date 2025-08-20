@@ -1,6 +1,7 @@
 // TODO
 //	- Add type checking
 // 	- Check const correctness
+// 	- Add == and != operators
 
 #include <lexer/lexer.hxx>
 #include <parser/parser.hxx>

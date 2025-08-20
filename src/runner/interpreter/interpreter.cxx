@@ -144,42 +144,10 @@ namespace dim {
 			)
 
 			switch(lhs->Type()) {
-			case ValueType::NUL: {
-				auto lhsCast = std::dynamic_pointer_cast<NullValue>(lhs);
-
-				if(binaryOperator == "+") {
-					return *lhsCast.get() + rhs;
-				} if(binaryOperator == "-") {
-					return *lhsCast.get() - rhs;
-				} if(binaryOperator == "*") {
-					return *lhsCast.get() * rhs;
-				} if(binaryOperator == "/") {
-					return *lhsCast.get() / rhs;
-				} else {
-					return std::unexpected(
-						std::string("Invalid operator ")
-						+ binaryOperator
-					);
-				}
-			}
-			case ValueType::NUMBER: {
-				auto lhsCast = std::dynamic_pointer_cast<NumberValue>(lhs);
-				
-				if(binaryOperator == "+") {
-					return *lhsCast.get() + rhs;
-				} if(binaryOperator == "-") {
-					return *lhsCast.get() - rhs;
-				} if(binaryOperator == "*") {
-					return *lhsCast.get() * rhs;
-				} if(binaryOperator == "/") {
-					return *lhsCast.get() / rhs;
-				} else {
-					return std::unexpected(
-						std::string("Invalid operator ")
-						+ binaryOperator
-					);
-				}
-			}
+				__GEN__BINARY_OPERATOR_TYPE_CASE(NullValue, ValueType::NUL)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(NumberValue, ValueType::NUMBER)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(BooleanValue, ValueType::BOOLEAN)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(StringValue, ValueType::STRING)
 			default:
 				return std::unexpected(std::string("Invalid lhs type"));
 			}
@@ -429,10 +397,22 @@ namespace dim {
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateProgram(
 			std::shared_ptr<parser::ScopeExpression> program
 		) {
-			return EvaluateScopeExpression(
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> result = EvaluateScopeExpression(
 				program,
 				std::make_shared<RegisterManager>(nullptr)	
 			);
+
+			if(!result) {
+				return std::unexpected(
+					std::string("[ERR::RUNNER::INTERPRETER] Got error :\n\t\"") + result.error()
+					+ "\"\nwhile interpreting program."
+				);
+			}
+
+			return result.value();
 		}
 	}
 }

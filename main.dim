@@ -1,8 +1,5 @@
 {
-	loop(var i: u32 = 0; i - 10; i = i + 1) {
+	loop(var i: u32 = 0; i <= 10; i = i + 1) {
 		i;
-	} or 23;
-
-	const i: str = "hello";
-	i;
+	} or false;
 };

@@ -29,6 +29,42 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 	registerManager \
 )
 
+#define __GEN__BINARY_OPERATOR_TYPE_CASE(valueType, valueTypeEnum) \
+case valueTypeEnum: { \
+	auto lhsCast = std::dynamic_pointer_cast<valueType>(lhs); \
+	if(binaryOperator == "+") { \
+		return *lhsCast.get() + rhs; \
+	} if(binaryOperator == "-") { \
+		return *lhsCast.get() - rhs; \
+	} if(binaryOperator == "*") { \
+		return *lhsCast.get() * rhs; \
+	} if(binaryOperator == "/") { \
+		return *lhsCast.get() / rhs; \
+	} if(binaryOperator == "<") { \
+		return *lhsCast.get() < rhs; \
+	} if(binaryOperator == ">") { \
+		return *lhsCast.get() > rhs; \
+	} if(binaryOperator == "<=") { \
+		return *lhsCast.get() <= rhs; \
+	} if(binaryOperator == ">=") { \
+		return *lhsCast.get() >= rhs; \
+	} if(binaryOperator == "&&") { \
+		return *lhsCast.get() && rhs; \
+	} if(binaryOperator == "||") { \
+		return *lhsCast.get() || rhs; \
+	} if(binaryOperator == "^^") { \
+		return std::make_shared<BooleanValue>( \
+			(*lhsCast.get() || rhs) \
+			&& !(*lhsCast.get() && rhs) \
+		); \
+	} else { \
+		return std::unexpected( \
+			std::string("Invalid operator ") \
+			+ binaryOperator \
+		); \
+	} \
+} \
+
 namespace dim {
 	namespace interpreter {
 
