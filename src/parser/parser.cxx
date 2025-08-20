@@ -9,7 +9,7 @@ namespace dim {
 			IdentifierData,
 			std::string
 		> GetIdentifier(
-			std::string name
+			const std::string name
 		) {
 			std::vector<IdentifierData>::iterator identifier = std::find_if(
 				Identifiers.begin(), Identifiers.end(),
@@ -38,7 +38,7 @@ namespace dim {
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> expect(
 			std::vector<struct lexer::Token>& tokens,
-			struct lexer::Token expected
+			const struct lexer::Token expected
 		) {
 
 			std::expected<struct lexer::Token, std::string> result = eat(tokens);

@@ -89,7 +89,7 @@ namespace dim {
 		class Expression {
 		public:
 			virtual std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			);
 			virtual NodeType Type();
 
@@ -108,7 +108,7 @@ namespace dim {
 			);
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -121,7 +121,7 @@ namespace dim {
 			NullExpression();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 		};
@@ -135,7 +135,7 @@ namespace dim {
 			std::string GetValue();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -152,7 +152,7 @@ namespace dim {
 			std::string GetValue();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -169,7 +169,7 @@ namespace dim {
 			std::string GetValue();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -190,7 +190,7 @@ namespace dim {
 			std::shared_ptr<Expression> GetRight();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -211,7 +211,7 @@ namespace dim {
 			std::shared_ptr<Expression> GetCondition();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -229,7 +229,7 @@ namespace dim {
 			std::vector<std::shared_ptr<IfElseExpression>> GetExpressions();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -246,7 +246,7 @@ namespace dim {
 			std::shared_ptr<ScopeExpression> GetScope();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -266,7 +266,7 @@ namespace dim {
 			std::shared_ptr<Expression> GetOrExpression();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -289,7 +289,7 @@ namespace dim {
 			std::shared_ptr<Expression> GetUpdateExpression();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -307,7 +307,7 @@ namespace dim {
 			std::shared_ptr<Expression> GetExpression();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -322,7 +322,7 @@ namespace dim {
 			);
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 		};
@@ -334,7 +334,7 @@ namespace dim {
 			);
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 		};
@@ -362,7 +362,7 @@ namespace dim {
 			);
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -382,7 +382,7 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> GetIdentifier();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 
@@ -402,7 +402,7 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> GetIdentifier();
 
 			std::string Repr(
-				size_t indent = 0
+				const size_t indent = 0
 			) override;
 			NodeType Type() override;
 

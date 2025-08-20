@@ -4,7 +4,7 @@ namespace dim {
 	namespace parser {
 
 		std::string Expression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "INVALID EXPRESSION";
 			repr.insert(0, indent, '\t');
@@ -34,7 +34,7 @@ namespace dim {
 		}
 
 		std::string ScopeExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "{\n";
 			for(const auto& expression : m_expressions) {
@@ -56,7 +56,7 @@ namespace dim {
 		{}
 
 		std::string NullExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "null";
 			repr.insert(0, indent, '\t');
@@ -81,7 +81,7 @@ namespace dim {
 		}
 
 		std::string NumberExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "NumberExpression(" + m_value + ")";
 			repr.insert(0, indent, '\t');
@@ -106,7 +106,7 @@ namespace dim {
 		}
 
 		std::string BooleanExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "BooleanExpression(" + m_value + ")";
 			repr.insert(0, indent, '\t');
@@ -131,7 +131,7 @@ namespace dim {
 		}
 
 		std::string StringExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "StringExpression(\"" + m_value + "\")";
 			repr.insert(0, indent, '\t');
@@ -166,7 +166,7 @@ namespace dim {
 		}
 
 		std::string BinaryExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "BinaryExpression(\n"
 				+ m_left->Repr(indent + 1) + "\n"
@@ -204,7 +204,7 @@ namespace dim {
 		}
 
 		std::string IfElseExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "";
 
@@ -236,7 +236,7 @@ namespace dim {
 		}
 
 		std::string IfElseStructure::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "";
 
@@ -274,7 +274,7 @@ namespace dim {
 		}
 
 		std::string LoopExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "loop " + m_scope->Repr(indent);
 			repr.insert(0, indent, '\t');
@@ -304,7 +304,7 @@ namespace dim {
 		}
 
 		std::string WhileLoopExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "loop(\n";
 			repr.insert(0, indent, '\t');
@@ -345,7 +345,7 @@ namespace dim {
 		}
 
 		std::string ForLoopExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "loop(\n";
 			repr.insert(0, indent, '\t');
@@ -375,7 +375,7 @@ namespace dim {
 		}
 
 		std::string NestedExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "(\n" + m_expression->Repr(indent + 1) + "\n)";
 			repr.insert(repr.size() - 1, indent, '\t');
@@ -394,7 +394,7 @@ namespace dim {
 		{}
 
 		std::string BreakExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr = "break" + NestedExpression::Repr(indent);
 			repr.insert(0, indent, '\t');
@@ -413,7 +413,7 @@ namespace dim {
 		{}
 
 		std::string OrExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			return "or" + NestedExpression::Repr(indent);
 		}
@@ -459,7 +459,7 @@ namespace dim {
 		}
 
 		std::string IdentifierExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string repr =
 				std::string("(") + m_name + ": "
@@ -488,7 +488,7 @@ namespace dim {
 		}
 
 		std::string AssignationExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {			
 			std::string repr =
 				m_identifier->Repr(indent) + " = (\n"
@@ -519,7 +519,7 @@ namespace dim {
 		}
 
 		std::string DeclarationExpression::Repr(
-			size_t indent
+			const size_t indent
 		) {
 			std::string identifierRepr = m_identifier->Repr(indent);
 			identifierRepr.erase(

@@ -48,8 +48,8 @@ namespace dim {
 	namespace parser {
 
 		typedef struct IdentifierData {
-			std::string name;
-			bool isConst;
+			const std::string name;
+			const bool isConst;
 		} IdentifierData;
 
 		extern std::vector<IdentifierData> Identifiers;
@@ -58,7 +58,7 @@ namespace dim {
 			IdentifierData,
 			std::string
 		> GetIdentifier(
-			std::string name
+			const std::string name
 		);
 
 		[[nodiscard]]
@@ -69,7 +69,7 @@ namespace dim {
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> expect(
 			std::vector<struct lexer::Token>& tokens,
-			struct lexer::Token expected
+			const struct lexer::Token expected
 		);
 
 		std::expected<

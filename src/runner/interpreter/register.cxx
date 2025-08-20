@@ -14,7 +14,7 @@ namespace dim {
 			Success,
 			std::string
 		> RegisterManager::Register(
-			std::string name,
+			const std::string name,
 			RegisterValue value
 		) {
 			if(this->Exists(name)) {
@@ -28,7 +28,7 @@ namespace dim {
 		}
 
 		bool RegisterManager::Exists(
-			std::string name
+			const std::string name
 		) {
 			return (
 				this->_Exists(name)
@@ -41,7 +41,7 @@ namespace dim {
 			RegisterValue,
 			std::string
 		> RegisterManager::Get(
-			std::string name
+			const std::string name
 		) {
 			if(!this->Exists(name)) {
 				return std::unexpected("Trying to get non existing value.");
@@ -58,7 +58,7 @@ namespace dim {
 			Success,
 			std::string
 		> RegisterManager::Set(
-			std::string name,
+			const std::string name,
 			RegisterValue value
 		) {
 			if(!this->Exists(name)) {
@@ -82,7 +82,7 @@ namespace dim {
 		}
 
 		bool RegisterManager::_Exists(
-			std::string name
+			const std::string name
 		) {
 			return m_register.find(name) != m_register.end();
 		}

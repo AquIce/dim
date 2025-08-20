@@ -25,26 +25,26 @@ namespace dim {
 				Success,
 				std::string
 			> Register(
-				std::string name,
+				const std::string name,
 				RegisterValue value
 			);
 
 			bool Exists(
-				std::string name
+				const std::string name
 			);
 
 			std::expected<
 				RegisterValue,
 				std::string
 			> Get(
-				std::string name
+				const std::string name
 			);
 
 			std::expected<
 				Success,
 				std::string
 			> Set(
-				std::string name,
+				const std::string name,
 				RegisterValue value
 			);
 
@@ -52,7 +52,7 @@ namespace dim {
 
 		private:
 			bool _Exists(
-				std::string name
+				const std::string name
 			);
 
 		private:

@@ -1,6 +1,5 @@
 // TODO
 //	- Add type checking
-// 	- Check const correctness
 // 	- Add == and != operators
 
 #include <lexer/lexer.hxx>
@@ -11,7 +10,7 @@
 #include <iostream>
 
 std::string GetSource(
-	std::string filename
+	const std::string filename
 );
 
 int main(int argc, char** argv) {
@@ -87,7 +86,7 @@ int main(int argc, char** argv) {
 }
 
 std::string GetSource(
-	std::string filename
+	const std::string filename
 ) {
 	auto file = std::ifstream(filename);
 	std::string line;
