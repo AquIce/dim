@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace dim {
 	namespace interpreter {
@@ -16,7 +17,9 @@ namespace dim {
 
 		class RegisterManager {
 		public:
-			RegisterManager();
+			RegisterManager(
+				std::shared_ptr<RegisterManager> parent = nullptr
+			);
 
 			std::expected<
 				Success,
@@ -45,11 +48,20 @@ namespace dim {
 				RegisterValue value
 			);
 
+			std::string Repr();
+
+		private:
+			bool _Exists(
+				std::string name
+			);
+
 		private:
 			std::unordered_map<
 				std::string,
 				RegisterValue
 			> m_register;
+
+			std::shared_ptr<RegisterManager> m_parent;
 		};
 
 	}

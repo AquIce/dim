@@ -1,8 +1,13 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 #include <optional>
 #include <string>
+
+#define LOG(text) std::cerr << (text) << "\n"
+
+#define FLOG(text) std::cerr << (text) << std::endl
 
 #define NOIMP return std::unexpected("NOIMP")
 

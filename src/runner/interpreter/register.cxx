@@ -3,8 +3,11 @@
 namespace dim {
 	namespace interpreter {
 
-		RegisterManager::RegisterManager() :
-			m_register()
+		RegisterManager::RegisterManager(
+			std::shared_ptr<RegisterManager> parent
+		) :
+			m_register(),
+			m_parent(parent)
 		{}
 
 		std::expected<
@@ -17,7 +20,7 @@ namespace dim {
 			if(this->Exists(name)) {
 				return std::unexpected("Trying to register existing value");
 			}
-			
+		
 			m_register.insert(
 				{ name, value }
 			);
@@ -27,7 +30,11 @@ namespace dim {
 		bool RegisterManager::Exists(
 			std::string name
 		) {
-			return m_register.find(name) != m_register.end();
+			return (
+				this->_Exists(name)
+				||
+				(m_parent != nullptr && m_parent->Exists(name))
+			);
 		}
 
 		std::expected<
@@ -39,8 +46,12 @@ namespace dim {
 			if(!this->Exists(name)) {
 				return std::unexpected("Trying to get non existing value.");
 			}
-
-			return m_register.at(name);
+			
+			try {
+				return m_register.at(name);
+			} catch(...) {
+				return m_parent->Get(name);
+			}
 		}
 
 		std::expected<
@@ -54,10 +65,26 @@ namespace dim {
 				return std::unexpected("Trying to set non existing value.");
 			}
 
-			m_register[name] = value;
+			if(m_register.find(name) != m_register.end()) {
+				m_register[name] = value;
+				return Success{};
+			}
 
-			return Success{};
+			return m_parent->Set(name, value);
 		}
 
+		std::string RegisterManager::Repr() {
+			std::string repr = "RegMan\n";
+			for(const auto& [name, registerValue] : m_register) {
+				repr += name + ": " + registerValue.value->Repr() + "\n";
+			}
+			return repr;
+		}
+
+		bool RegisterManager::_Exists(
+			std::string name
+		) {
+			return m_register.find(name) != m_register.end();
+		}
 	}
 }

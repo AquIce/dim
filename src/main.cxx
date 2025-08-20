@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 		std::expected<
 			std::shared_ptr<dim::interpreter::Value>,
 			std::string
-		> result = dim::interpreter::EvaluateScopeExpression(program);
+		> result = dim::interpreter::EvaluateProgram(program);
 
 		if(!result) {
 			std::cerr << result.error() << std::endl;

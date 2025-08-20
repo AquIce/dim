@@ -607,9 +607,12 @@ namespace dim {
 
 			std::shared_ptr<IdentifierExpression> identifier = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression);
 
+			// NOTE: This has been commented because of scoping and MUST be fixed
+			/*
 			if(GetIdentifier(identifier->GetName())) {
 				return std::unexpected("Variable name '" + identifier->GetName() + "' already exists");
 			}
+			*/
 
 			Identifiers.push_back(IdentifierData{
 				identifier->GetName(),

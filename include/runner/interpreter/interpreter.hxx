@@ -11,95 +11,116 @@
 #include <string>
 #include <unordered_map>
 
-#define __TRY_VALUE_FUNC_WRETERR(func, expression) \
+#define __TRY_VALUE_FUNC_WRETERR(func, expression, registerManager) \
 __TRY_EXPECTED_FUNC_WRETERR( \
 	func, \
 	std::shared_ptr<Value>, \
 	std::string, \
-	expression \
+	expression, \
+	registerManager \
 )
-#define __TRY_VALUE_FUNC_WRETERR_WSAVE(func, expression, value) \
+#define __TRY_VALUE_FUNC_WRETERR_WSAVE(func, expression, registerManager, value) \
 __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 	func, \
 	std::shared_ptr<Value>, \
 	std::string, \
 	value, \
-	expression \
+	expression, \
+	registerManager \
 )
 
 namespace dim {
 	namespace interpreter {
 
-		extern RegisterManager registerManager;
-
 		typedef std::function<
 			std::expected<std::shared_ptr<Value>, std::string> (
-				std::shared_ptr<parser::Expression>
+				std::shared_ptr<parser::Expression>,
+				std::shared_ptr<RegisterManager>
 			)
 		> EvaluateFunction;
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateScopeExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateIdentifierExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBooleanExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBreakExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateOrExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateBinaryExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateIfElseStructure(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateWhileLoopExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateForLoopExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateAssignationExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateDeclarationExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
 		);
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
-			std::shared_ptr<parser::Expression> expression
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateProgram(
+			std::shared_ptr<parser::ScopeExpression> program
 		);
 
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
