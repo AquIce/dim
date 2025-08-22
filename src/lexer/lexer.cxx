@@ -452,14 +452,60 @@ namespace dim {
 			);
 		}
 
+		void StripWhitespaces(
+			std::string& src
+		) noexcept {
+			while(src.size() > 0 && std::isspace(src.front())) {
+				(void)utils::shift(src);
+			}
+		}
+
+		std::expected<Success, std::string> StripComments(
+			std::string& src
+		) noexcept {
+			if(src.rfind("/*", 0) == 0) {
+				// To avoid /*/
+				(void)utils::shift(src, 2);
+				
+				while(src.size() > 0) {
+					if(src.rfind("*/", 0) == 0) {
+						(void)utils::shift(src, 2);
+						return Success{};
+					} 
+					(void)utils::shift(src);
+				}
+				return std::unexpected("Unclosed multiline comment.");
+			}
+			if(src.rfind("//", 0) == 0) {
+				while(src.size() > 0 && src.front() != '\n') {
+					(void)utils::shift(src);
+				}
+			}
+			return Success{};
+		}
+
 		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
 			std::string& src
 		) noexcept {
 			while(src.size() > 0) {
-				while(src.size() > 0 && std::isspace(src.front())) {
-					(void)utils::shift(src);
+				
+				StripWhitespaces(src);
+				if(src.size() == 0) {
+					break;
 				}
+
+				std::expected<Success, std::string> stripResult = StripComments(
+					src
+				);
+				if(!stripResult) {
+					return std::unexpected(stripResult.error());
+				}
+				if(src.size() == 0) {
+					break;
+				}
+
+				StripWhitespaces(src);
 				if(src.size() == 0) {
 					break;
 				}

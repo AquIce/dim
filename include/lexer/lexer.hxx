@@ -181,6 +181,14 @@ namespace dim {
 			&LexType,
 			&LexIdentifier,
 		};
+
+		void StripWhitespaces(
+			std::string& src
+		) noexcept;
+
+		std::expected<Success, std::string> StripComments(
+			std::string& src
+		) noexcept;
 		
 		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
