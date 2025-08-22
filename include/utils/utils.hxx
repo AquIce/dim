@@ -1,9 +1,33 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <optional>
+#include <stdfloat>
 #include <string>
+#include <type_traits>
+
+#include <quadmath.h>
+
+using i8 = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
+
+using u8 = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+
+using f32 = std::float32_t;
+using f64 = std::float64_t;
+
+#ifdef __GNUC__
+	using f128 = __float128;
+#else
+	#error "GCC/Clang and 128-bit float type required"
+#endif
 
 #define LOG(text) std::cerr << (text) << "\n"
 
@@ -29,7 +53,7 @@
 	resvalue = result.value(); \
 }
 
-typedef struct Success {} Success;
+typedef struct {} Success;
 
 namespace dim {
 	namespace utils {
@@ -71,5 +95,53 @@ namespace dim {
 		    }
 		    return std::nullopt;
 		}
+
+		f128 stof128(
+			const std::string& input
+		);
+
+		std::string f128tos(
+			f128 value
+		);
+
+
+		template <typename T, T beginValue, T endValue>
+		class Iterator {
+		public:
+			Iterator(
+				const T& value
+			) :
+				m_value(static_cast<ValueType>(value))
+			{}
+
+			Iterator() :
+				m_value(static_cast<ValueType>(beginValue))
+			{}
+
+			Iterator operator++() {
+				++m_value;
+				return *this;
+			}
+			T operator*() {
+				return static_cast<T>(m_value);
+			}
+			Iterator begin() {
+				return *this;
+			}
+			Iterator end() {
+				static const Iterator endIterator = ++Iterator(endValue);
+				return endIterator;
+			}
+
+			bool operator!=(
+				const Iterator& i
+			) {
+				return m_value != i.m_value;
+			}
+
+		public:
+			typedef typename std::underlying_type<T>::type ValueType;
+			size_t m_value;
+		};
 	}
 }

@@ -11,7 +11,7 @@
 namespace dim {
 	namespace interpreter {
 
-		typedef struct RegisterValue {
+		typedef struct {
 			std::shared_ptr<Value> value;
 		} RegisterValue;
 

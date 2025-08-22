@@ -14,6 +14,9 @@ namespace dim {
 		NodeType Expression::Type() {
 			return NodeType::NONE;
 		}
+		Datatype Expression::GetDatatype() {
+			return Datatype::INFER;
+		}
 
 
 
@@ -48,6 +51,9 @@ namespace dim {
 		NodeType ScopeExpression::Type() {
 			return NodeType::SCOPE;
 		}
+		Datatype ScopeExpression::GetDatatype() {
+			return m_expressions.back()->GetDatatype();
+		}
 
 
 
@@ -65,6 +71,9 @@ namespace dim {
 
 		NodeType NullExpression::Type() {
 			return NodeType::NUL;
+		}
+		Datatype NullExpression::GetDatatype() {
+			return Datatype::INFER;
 		}
 
 
@@ -91,7 +100,45 @@ namespace dim {
 		NodeType NumberExpression::Type() {
 			return NodeType::NUMBER;
 		}
+		Datatype NumberExpression::GetDatatype() {
+			return Datatype::INFER;
+		}
 
+
+		__GEN__SUB_NUMBER_CLASS_IMPL(I8Expression, i8, I8)
+		__GEN__SUB_NUMBER_CLASS_IMPL(I16Expression, i16, I16)
+		__GEN__SUB_NUMBER_CLASS_IMPL(I32Expression, i32, I32)
+		__GEN__SUB_NUMBER_CLASS_IMPL(I64Expression, i64, I64)
+
+		__GEN__SUB_NUMBER_CLASS_IMPL(U8Expression, u8, U8)
+		__GEN__SUB_NUMBER_CLASS_IMPL(U16Expression, u16, U16)
+		__GEN__SUB_NUMBER_CLASS_IMPL(U32Expression, u32, U32)
+		__GEN__SUB_NUMBER_CLASS_IMPL(U64Expression, u64, U64)
+
+		__GEN__SUB_NUMBER_CLASS_IMPL(F32Expression, f32, F32)
+		__GEN__SUB_NUMBER_CLASS_IMPL(F64Expression, f64, F64)
+		
+		F128Expression::F128Expression(
+			f128 value
+		) :
+			NumberExpression(utils::f128tos(value)),
+			m_value(value)
+		{}
+		
+		std::string F128Expression::Repr(
+			size_t indent
+		) {
+			std::string repr = std::string("F128Expression(") + utils::f128tos(m_value) + ")";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		
+		NodeType F128Expression::Type() {
+			return NodeType::F128;
+		}
+		Datatype F128Expression::GetDatatype() {
+			return Datatype::F128;
+		}
 
 
 		BooleanExpression::BooleanExpression(
@@ -115,6 +162,9 @@ namespace dim {
 
 		NodeType BooleanExpression::Type() {
 			return NodeType::BOOLEAN;
+		}
+		Datatype BooleanExpression::GetDatatype() {
+			return Datatype::BOOLEAN;
 		}
 
 
@@ -141,6 +191,9 @@ namespace dim {
 		NodeType StringExpression::Type() {
 			return NodeType::STRING;
 		}
+		Datatype StringExpression::GetDatatype() {
+			return Datatype::INFER;
+		}
 
 
 
@@ -157,6 +210,10 @@ namespace dim {
 		}
 		std::string UnaryExpression::GetOperator() {
 			return m_operatorSymbol;
+		}
+
+		std::shared_ptr<Expression> UnaryExpression::GetSampleExpression() {
+			return std::make_shared<BooleanExpression>("true");
 		}
 
 		std::string UnaryExpression::Repr(
@@ -185,6 +242,9 @@ namespace dim {
 		NodeType UnaryExpression::Type() {
 			return NodeType::UNARY;
 		}
+		Datatype UnaryExpression::GetDatatype() {
+			return Datatype::BOOLEAN;
+		}
 
 
 
@@ -209,6 +269,32 @@ namespace dim {
 			return m_right;
 		}
 
+		std::shared_ptr<Expression> BinaryExpression::GetSampleExpression() {
+			if(
+				m_operatorSymbol == "+"
+				|| m_operatorSymbol == "-"
+				|| m_operatorSymbol == "*"
+				|| m_operatorSymbol == "/"
+				|| m_operatorSymbol == "&"
+				|| m_operatorSymbol == "|"
+				|| m_operatorSymbol == "^"
+			) {
+				return m_left;
+			}
+			else /*if(
+				m_operatorSymbol == "<"
+				|| m_operatorSymbol == ">"
+				|| m_operatorSymbol == "<="
+				|| m_operatorSymbol == ">="
+				|| m_operatorSymbol == "&&"
+				|| m_operatorSymbol == "||"
+				|| m_operatorSymbol == "=="
+				|| m_operatorSymbol == "!="
+			)*/ {
+				return std::make_shared<BooleanExpression>("true");
+			}
+		}
+
 		std::string BinaryExpression::Repr(
 			const size_t indent
 		) {
@@ -227,6 +313,31 @@ namespace dim {
 
 		NodeType BinaryExpression::Type() {
 			return NodeType::BINARY;
+		}
+		Datatype BinaryExpression::GetDatatype() {
+			if(
+				m_operatorSymbol == "+"
+				|| m_operatorSymbol == "-"
+				|| m_operatorSymbol == "*"
+				|| m_operatorSymbol == "/"
+				|| m_operatorSymbol == "&"
+				|| m_operatorSymbol == "|"
+				|| m_operatorSymbol == "^"
+			) {
+				return m_left->GetDatatype();
+			}
+			else /*if(
+				m_operatorSymbol == "<"
+				|| m_operatorSymbol == ">"
+				|| m_operatorSymbol == "<="
+				|| m_operatorSymbol == ">="
+				|| m_operatorSymbol == "&&"
+				|| m_operatorSymbol == "||"
+				|| m_operatorSymbol == "=="
+				|| m_operatorSymbol == "!="
+			)*/ {
+				return Datatype::BOOLEAN;
+			}		
 		}
 
 
@@ -264,6 +375,9 @@ namespace dim {
 
 		NodeType IfElseExpression::Type() {
 			return NodeType::IFELSE_EXPR;
+		}
+		Datatype IfElseExpression::GetDatatype() {
+			return m_scope->GetDatatype();
 		}
 
 
@@ -303,6 +417,9 @@ namespace dim {
 		NodeType IfElseStructure::Type() {
 			return NodeType::IFELSE_STRUCT;
 		}
+		Datatype IfElseStructure::GetDatatype() {
+			return m_expressions.back()->GetDatatype();
+		}
 
 
 
@@ -326,6 +443,9 @@ namespace dim {
 		}
 		NodeType LoopExpression::Type() {
 			return NodeType::LOOP;
+		}
+		Datatype LoopExpression::GetDatatype() {
+			return m_scope->GetDatatype();
 		}
 
 
@@ -361,6 +481,9 @@ namespace dim {
 		}
 		NodeType WhileLoopExpression::Type() {
 			return NodeType::WHILE;
+		}
+		Datatype WhileLoopExpression::GetDatatype() {
+			return m_scope->GetDatatype();
 		}
 
 
@@ -405,6 +528,9 @@ namespace dim {
 		NodeType ForLoopExpression::Type() {
 			return NodeType::FOR;
 		}
+		Datatype ForLoopExpression::GetDatatype() {
+			return m_scope->GetDatatype();
+		}
 
 
 		NestedExpression::NestedExpression(
@@ -428,6 +554,9 @@ namespace dim {
 		NodeType NestedExpression::Type() {
 			return NodeType::NESTED;
 		}
+		Datatype NestedExpression::GetDatatype() {
+			return m_expression->GetDatatype();
+		}
 
 
 
@@ -447,6 +576,9 @@ namespace dim {
 		NodeType BreakExpression::Type() {
 			return NodeType::BREAK;
 		}
+		Datatype BreakExpression::GetDatatype() {
+			return NestedExpression::GetDatatype();
+		}
 
 
 
@@ -464,8 +596,17 @@ namespace dim {
 		NodeType OrExpression::Type() {
 			return NodeType::OR;
 		}
+		Datatype OrExpression::GetDatatype() {
+			return NestedExpression::GetDatatype();
+		}
 
 		IdentifierExpression::IdentifierExpression(
+			std::function<
+				std::expected<
+					IdentifierData,
+					std::string
+				> (const std::string name)
+			> GetIdentifierFn,
 			std::string name,
 			bool isConst,
 			std::shared_ptr<Expression> expression,
@@ -475,7 +616,17 @@ namespace dim {
 			m_name(name),
 			m_isConst(isConst),
 			m_datatype(datatype)
-		{}
+		{
+			std::expected<
+				IdentifierData,
+				std::string
+			> result = GetIdentifierFn(name);
+
+			if(result) {
+				m_isConst = result.value().isConst;
+				m_datatype = result.value().datatype;
+			}
+		}
 
 		std::string IdentifierExpression::GetName() {
 			return m_name;
@@ -492,9 +643,6 @@ namespace dim {
 			std::shared_ptr<Expression> expression
 		) {
 			m_expression = expression;
-		}
-		Datatype IdentifierExpression::GetDatatype() {
-			return m_datatype;
 		}
 		void IdentifierExpression::SetDatatype(
 			Datatype datatype
@@ -514,6 +662,9 @@ namespace dim {
 		}
 		NodeType IdentifierExpression::Type() {
 			return NodeType::IDENTIFIER;
+		}
+		Datatype IdentifierExpression::GetDatatype() {
+			return m_datatype;
 		}
 
 
@@ -543,6 +694,9 @@ namespace dim {
 		}
 		NodeType AssignationExpression::Type() {
 			return NodeType::ASSIGN;
+		}
+		Datatype AssignationExpression::GetDatatype() {
+			return m_identifier->GetDatatype();
 		}
 
 		DeclarationExpression::DeclarationExpression(
@@ -587,6 +741,9 @@ namespace dim {
 		}
 		NodeType DeclarationExpression::Type() {
 			return NodeType::DECL;
+		}
+		Datatype DeclarationExpression::GetDatatype() {
+			return m_identifier->GetDatatype();
 		}
 	}
 }

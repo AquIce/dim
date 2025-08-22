@@ -21,6 +21,19 @@ namespace dim {
 			}
 			return result;
 		}
-		
+
+		f128 stof128(
+			const std::string& input
+		) {
+			return strtoflt128(input.c_str(), nullptr);
+		}
+
+		std::string f128tos(
+			f128 value
+		) {
+			char buffer[128];
+			snprintf(buffer, sizeof(buffer), "%.36Lf", value);
+			return std::string(buffer);
+		}
 	}
 }

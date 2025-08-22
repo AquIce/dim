@@ -25,6 +25,7 @@ set(NR_SRC
 	${PROJECT_SOURCE_DIR}/src/lexer/lexer.cxx
 	
 	${PROJECT_SOURCE_DIR}/src/parser/ast.cxx
+	${PROJECT_SOURCE_DIR}/src/parser/cast.cxx
 	${PROJECT_SOURCE_DIR}/src/parser/parser.cxx
 
 	${PROJECT_SOURCE_DIR}/src/runner/interpreter/value.cxx
@@ -41,4 +42,12 @@ target_include_directories(
 	PRIVATE
 	${PROJECT_SOURCE_DIR}/include
 )
+
+target_link_libraries(
+	${PROJECT_NAME}
+	PRIVATE
+	quadmath
+)
+
+set(CMAKE_BUILD_TYPE Debug)
 

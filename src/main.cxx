@@ -1,6 +1,5 @@
 // TODO
-//	- Add type checking
-// 	- Add == and != operators
+//	- Add parser scope identifier checking
 
 #include <lexer/lexer.hxx>
 #include <parser/parser.hxx>

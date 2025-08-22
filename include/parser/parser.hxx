@@ -1,6 +1,7 @@
 #pragma once
 
 #include <parser/ast.hxx>
+#include <parser/cast.hxx>
 
 #include <lexer/lexer.hxx>
 
@@ -46,11 +47,6 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 
 namespace dim {
 	namespace parser {
-
-		typedef struct IdentifierData {
-			const std::string name;
-			const bool isConst;
-		} IdentifierData;
 
 		extern std::vector<IdentifierData> Identifiers;
 

@@ -95,11 +95,13 @@ namespace dim {
 
 			if(!result) {
 				return std::make_shared<IdentifierExpression>(
+					GetIdentifier,
 					identifier.value
 				);
 			}
 
 			return std::make_shared<IdentifierExpression>(
+				GetIdentifier,
 				result.value().name,
 				result.value().isConst
 			);
@@ -159,8 +161,10 @@ namespace dim {
 				return parse_string_expression(tokens);
 			}
 
-			return std::make_shared<NumberExpression>(
-				eat(tokens).value().value
+			return auto_cast(
+				std::make_shared<NumberExpression>(
+					eat(tokens).value().value
+				)
 			);
 		}
 
@@ -313,6 +317,14 @@ namespace dim {
 					right
 				)
 
+				if(!try_n_cast(std::vector({left, right}))) {
+					return std::unexpected(
+						std::string("Got non-matching operands types : ")
+						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
+						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+					);
+				}
+
 				left = std::make_shared<BinaryExpression>(
 					left,
 					operatorSymbol,
@@ -352,6 +364,14 @@ namespace dim {
 					right
 				)
 
+				if(!try_n_cast(std::vector({left, right}))) {
+					return std::unexpected(
+						std::string("Got non-matching operand types : ")
+						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
+						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+					);
+				}
+
 				left = std::make_shared<BinaryExpression>(
 					left,
 					operatorSymbol,
@@ -388,6 +408,14 @@ namespace dim {
 					tokens,
 					right
 				)
+
+				if(!try_n_cast(std::vector({left, right}))) {
+					return std::unexpected(
+						std::string("Got non-matching operand types : ")
+						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
+						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+					);
+				}
 
 				left = std::make_shared<BinaryExpression>(
 					left,
@@ -468,12 +496,24 @@ namespace dim {
 				return parse_binary_expression(tokens);
 			}
 
+			Datatype datatype = result.value()->GetDatatype();
+
 			std::vector<std::shared_ptr<IfElseExpression>> expressions = {};
 			while(result) {
 				expressions.push_back(
 					std::dynamic_pointer_cast<IfElseExpression>(result.value())
 				);
+
 				result = parse_ifelse_expression(tokens, false);
+			}
+
+			auto expressionsUp = std::vector<std::shared_ptr<Expression>>();
+			for(std::shared_ptr<IfElseExpression> expr : expressions) {
+				expressionsUp.push_back(expr);
+			}
+
+			if(!try_n_cast(expressionsUp)) {
+				return std::unexpected("Different type if-else structure.");
 			}
 
 			return std::make_shared<IfElseStructure>(
@@ -537,12 +577,13 @@ namespace dim {
 				)
 			}
 
-			std::shared_ptr<Expression> scope;
+			std::shared_ptr<Expression> scopeExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
 				tokens,
-				scope
+				scopeExpression
 			)
+			auto scope = std::dynamic_pointer_cast<ScopeExpression>(scopeExpression);
 
 			std::shared_ptr<OrExpression> orExpression;
 
@@ -554,10 +595,21 @@ namespace dim {
 					orExpression,
 					tokens
 				)
+
+				if(
+					!try_n_cast(std::vector({
+						orExpression->GetExpression(),
+						scope->GetExpressions().back()
+					}))
+				) {
+					return std::unexpected(
+						std::string("Got non-matching operand types : ")
+						+ std::string(DatatypeToStr.at(int(orExpression->GetDatatype())))
+						+ " and " + std::string(DatatypeToStr.at(int(scope->GetDatatype())))
+					);
+				}
 			} else {
-				return std::make_shared<LoopExpression>(
-					std::dynamic_pointer_cast<ScopeExpression>(scope)
-				);
+				return std::make_shared<LoopExpression>(scope);
 			}
 
 			if(condition) {
@@ -571,7 +623,7 @@ namespace dim {
 			}
 
 			return std::make_shared<WhileLoopExpression>(
-				std::dynamic_pointer_cast<ScopeExpression>(scope),
+				scope,
 				initialExpression,
 				orExpression
 			);
@@ -615,12 +667,34 @@ namespace dim {
 			}
 
 			auto identifier = std::make_shared<IdentifierExpression>(
+				GetIdentifier,
 				result.value().name,
-				result.value().isConst
+				result.value().isConst,
+				nullptr,
+				result.value().datatype
 			);
 
 			if(identifier->GetIsConst()) {
 				return std::unexpected("Trying to set constant '" + name + "'");
+			}
+
+			Datatype expectedDatatype = identifier->GetDatatype();
+			Datatype gotDatatype = expression->GetDatatype();
+			if(expectedDatatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> castResult = try_cast(expression, expectedDatatype);
+
+				if(!castResult) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ std::string(DatatypeToStr.at(int(expectedDatatype)))
+						+ ", got " + std::string(DatatypeToStr.at(int(gotDatatype)))
+					);
+				}
+
+				expression = castResult.value();
 			}
 
 			identifier->SetExpression(expression);
@@ -680,6 +754,27 @@ namespace dim {
 				expression
 			)
 
+			Datatype gotDatatype = expression->GetDatatype();
+
+			if(datatype == Datatype::INFER) {
+				datatype = gotDatatype;
+			} else if(datatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> result = try_cast(expression, datatype);
+
+				if(!result) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ std::string(DatatypeToStr.at(int(datatype)))
+						+ ", got " + std::string(DatatypeToStr.at(int(gotDatatype)))
+					);
+				}
+
+				expression = result.value();
+			}
+
 			std::shared_ptr<IdentifierExpression> identifier = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression);
 
 			// NOTE: This has been commented because of scoping and MUST be fixed
@@ -691,7 +786,8 @@ namespace dim {
 
 			Identifiers.push_back(IdentifierData{
 				identifier->GetName(),
-				isConst
+				isConst,
+				datatype
 			});
 
 			return std::make_shared<DeclarationExpression>(

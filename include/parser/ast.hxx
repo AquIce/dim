@@ -1,10 +1,54 @@
 #pragma once
 
+#include <utils/utils.hxx>
+
 #include <algorithm>
 #include <array>
+#include <expected>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
+
+#define __GEN__SUB_NUMBER_CLASS(_ClassName, _ValueType) \
+class _ClassName : public NumberExpression { \
+public: \
+	_ClassName( \
+		_ValueType value \
+	); \
+	\
+	std::string Repr( \
+		size_t indent = 0 \
+	) override; \
+	NodeType Type() override; \
+	Datatype GetDatatype() override; \
+\
+private: \
+	_ValueType m_value; \
+};
+
+#define __GEN__SUB_NUMBER_CLASS_IMPL(_ClassName, _ValueType, ENUM_MEMBER) \
+_ClassName::_ClassName( \
+	_ValueType value \
+) : \
+	NumberExpression(std::to_string(value)), \
+	m_value(value) \
+{} \
+\
+std::string _ClassName::Repr( \
+	size_t indent \
+) { \
+	std::string repr = std::string(#_ClassName) + "(" + std::to_string(m_value) + ")"; \
+	repr.insert(0, indent, '\t'); \
+	return repr; \
+} \
+\
+NodeType _ClassName::Type() { \
+	return NodeType::ENUM_MEMBER; \
+} \
+Datatype _ClassName::GetDatatype() { \
+	return Datatype::ENUM_MEMBER; \
+}
 
 namespace dim {
 	namespace parser {
@@ -34,6 +78,9 @@ namespace dim {
 			SCOPE,
 			NUL,
 			NUMBER,
+			I8, I16, I32, I64,
+			U8, U16, U32, U64,
+			F32, F64, F128,
 			BOOLEAN,
 			STRING,
 			UNARY,
@@ -51,11 +98,14 @@ namespace dim {
 			DECL,
 		};
 
-		const std::array<std::string_view, 19> NodeTypeToStr = {
+		const std::array<std::string_view, 31> NodeTypeToStr = {
 			"NONE",
 			"SCOPE",
 			"NUL",
 			"NUMBER",
+			"i8", "i16", "i32", "i64",
+			"u8", "u16", "u32", "u64",
+			"f32", "f64", "f128",
 			"BOOLEAN",
 			"STRING",
 			"UNARY",
@@ -77,17 +127,23 @@ namespace dim {
 			INFER = 0,
 			I8, I16, I32, I64,
 			U8, U16, U32, U64,
-			F32, F64,
-			BOOL, CHAR, STR,
+			F32, F64, F128,
+			BOOLEAN, /*CHAR,*/ STRING,
 		};
 
 		const std::array<std::string_view, 14> DatatypeToStr = {
 			"INFER",
 			"i8", "i16", "i32", "i64",
 			"u8", "u16", "u32", "u64",
-			"f32", "f64",
-			"bool", "char", "str",
+			"f32", "f64", "f128",
+			"bool", /*"char",*/ "str",
 		};
+
+		typedef struct {
+			const std::string name;
+			const bool isConst;
+			const Datatype datatype;
+		} IdentifierData;
 
 		class Expression {
 		public:
@@ -95,6 +151,7 @@ namespace dim {
 				const size_t indent = 0
 			);
 			virtual NodeType Type();
+			virtual Datatype GetDatatype();
 
 			Expression() = default;
 		};
@@ -114,6 +171,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::vector<std::shared_ptr<Expression>> m_expressions;
@@ -127,6 +185,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 		};
 
 		class NumberExpression : public Expression {
@@ -141,10 +200,25 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
-		private:
+		protected:
 			std::string m_value;
 		};
+
+		__GEN__SUB_NUMBER_CLASS(I8Expression, i8)
+		__GEN__SUB_NUMBER_CLASS(I16Expression, i16)
+		__GEN__SUB_NUMBER_CLASS(I32Expression, i32)
+		__GEN__SUB_NUMBER_CLASS(I64Expression, i64)
+
+		__GEN__SUB_NUMBER_CLASS(U8Expression, u8)
+		__GEN__SUB_NUMBER_CLASS(U16Expression, u16)
+		__GEN__SUB_NUMBER_CLASS(U32Expression, u32)
+		__GEN__SUB_NUMBER_CLASS(U64Expression, u64)
+
+		__GEN__SUB_NUMBER_CLASS(F32Expression, f32)
+		__GEN__SUB_NUMBER_CLASS(F64Expression, f64)
+		__GEN__SUB_NUMBER_CLASS(F128Expression, f128)
 
 		class BooleanExpression : public Expression {
 		public:
@@ -158,6 +232,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::string m_value;
@@ -175,6 +250,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::string m_value;
@@ -190,10 +266,13 @@ namespace dim {
 			std::shared_ptr<Expression> GetTerm();
 			std::string GetOperator();
 
+			std::shared_ptr<Expression> GetSampleExpression();
+
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_term;
@@ -212,10 +291,13 @@ namespace dim {
 			std::string GetOperator();
 			std::shared_ptr<Expression> GetRight();
 
+			std::shared_ptr<Expression> GetSampleExpression();
+
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_left;
@@ -237,6 +319,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<ScopeExpression> m_scope;
@@ -255,6 +338,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::vector<std::shared_ptr<IfElseExpression>> m_expressions;
@@ -272,6 +356,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		protected:
 			std::shared_ptr<ScopeExpression> m_scope;
@@ -292,6 +377,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		protected:
 			std::shared_ptr<Expression> m_condition;
@@ -315,6 +401,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_initialExpression;
@@ -333,6 +420,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		protected:
 			std::shared_ptr<Expression> m_expression;
@@ -348,6 +436,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 		};
 
 		class OrExpression : public NestedExpression {
@@ -360,11 +449,18 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 		};
 
 		class IdentifierExpression : public NestedExpression {
 		public:
 			IdentifierExpression(
+				std::function<
+					std::expected<
+						IdentifierData,
+						std::string
+					> (const std::string name)
+				> GetIdentifierFn,
 				std::string name,
 				bool isConst = true,
 				std::shared_ptr<Expression> expression = nullptr,
@@ -379,7 +475,6 @@ namespace dim {
 			void SetExpression(
 				std::shared_ptr<Expression> expression
 			);
-			Datatype GetDatatype();
 			void SetDatatype(
 				Datatype datatype
 			);
@@ -388,6 +483,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::string m_name;
@@ -408,6 +504,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<IdentifierExpression> m_identifier;
@@ -428,6 +525,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
+			Datatype GetDatatype() override;
 
 		private:
 			std::shared_ptr<IdentifierExpression> m_identifier;
