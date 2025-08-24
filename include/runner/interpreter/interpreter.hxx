@@ -33,35 +33,35 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 case valueTypeEnum: { \
 	auto lhsCast = std::dynamic_pointer_cast<valueType>(lhs); \
 	if(binaryOperator == "+") { \
-		return *lhsCast.get() + rhs; \
+		return *lhsCast + rhs; \
 	} if(binaryOperator == "-") { \
-		return *lhsCast.get() - rhs; \
+		return *lhsCast - rhs; \
 	} if(binaryOperator == "*") { \
-		return *lhsCast.get() * rhs; \
+		return *lhsCast * rhs; \
 	} if(binaryOperator == "/") { \
-		return *lhsCast.get() / rhs; \
+		return *lhsCast / rhs; \
 	} if(binaryOperator == "<") { \
-		return *lhsCast.get() < rhs; \
+		return *lhsCast < rhs; \
 	} if(binaryOperator == ">") { \
-		return *lhsCast.get() > rhs; \
+		return *lhsCast > rhs; \
 	} if(binaryOperator == "<=") { \
-		return *lhsCast.get() <= rhs; \
+		return *lhsCast <= rhs; \
 	} if(binaryOperator == ">=") { \
-		return *lhsCast.get() >= rhs; \
+		return *lhsCast >= rhs; \
 	} if(binaryOperator == "&&") { \
-		return *lhsCast.get() && rhs; \
+		return *lhsCast && rhs; \
 	} if(binaryOperator == "||") { \
-		return *lhsCast.get() || rhs; \
+		return *lhsCast || rhs; \
 	} if(binaryOperator == "==") { \
-		return *lhsCast.get() == rhs; \
+		return *lhsCast == rhs; \
 	} if(binaryOperator == "!=") { \
-		return *lhsCast.get() != rhs; \
+		return *lhsCast != rhs; \
 	} if(binaryOperator == "&") { \
-		return *lhsCast.get() & rhs; \
+		return *lhsCast & rhs; \
 	} if(binaryOperator == "|") { \
-		return *lhsCast.get() | rhs; \
+		return *lhsCast | rhs; \
 	} if(binaryOperator == "^") { \
-		return *lhsCast.get() ^ rhs; \
+		return *lhsCast ^ rhs; \
 	} else { \
 		return std::unexpected( \
 			std::string("Invalid operator ") \

@@ -38,6 +38,7 @@ namespace dim {
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(&)
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(|)
  		__GEN__OPERATOR_VALUE_BODY_VIRTUAL(^)
+ 		__GEN__UNARY_OPERATOR_VALUE_BODY_VIRTUAL(~)
 
 		std::expected<
 			std::shared_ptr<Value>,
@@ -79,6 +80,7 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, &, null) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, |, null)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ^, null)
+		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ~, null)
 
 
 		NumberValue::NumberValue(
@@ -149,6 +151,7 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, &, number) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, |, number)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, ^, number)
+		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, ~, number)
 
 
 
@@ -196,6 +199,13 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, |)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ^)
 		
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> BooleanValue::operator~() {
+			return !(*this);
+		}
+		
 
 		StringValue::StringValue(
 			std::string value
@@ -242,5 +252,6 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, &, string)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, |, string) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ^, string)
+		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ~, string)
 	}
 }

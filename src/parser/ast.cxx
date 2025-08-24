@@ -233,7 +233,13 @@ namespace dim {
 			return NodeType::UNARY;
 		}
 		Datatype UnaryExpression::GetDatatype() {
-			return Datatype::BOOLEAN;
+			if(m_operatorSymbol == "!") {
+				return Datatype::BOOLEAN;
+			}
+			/*
+				m_operatorSymbol == "~"
+			*/
+			return m_term->GetDatatype();
 		}
 
 
@@ -271,7 +277,7 @@ namespace dim {
 			) {
 				return m_left;
 			}
-			else /*if(
+			/*
 				m_operatorSymbol == "<"
 				|| m_operatorSymbol == ">"
 				|| m_operatorSymbol == "<="
@@ -280,9 +286,8 @@ namespace dim {
 				|| m_operatorSymbol == "||"
 				|| m_operatorSymbol == "=="
 				|| m_operatorSymbol == "!="
-			)*/ {
-				return std::make_shared<BooleanExpression>("true");
-			}
+			*/
+			return std::make_shared<BooleanExpression>("true");
 		}
 
 		std::string BinaryExpression::Repr(
@@ -316,7 +321,7 @@ namespace dim {
 			) {
 				return m_left->GetDatatype();
 			}
-			else /*if(
+			/*
 				m_operatorSymbol == "<"
 				|| m_operatorSymbol == ">"
 				|| m_operatorSymbol == "<="
@@ -325,9 +330,8 @@ namespace dim {
 				|| m_operatorSymbol == "||"
 				|| m_operatorSymbol == "=="
 				|| m_operatorSymbol == "!="
-			)*/ {
-				return Datatype::BOOLEAN;
-			}		
+			*/
+			return Datatype::BOOLEAN;		
 		}
 
 

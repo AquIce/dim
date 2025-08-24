@@ -138,7 +138,9 @@ namespace dim {
 			)
 
 			if(unaryOperator == "!") {
-				return !(*term.get());
+				return !(*term);
+			} else if(unaryOperator == "~") {
+				return ~(*term);
 			}
 			
 			return std::unexpected("Invalid unary operator.");
