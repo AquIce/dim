@@ -1,7 +1,7 @@
 {
 	var a: i32 = loop(var i: i16 = 0; i < 255; i = i + 1) {
 		i;
-		if(!!(i == 55) || (i == 155)) {
+		if(~(i != 55) || (i == 155)) {
 			break i;
 		} else {
 			0;

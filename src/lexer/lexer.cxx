@@ -223,6 +223,12 @@ namespace dim {
 					std::string(1, utils::shift(src))
 				);
 			}
+			if(src.front() == '~') {
+				return MakeToken(
+					TokenType::UNARY_OPERATOR,
+					std::string(1, utils::shift(src))
+				);
+			}
 
 			return std::unexpected("No unary operator token found.");
 		}
