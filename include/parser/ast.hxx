@@ -94,6 +94,7 @@ namespace dim {
 			BREAK,
 			OR,
 			IDENTIFIER,
+			DISCARD,
 			ASSIGN,
 			DECL,
 		};
@@ -489,6 +490,17 @@ namespace dim {
 			std::string m_name;
 			bool m_isConst;
 			Datatype m_datatype;
+		};
+
+		class DiscardExpression : public Expression {
+		public:
+			DiscardExpression();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
 		};
 
 		class AssignationExpression : public Expression {
