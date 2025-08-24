@@ -663,6 +663,26 @@ namespace dim {
 
 
 
+		DiscardExpression::DiscardExpression() :
+			Expression()
+		{}
+
+		std::string DiscardExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "_";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType DiscardExpression::Type() {
+			return NodeType::DISCARD;
+		}
+		Datatype DiscardExpression::GetDatatype() {
+			return Datatype::INFER;
+		}
+
+
+
 		AssignationExpression::AssignationExpression(
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::shared_ptr<Expression> expression
@@ -692,6 +712,8 @@ namespace dim {
 		Datatype AssignationExpression::GetDatatype() {
 			return m_identifier->GetDatatype();
 		}
+
+		
 
 		DeclarationExpression::DeclarationExpression(
 			std::shared_ptr<IdentifierExpression> identifier,
