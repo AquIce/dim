@@ -40,10 +40,11 @@ namespace dim {
 			DECL,
 			TYPE,
 
+			DISCARD,
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 20> TokenTypeStr = {
+		const std::array<std::string_view, 21> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -63,6 +64,7 @@ namespace dim {
 			"OR",
 			"DECL",
 			"TYPE",
+			"DISCARD",
 			"IDENTIFIER",
 		};
 

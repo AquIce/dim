@@ -452,6 +452,13 @@ namespace dim {
 				return std::unexpected("Invalid identifier found.");
 			}
 
+			if(identifier == "_") {
+				return MakeToken(
+					TokenType::DISCARD,
+					identifier
+				);
+			}
+
 			return MakeToken(
 				TokenType::IDENTIFIER,
 				identifier
