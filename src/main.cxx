@@ -1,6 +1,3 @@
-// TODO
-//	- Add parser scope identifier checking
-
 #include <lexer/lexer.hxx>
 #include <parser/parser.hxx>
 #include <runner/interpreter/interpreter.hxx>
