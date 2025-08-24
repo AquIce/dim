@@ -192,10 +192,9 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ||)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ==)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, !=)
-		
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, &, boolean)
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, |, boolean)
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(BooleanValue, ^, boolean)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, &)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, |)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ^)
 		
 
 		StringValue::StringValue(
