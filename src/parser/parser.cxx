@@ -110,11 +110,25 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_discard_expression(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DISCARD) {
+				return parse_identifier_expression(tokens);
+			}
+
+			(void)eat(tokens);
+			return std::make_shared<DiscardExpression>();
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_null_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUL) {
-				return parse_identifier_expression(tokens);
+				return parse_discard_expression(tokens);
 			}
 
 			(void)eat(tokens);
