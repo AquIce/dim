@@ -217,7 +217,7 @@ namespace dim {
 		std::expected<struct Token, std::string> LexUnaryOperator(
 			std::string& src
 		) noexcept {
-			if(src.rfind("!", 0) == 0) {
+			if(src.front() == '!') {
 				return MakeToken(
 					TokenType::UNARY_OPERATOR,
 					std::string(1, utils::shift(src))

@@ -219,22 +219,12 @@ namespace dim {
 		std::string UnaryExpression::Repr(
 			const size_t indent
 		) {
-			std::string termRepr = m_term->Repr(indent);
-			termRepr.erase(
-				std::remove_if(
-					termRepr.begin(),
-					termRepr.end(),
-					[](unsigned char c) {
-						return c == '\t';
-					}
-				),
-				termRepr.end()
-			);
-			std::string repr = "UnaryExpression(\n";
+			std::string repr = "UnaryExpression(\n"
+				+ m_operatorSymbol + "\n";
 			repr.insert(0, indent, '\t');
-			repr.insert(repr.size() - 1, indent + 1, '\t');
-			repr += termRepr + "\n)";
-			repr.insert(repr.size() - 2, indent, '\t');
+			repr.insert(repr.size() - m_operatorSymbol.size() - 1, indent + 1, '\t');
+			repr += m_term->Repr(indent + 1) + "\n)";
+			repr.insert(repr.size() - 1, indent, '\t');
 
 			return repr;
 		}
