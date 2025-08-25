@@ -510,13 +510,14 @@ namespace dim {
 				return parse_binary_expression(tokens);
 			}
 
-			Datatype datatype = result.value()->GetDatatype();
-
 			std::vector<std::shared_ptr<IfElseExpression>> expressions = {};
 			while(result) {
 				expressions.push_back(
 					std::dynamic_pointer_cast<IfElseExpression>(result.value())
 				);
+				if(!expressions.back()->GetCondition()) {
+					break;
+				}
 
 				result = parse_ifelse_expression(tokens, false);
 			}
@@ -538,11 +539,142 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_match_expression(
+			std::vector<struct lexer::Token>& tokens,
+			const bool allow_default
+		) {
+			std::shared_ptr<Expression> condition = nullptr;
+
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file in match structure.");
+			}
+
+			if(tokens.front().type == lexer::TokenType::DISCARD) {
+				if(!allow_default) {
+					return std::unexpected("Got two default cases in match structure.");
+				}
+				(void)eat(tokens);
+			} else if(
+				tokens.front().type == lexer::TokenType::PARENTHESIS
+				&& tokens.front().value == "("
+			) {
+				tokens.insert(
+					tokens.begin() + 1,
+					MakeToken(
+						lexer::TokenType::DISCARD,
+						"_"
+					)
+				);
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_parenthesis_expression,
+					tokens,
+					condition
+				)
+			} else {
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					condition
+				)
+			}
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::ARROW)
+			)
+
+			std::shared_ptr<Expression> scope;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_scope_expression,
+				tokens,
+				scope
+			)
+
+			return std::make_shared<MatchExpression>(
+				std::dynamic_pointer_cast<ScopeExpression>(scope),
+				condition
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_match_structure(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::MATCH) {
+				return parse_ifelse_structure(tokens);
+			}
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> selectorExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_parenthesis_expression,
+				tokens,
+				selectorExpression
+			)
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::BRACE,
+					"{"
+				)
+			)
+
+			std::vector<std::shared_ptr<MatchExpression>> expressions = {};
+			bool got_default_case = false;
+
+			while(
+				tokens.size() > 0
+				&& tokens.front().type != lexer::TokenType::BRACE
+				&& tokens.front().value != "}"
+			)  {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> result = parse_match_expression(tokens, !got_default_case);
+
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+
+				expressions.push_back(
+					std::dynamic_pointer_cast<MatchExpression>(
+						result.value()
+					)
+				);
+				if(!expressions.back()->GetCondition()) {
+					got_default_case = true;
+				}
+			}
+			(void)eat(tokens);
+
+			auto expressionsUp = std::vector<std::shared_ptr<Expression>>();
+			for(std::shared_ptr<MatchExpression> expr : expressions) {
+				expressionsUp.push_back(expr);
+			}
+
+			if(!try_n_cast(expressionsUp)) {
+				return std::unexpected("Different type match structure.");
+			}
+
+			return std::make_shared<MatchStructure>(
+				selectorExpression,
+				expressions
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_loop_expression(
 			std::vector<struct lexer::Token>& tokens
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::LOOP) {
-				return parse_ifelse_structure(tokens);
+				return parse_match_structure(tokens);
 			}
 			(void)eat(tokens);
 

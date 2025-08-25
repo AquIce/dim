@@ -417,6 +417,89 @@ namespace dim {
 
 
 
+		MatchExpression::MatchExpression(
+			std::shared_ptr<ScopeExpression> scope,
+			std::shared_ptr<Expression> condition
+		) :
+			Expression(),
+			m_scope(scope),
+			m_condition(condition)
+		{}
+
+		std::shared_ptr<ScopeExpression> MatchExpression::GetScope() {
+			return m_scope;
+		}
+		std::shared_ptr<Expression> MatchExpression::GetCondition() {
+			return m_condition;
+		}
+
+		std::string MatchExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "";
+
+			if(m_condition) {
+				repr += "(\n" + m_condition->Repr(indent + 1) + "\n) -> ";
+				repr.insert(repr.size() - 5, indent, '\t');
+			} else {
+				repr += "_ -> ";
+			}
+			repr.insert(0, indent, '\t');
+			repr += m_scope->Repr(indent);
+
+			return repr;
+		}
+
+		NodeType MatchExpression::Type() {
+			return NodeType::MATCH_EXPR;
+		}
+		Datatype MatchExpression::GetDatatype() {
+			return m_scope->GetDatatype();
+		}
+
+
+
+		MatchStructure::MatchStructure(
+			std::shared_ptr<Expression> expression,
+			std::vector<std::shared_ptr<MatchExpression>> expressions
+		) :
+			NestedExpression(expression),
+			m_expressions(expressions)
+		{}
+
+		std::vector<std::shared_ptr<MatchExpression>> MatchStructure::GetExpressions() {
+			return m_expressions;
+		}
+
+		std::string MatchStructure::Repr(
+			const size_t indent
+		) {
+			std::string repr = "match(\n";
+			repr.insert(0, indent, '\t');
+			repr += m_expression->Repr(indent + 1);
+			repr += "\n) {\n";
+			repr.insert(repr.size() - 4, indent, '\t');
+
+			std::for_each(
+				m_expressions.begin(),
+				m_expressions.end(),
+				[&repr, &indent](const std::shared_ptr<Expression>& expression) -> void {
+					repr += expression->Repr(indent + 1) + "\n";
+				}
+			);
+
+			return repr;
+		}
+
+		NodeType MatchStructure::Type() {
+			return NodeType::MATCH_STRUCT;
+		}
+		Datatype MatchStructure::GetDatatype() {
+			return m_expressions.back()->GetDatatype();
+		}
+
+
+
 		LoopExpression::LoopExpression(
 			std::shared_ptr<ScopeExpression> scope
 		) :
@@ -467,7 +550,7 @@ namespace dim {
 			std::string repr = "loop(\n";
 			repr.insert(0, indent, '\t');
 			repr += m_condition->Repr(indent + 1);
-			repr += "\n)";
+			repr += "\n) ";
 			repr.insert(repr.size() - 1, indent, '\t');
 			repr += m_scope->Repr(indent) + " ";
 			repr += m_orExpression->Repr(indent);
