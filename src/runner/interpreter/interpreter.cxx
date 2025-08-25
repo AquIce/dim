@@ -45,6 +45,16 @@ namespace dim {
 			return result.value().value;
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateDiscardExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			std::shared_ptr<Value> discardValue = registerManager->GetDiscard();
+			if(!discardValue) {
+				return std::unexpected("No discard value defined.");
+			}
+			return discardValue;
+		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
 			std::shared_ptr<parser::Expression> expression,
@@ -217,6 +227,69 @@ namespace dim {
 			}
 
 			return std::unexpected("Missing 'else' clause in if-else structure.");
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateMatchStructure(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto matchStructure = std::dynamic_pointer_cast<parser::MatchStructure>(expression);
+
+			auto matchRegisterManager = std::make_shared<RegisterManager>(
+				registerManager
+			);
+
+			std::shared_ptr<Value> selectorValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				matchStructure->GetExpression(),
+				matchRegisterManager,
+				selectorValue
+			)
+
+			matchRegisterManager->SetDiscard(selectorValue);
+
+			for(const auto& matchExpression : matchStructure->GetExpressions()) {
+				std::shared_ptr<parser::Expression> condition = matchExpression->GetCondition();
+				if(condition == nullptr) {
+					return EvaluateScopeExpression(
+						matchExpression->GetScope(),
+						matchRegisterManager
+					);
+				}
+
+				std::shared_ptr<Value> condition_value;
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateExpression,
+					condition,
+					matchRegisterManager,
+					condition_value
+				)
+
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = *condition_value == selectorValue;
+
+				if(
+					(
+						condition_value->Type() == ValueType::BOOLEAN
+						&& condition_value->IsTrue()
+					) ||
+					(result && result.value()->IsTrue())
+				) {
+					std::shared_ptr<Value> result_value;
+					__TRY_VALUE_FUNC_WRETERR_WSAVE(
+						EvaluateScopeExpression,
+						matchExpression->GetScope(),
+						matchRegisterManager,
+						result_value
+					)
+					return result_value;
+				}
+			}
+
+			return std::unexpected("Missing default clause in match structure.");
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(

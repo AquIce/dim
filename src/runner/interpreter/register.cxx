@@ -4,10 +4,12 @@ namespace dim {
 	namespace interpreter {
 
 		RegisterManager::RegisterManager(
-			std::shared_ptr<RegisterManager> parent
+			std::shared_ptr<RegisterManager> parent,
+			std::shared_ptr<Value> discard
 		) :
 			m_register(),
-			m_parent(parent)
+			m_parent(parent),
+			m_discard(discard)
 		{}
 
 		std::expected<
@@ -71,6 +73,16 @@ namespace dim {
 			}
 
 			return m_parent->Set(name, value);
+		}
+
+		std::shared_ptr<Value> RegisterManager::GetDiscard() {
+			return m_discard;
+		}
+
+		void RegisterManager::SetDiscard(
+			std::shared_ptr<Value> discard
+		) {
+			m_discard = discard;
 		}
 
 		std::string RegisterManager::Repr() {

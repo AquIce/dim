@@ -90,6 +90,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateDiscardExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateNullExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -135,6 +140,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateMatchStructure(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateLoopExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -172,6 +182,7 @@ namespace dim {
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
 			{ parser::NodeType::SCOPE, 			&EvaluateScopeExpression },
 			{ parser::NodeType::IDENTIFIER, 	&EvaluateIdentifierExpression },
+			{ parser::NodeType::DISCARD,	 	&EvaluateDiscardExpression },
 			{ parser::NodeType::NUL, 			&EvaluateNullExpression },
 			{ parser::NodeType::BOOLEAN, 		&EvaluateBooleanExpression },
 			{ parser::NodeType::NUMBER, 		&EvaluateNumberExpression },
@@ -192,6 +203,7 @@ namespace dim {
 			{ parser::NodeType::UNARY, 			&EvaluateUnaryExpression },
 			{ parser::NodeType::BINARY, 		&EvaluateBinaryExpression },
 			{ parser::NodeType::IFELSE_STRUCT,	&EvaluateIfElseStructure },
+			{ parser::NodeType::MATCH_STRUCT,	&EvaluateMatchStructure },
 			{ parser::NodeType::LOOP, 			&EvaluateLoopExpression },
 			{ parser::NodeType::WHILE, 			&EvaluateWhileLoopExpression },
 			{ parser::NodeType::FOR, 			&EvaluateForLoopExpression },

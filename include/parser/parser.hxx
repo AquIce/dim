@@ -184,6 +184,21 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_match_expression(
+			std::vector<struct lexer::Token>& tokens,
+			const bool allow_default = true
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_struct_structure(
+			std::vector<struct lexer::Token>& tokens
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_loop_expression(
 			std::vector<struct lexer::Token>& tokens
 		);

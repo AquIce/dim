@@ -54,6 +54,7 @@ namespace dim {
 	namespace parser {
 
 		class Expression;
+		class NestedExpression;
 		class ScopeExpression;
 		class NullExpression;
 		class NumberExpression;
@@ -63,18 +64,21 @@ namespace dim {
 		class BinaryExpression;
 		class IfElseExpression;
 		class IfElseStructure;
+		class MatchExpression;
+		class MatchStructure;
 		class LoopExpression;
 		class WhileLoopExpression;
 		class ForLoopExpression;
-		class NestedExpression;
 		class BreakExpression;
 		class OrExpression;
 		class IdentifierExpression;
+		class DiscardExpression;
 		class AssignationExpression;
 		class DeclarationExpression;
 		
 		enum class NodeType {
 			NONE = 0,
+			NESTED,
 			SCOPE,
 			NUL,
 			NUMBER,
@@ -87,10 +91,11 @@ namespace dim {
 			BINARY,
 			IFELSE_EXPR,
 			IFELSE_STRUCT,
+			MATCH_EXPR,
+			MATCH_STRUCT,
 			LOOP,
 			WHILE,
 			FOR,
-			NESTED,
 			BREAK,
 			OR,
 			IDENTIFIER,
@@ -99,8 +104,9 @@ namespace dim {
 			DECL,
 		};
 
-		const std::array<std::string_view, 31> NodeTypeToStr = {
+		const std::array<std::string_view, 33> NodeTypeToStr = {
 			"NONE",
+			"NESTED",
 			"SCOPE",
 			"NUL",
 			"NUMBER",
@@ -113,10 +119,11 @@ namespace dim {
 			"BINARY",
 			"IFELSE_EXPR",
 			"IFELSE_STRUCT",
+			"MATCH_EXPR",
+			"MATCH_STRUCT",
 			"LOOP",
 			"WHILE",
 			"FOR",
-			"NESTED",
 			"BREAK",
 			"OR",
 			"IDENTIFIER",
@@ -155,6 +162,24 @@ namespace dim {
 			virtual Datatype GetDatatype();
 
 			Expression() = default;
+		};
+
+		class NestedExpression : public Expression {
+		public:
+			NestedExpression(
+				std::shared_ptr<Expression> expression
+			);
+
+			std::shared_ptr<Expression> GetExpression();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		protected:
+			std::shared_ptr<Expression> m_expression;
 		};
 
 		class ScopeExpression : public Expression {
@@ -345,6 +370,46 @@ namespace dim {
 			std::vector<std::shared_ptr<IfElseExpression>> m_expressions;
 		};
 
+		class MatchExpression : public Expression {
+		public:
+			MatchExpression(
+				std::shared_ptr<ScopeExpression> scope,
+				std::shared_ptr<Expression> condition
+			);
+
+			std::shared_ptr<ScopeExpression> GetScope();
+			std::shared_ptr<Expression> GetCondition();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::shared_ptr<ScopeExpression> m_scope;
+			std::shared_ptr<Expression> m_condition;
+		};
+
+		class MatchStructure : public NestedExpression {
+		public:
+			MatchStructure(
+				std::shared_ptr<Expression> expression,
+				std::vector<std::shared_ptr<MatchExpression>> expressions
+			);
+
+			std::vector<std::shared_ptr<MatchExpression>> GetExpressions();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::vector<std::shared_ptr<MatchExpression>> m_expressions;
+		};
+
 		class LoopExpression : public Expression {
 		public:
 			LoopExpression(
@@ -407,24 +472,6 @@ namespace dim {
 		private:
 			std::shared_ptr<Expression> m_initialExpression;
 			std::shared_ptr<Expression> m_updateExpression;
-		};
-
-		class NestedExpression : public Expression {
-		public:
-			NestedExpression(
-				std::shared_ptr<Expression> expression
-			);
-
-			std::shared_ptr<Expression> GetExpression();
-
-			std::string Repr(
-				const size_t indent = 0
-			) override;
-			NodeType Type() override;
-			Datatype GetDatatype() override;
-
-		protected:
-			std::shared_ptr<Expression> m_expression;
 		};
 
 		class BreakExpression : public NestedExpression {

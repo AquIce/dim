@@ -4,11 +4,11 @@ namespace dim {
 	namespace parser {
 
 		bool isConvertible(
-			Datatype first,
-			Datatype second
+			Datatype from,
+			Datatype to
 		) noexcept {
 			return (
-				(ConversionTable.at(int(first)) & (1 << int(second))) != 0
+				(ConversionTable.at(int(from)) & (1 << int(to))) != 0
 			);
 		}
 
@@ -82,20 +82,28 @@ namespace dim {
 		std::shared_ptr<Expression> get_root_expression(
 			std::shared_ptr<Expression> expression
 		) noexcept {
+			if(auto matchStructure = std::dynamic_pointer_cast<MatchStructure>(expression)) {
+				return matchStructure->GetExpressions().back()->GetScope()->GetExpressions().back();
+			}
 			if(auto nestedExpression = std::dynamic_pointer_cast<NestedExpression>(expression)) {
 				if(!nestedExpression->GetExpression()) {
 					return expression;
 				}
 				return nestedExpression->GetExpression();
-			} else if(auto binaryExpression = std::dynamic_pointer_cast<BinaryExpression>(expression)) {
+			} 
+			if(auto binaryExpression = std::dynamic_pointer_cast<BinaryExpression>(expression)) {
 				return binaryExpression->GetSampleExpression();
-			} else if(auto unaryExpression = std::dynamic_pointer_cast<UnaryExpression>(expression)) {
+			}
+			if(auto unaryExpression = std::dynamic_pointer_cast<UnaryExpression>(expression)) {
 				return unaryExpression->GetSampleExpression();
-			} else if(auto scopeExpression = std::dynamic_pointer_cast<ScopeExpression>(expression)) {
+			}
+			if(auto scopeExpression = std::dynamic_pointer_cast<ScopeExpression>(expression)) {
 				return scopeExpression->GetExpressions().back();
-			} else if(auto loopExpression = std::dynamic_pointer_cast<LoopExpression>(expression)) {
+			}
+			if(auto loopExpression = std::dynamic_pointer_cast<LoopExpression>(expression)) {
 				return loopExpression->GetScope()->GetExpressions().back();
-			} else if(auto ifElseStructure = std::dynamic_pointer_cast<IfElseStructure>(expression)) {
+			}
+			if(auto ifElseStructure = std::dynamic_pointer_cast<IfElseStructure>(expression)) {
 				return ifElseStructure->GetExpressions().back()->GetScope()->GetExpressions().back();
 			}
 			return expression;
@@ -113,6 +121,16 @@ namespace dim {
 				expressions.push_back(get_root_expression(expressions.back()));
 			}
 			std::shared_ptr<Expression> expression = expressions.back();
+			LOG(expression->Repr());
+
+			if(expression->Type() == NodeType::IDENTIFIER) {
+				if(isConvertible(
+					std::dynamic_pointer_cast<IdentifierExpression>(expression)->GetDatatype(),
+					datatype
+				)) {
+					return expressionRef;
+				}
+			}
 
 			switch(datatype) {
 			case Datatype::I8: { __GEN__TRY_CAST_ITYPE(i8, I8Expression) }

@@ -31,8 +31,10 @@ namespace dim {
 			DOT,
 			COLON,
 			EQUALS,
+			ARROW,
 
 			IFELSE,
+			MATCH,
 			LOOP,
 			BREAK,
 			OR,
@@ -44,7 +46,7 @@ namespace dim {
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 21> TokenTypeStr = {
+		const std::array<std::string_view, 23> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -58,7 +60,9 @@ namespace dim {
 			"DOT",
 			"COLON",
 			"EQUALS",
+			"ARROW",
 			"IFELSE",
+			"MATCH",
 			"LOOP",
 			"BREAK",
 			"OR",
@@ -134,7 +138,15 @@ namespace dim {
 			std::string& src
 		) noexcept;
 
+		std::expected<struct Token, std::string> LexArrow(
+			std::string& src
+		) noexcept;
+
 		std::expected<struct Token, std::string> LexIfElse(
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexMatch(
 			std::string& src
 		) noexcept;
 
@@ -162,12 +174,13 @@ namespace dim {
 			std::string& src
 		) noexcept;
 
-		const std::array<const LexFunction, 19> LexFunctionsList = {
+		const std::array<const LexFunction, 21> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
 			&LexBoolean,
 			&LexString,
+			&LexArrow,
 			&LexBinaryOperator,
 			&LexUnaryOperator,
 			&LexParenthesis,
@@ -176,6 +189,7 @@ namespace dim {
 			&LexColon,
 			&LexEquals,
 			&LexIfElse,
+			&LexMatch,
 			&LexLoop,
 			&LexBreak,
 			&LexOr,

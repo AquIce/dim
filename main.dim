@@ -1,9 +1,15 @@
 {
-	var a: i32 = loop(var i: i16 = 0; i < 255; i = i + 1) {
-		if(~(i != 55) || (i == 155)) {
-			break i;
-		} else {
-			0;
+	var a: i32 = loop(var i: i16 = 0; i < 100; i = i + 1) {
+		match(i) {
+			(< 13) -> {
+				i + 1000;
+			}
+			55 -> {
+				break i;
+			}
+			_ -> {
+				i + 100;
+			}
 		};
 	} or 1;
 };

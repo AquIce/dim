@@ -38,7 +38,9 @@ namespace dim {
 				case TokenType::BRACE:
 				case TokenType::COLON:
 				case TokenType::EQUALS:
+				case TokenType::ARROW:
 				case TokenType::IFELSE:
+				case TokenType::MATCH:
 				case TokenType::LOOP:
 				case TokenType::BREAK:
 				case TokenType::OR:
@@ -301,6 +303,18 @@ namespace dim {
 			return std::unexpected("No equals token found.");
 		}
 
+		std::expected<struct Token, std::string> LexArrow(
+			std::string& src
+		) noexcept {
+			if(src.rfind("->", 0) == 0) {
+				return MakeToken(
+					TokenType::ARROW,
+					utils::shift(src, 2)
+				);
+			}
+			return std::unexpected("No arrow token found.");
+		}
+
 		std::expected<struct Token, std::string> LexIfElse(
 			std::string& src
 		) noexcept {
@@ -325,6 +339,18 @@ namespace dim {
 			}
 
 			return std::unexpected("No if-else token found");
+		}
+
+		std::expected<struct Token, std::string> LexMatch(
+			std::string& src
+		) noexcept {
+			if(src.rfind("match", 0) == 0) {
+				return MakeToken(
+					TokenType::MATCH,
+					utils::shift(src, 5)
+				);
+			}
+			return std::unexpected("No match token found.");
 		}
 
 		std::expected<struct Token, std::string> LexLoop(
