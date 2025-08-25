@@ -29,33 +29,26 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 	__VA_ARGS__ \
 )
 
-#define __TRY_EXPR_FUNC_WRETERR(func, tokens) \
+#define __TRY_EXPR_FUNC_WRETERR(func, tokens, identifierRegister) \
 __TRY_EXPECTED_FUNC_WRETERR( \
 	func, \
 	std::shared_ptr<Expression>, \
 	std::string, \
-	tokens \
+	tokens, \
+	identifierRegister \
 )
-#define __TRY_EXPR_FUNC_WRETERR_WSAVE(func, tokens, value) \
+#define __TRY_EXPR_FUNC_WRETERR_WSAVE(func, tokens, identifierRegister, value) \
 __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 	func, \
 	std::shared_ptr<Expression>, \
 	std::string, \
 	value, \
-	tokens \
+	tokens, \
+	identifierRegister \
 )
 
 namespace dim {
 	namespace parser {
-
-		extern std::vector<IdentifierData> Identifiers;
-
-		std::expected<
-			IdentifierData,
-			std::string
-		> GetIdentifier(
-			const std::string name
-		);
 
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> eat(
@@ -72,98 +65,112 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_identifier_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_discard_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_null_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_number_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_boolean_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_string_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_break_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<OrExpression>,
 			std::string
 		> parse_or_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_parenthesis_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_unary_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_logical_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_multiplicative_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_additive_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_binary_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
@@ -171,6 +178,7 @@ namespace dim {
 			std::string
 		> parse_ifelse_expression(
 			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			const bool allow_if = true
 		);
 
@@ -178,7 +186,8 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_ifelse_structure(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
@@ -186,6 +195,7 @@ namespace dim {
 			std::string
 		> parse_match_expression(
 			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			const bool allow_default = true
 		);
 
@@ -193,42 +203,48 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_struct_structure(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_loop_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_assignation_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_declaration_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_scope_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
 		std::expected<

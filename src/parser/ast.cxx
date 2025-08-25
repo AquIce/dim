@@ -3,6 +3,39 @@
 namespace dim {
 	namespace parser {
 
+		ScopeIdentifierRegister::ScopeIdentifierRegister(
+			std::shared_ptr<ScopeIdentifierRegister> parent
+		) :
+			m_parent(parent),
+			m_identifiers()
+		{}
+
+		std::expected<
+			IdentifierData,
+			std::string
+		> ScopeIdentifierRegister::Get(
+			const std::string name
+		) {
+			std::vector<IdentifierData>::iterator identifier = std::find_if(
+				m_identifiers.begin(), m_identifiers.end(),
+				[&name](const IdentifierData& ident) {
+					return name == ident.name;
+				}
+			);
+			if(identifier == m_identifiers.end()) {
+				if(m_parent) {
+					return m_parent->Get(name);
+				}
+				return std::unexpected("Trying to get non existing identifier.");
+			}
+			return *identifier;
+		}
+		void ScopeIdentifierRegister::Register(
+			IdentifierData identifier
+		) {
+			m_identifiers.push_back(identifier);
+		}
+
 		std::string Expression::Repr(
 			const size_t indent
 		) {
@@ -678,12 +711,7 @@ namespace dim {
 		}
 
 		IdentifierExpression::IdentifierExpression(
-			std::function<
-				std::expected<
-					IdentifierData,
-					std::string
-				> (const std::string name)
-			> GetIdentifierFn,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			std::string name,
 			bool isConst,
 			std::shared_ptr<Expression> expression,
@@ -697,7 +725,7 @@ namespace dim {
 			std::expected<
 				IdentifierData,
 				std::string
-			> result = GetIdentifierFn(name);
+			> result = identifierRegister->Get(name);
 
 			if(result) {
 				m_isConst = result.value().isConst;
