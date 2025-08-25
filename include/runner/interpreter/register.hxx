@@ -18,7 +18,8 @@ namespace dim {
 		class RegisterManager {
 		public:
 			RegisterManager(
-				std::shared_ptr<RegisterManager> parent = nullptr
+				std::shared_ptr<RegisterManager> parent = nullptr,
+				std::shared_ptr<Value> discard = nullptr
 			);
 
 			std::expected<
@@ -48,6 +49,11 @@ namespace dim {
 				RegisterValue value
 			);
 
+			std::shared_ptr<Value> GetDiscard();
+			void SetDiscard(
+				std::shared_ptr<Value> discard
+			);
+
 			std::string Repr();
 
 		private:
@@ -60,6 +66,8 @@ namespace dim {
 				std::string,
 				RegisterValue
 			> m_register;
+
+			std::shared_ptr<Value> m_discard;
 
 			std::shared_ptr<RegisterManager> m_parent;
 		};

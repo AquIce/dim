@@ -72,6 +72,7 @@ namespace dim {
 		class BreakExpression;
 		class OrExpression;
 		class IdentifierExpression;
+		class DiscardExpression;
 		class AssignationExpression;
 		class DeclarationExpression;
 		
