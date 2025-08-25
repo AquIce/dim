@@ -153,6 +153,27 @@ namespace dim {
 			const Datatype datatype;
 		} IdentifierData;
 
+		class ScopeIdentifierRegister {
+		public:
+			ScopeIdentifierRegister(
+				std::shared_ptr<ScopeIdentifierRegister> parent = nullptr
+			);
+
+			std::expected<
+				IdentifierData,
+				std::string
+			> Get(
+				const std::string name
+			);
+			void Register(
+				IdentifierData identifier
+			);
+
+		private:
+			std::shared_ptr<ScopeIdentifierRegister> m_parent;
+			std::vector<IdentifierData> m_identifiers;
+		};
+
 		class Expression {
 		public:
 			virtual std::string Repr(
@@ -503,12 +524,7 @@ namespace dim {
 		class IdentifierExpression : public NestedExpression {
 		public:
 			IdentifierExpression(
-				std::function<
-					std::expected<
-						IdentifierData,
-						std::string
-					> (const std::string name)
-				> GetIdentifierFn,
+				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 				std::string name,
 				bool isConst = true,
 				std::shared_ptr<Expression> expression = nullptr,

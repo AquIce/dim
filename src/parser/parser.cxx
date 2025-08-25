@@ -3,26 +3,6 @@
 namespace dim {
 	namespace parser {
 
-		std::vector<IdentifierData> Identifiers = {};
-
-		std::expected<
-			IdentifierData,
-			std::string
-		> GetIdentifier(
-			const std::string name
-		) {
-			std::vector<IdentifierData>::iterator identifier = std::find_if(
-				Identifiers.begin(), Identifiers.end(),
-				[&name](const IdentifierData& ident) {
-					return name == ident.name;
-				}
-			);
-			if(identifier == Identifiers.end()) {
-				return std::unexpected("Trying to get non existing identifier.");
-			}
-			return *identifier;
-		}
-
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> eat(
 			std::vector<struct lexer::Token>& tokens
@@ -78,7 +58,8 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_identifier_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			lexer::Token identifier;
 			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
@@ -91,17 +72,17 @@ namespace dim {
 			std::expected<
 				IdentifierData,
 				std::string
-			> result = GetIdentifier(identifier.value);
+			> result = identifierRegister->Get(identifier.value);
 
 			if(!result) {
 				return std::make_shared<IdentifierExpression>(
-					GetIdentifier,
+					identifierRegister,
 					identifier.value
 				);
 			}
 
 			return std::make_shared<IdentifierExpression>(
-				GetIdentifier,
+				identifierRegister,
 				result.value().name,
 				result.value().isConst
 			);
@@ -111,10 +92,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_discard_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DISCARD) {
-				return parse_identifier_expression(tokens);
+				return parse_identifier_expression(tokens, identifierRegister);
 			}
 
 			(void)eat(tokens);
@@ -125,10 +107,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_null_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUL) {
-				return parse_discard_expression(tokens);
+				return parse_discard_expression(tokens, identifierRegister);
 			}
 
 			(void)eat(tokens);
@@ -139,10 +122,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_boolean_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BOOLEAN) {
-				return parse_null_expression(tokens);
+				return parse_null_expression(tokens, identifierRegister);
 			}
 
 			return std::make_shared<BooleanExpression>(
@@ -154,10 +138,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_string_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::STRING) {
-				return parse_boolean_expression(tokens);
+				return parse_boolean_expression(tokens, identifierRegister);
 			}
 
 			return std::make_shared<StringExpression>(
@@ -169,10 +154,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_number_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUMBER) {
-				return parse_string_expression(tokens);
+				return parse_string_expression(tokens, identifierRegister);
 			}
 
 			return auto_cast(
@@ -186,10 +172,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_break_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BREAK) {
-				return parse_number_expression(tokens);
+				return parse_number_expression(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
 
@@ -197,6 +184,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_number_expression,
 				tokens,
+				identifierRegister,
 				breakExpression
 			)
 
@@ -209,7 +197,8 @@ namespace dim {
 			std::shared_ptr<OrExpression>,
 			std::string
 		> parse_or_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::OR) {
 				return std::unexpected("No or expression found.");
@@ -220,6 +209,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_expression,
 				tokens,
+				identifierRegister,
 				orExpression
 			)
 
@@ -232,7 +222,8 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_parenthesis_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(
 				tokens.size() > 0 &&
@@ -241,7 +232,7 @@ namespace dim {
 					tokens.front().value != "("
 				)
 			) {
-				return parse_break_expression(tokens);
+				return parse_break_expression(tokens, identifierRegister);
 			}
 
 			__TRY_TOKEN_FUNC_WRETERR(
@@ -253,6 +244,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_expression,
 				tokens,
+				identifierRegister,
 				inner
 			)
 
@@ -272,10 +264,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_unary_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::UNARY_OPERATOR) {
-				return parse_parenthesis_expression(tokens);
+				return parse_parenthesis_expression(tokens, identifierRegister);
 			}
 			std::string operatorSymbol = eat(tokens).value().value;
 
@@ -283,6 +276,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_unary_expression,
 				tokens,
+				identifierRegister,
 				term
 			)
 
@@ -296,12 +290,14 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_logical_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_unary_expression,
 				tokens,
+				identifierRegister,
 				left
 			)
 
@@ -328,6 +324,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_logical_expression,
 					tokens,
+					identifierRegister,
 					right
 				)
 
@@ -355,12 +352,14 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_multiplicative_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_logical_expression,
 				tokens,
+				identifierRegister,
 				left
 			)
 
@@ -375,6 +374,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_multiplicative_expression,
 					tokens,
+					identifierRegister,
 					right
 				)
 
@@ -400,12 +400,14 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_additive_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_multiplicative_expression,
 				tokens,
+				identifierRegister,
 				left
 			)
 
@@ -420,6 +422,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_multiplicative_expression,
 					tokens,
+					identifierRegister,
 					right
 				)
 
@@ -445,9 +448,10 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_binary_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			return parse_additive_expression(tokens);
+			return parse_additive_expression(tokens, identifierRegister);
 		}
 
 		std::expected<
@@ -455,6 +459,7 @@ namespace dim {
 			std::string
 		> parse_ifelse_expression(
 			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			const bool allow_if
 		) {
 			struct lexer::Token keyword;
@@ -478,6 +483,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_parenthesis_expression,
 					tokens,
+					identifierRegister,
 					condition
 				)
 			}
@@ -486,6 +492,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
 				tokens,
+				identifierRegister,
 				scope
 			)
 
@@ -499,15 +506,18 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_ifelse_structure(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
+
 			std::expected<
 				std::shared_ptr<Expression>,
 				std::string
-			> result = parse_ifelse_expression(tokens);
+			> result = parse_ifelse_expression(tokens, innerRegister);
 
 			if(!result) {
-				return parse_binary_expression(tokens);
+				return parse_binary_expression(tokens, identifierRegister);
 			}
 
 			std::vector<std::shared_ptr<IfElseExpression>> expressions = {};
@@ -519,7 +529,7 @@ namespace dim {
 					break;
 				}
 
-				result = parse_ifelse_expression(tokens, false);
+				result = parse_ifelse_expression(tokens, innerRegister, false);
 			}
 
 			auto expressionsUp = std::vector<std::shared_ptr<Expression>>();
@@ -541,6 +551,7 @@ namespace dim {
 			std::string
 		> parse_match_expression(
 			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			const bool allow_default
 		) {
 			std::shared_ptr<Expression> condition = nullptr;
@@ -568,12 +579,14 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_parenthesis_expression,
 					tokens,
+					identifierRegister,
 					condition
 				)
 			} else {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
 					tokens,
+					identifierRegister,
 					condition
 				)
 			}
@@ -588,6 +601,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
 				tokens,
+				identifierRegister,
 				scope
 			)
 
@@ -601,17 +615,21 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_match_structure(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::MATCH) {
-				return parse_ifelse_structure(tokens);
+				return parse_ifelse_structure(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
+
+			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
 
 			std::shared_ptr<Expression> selectorExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_parenthesis_expression,
 				tokens,
+				innerRegister,
 				selectorExpression
 			)
 
@@ -635,7 +653,7 @@ namespace dim {
 				std::expected<
 					std::shared_ptr<Expression>,
 					std::string
-				> result = parse_match_expression(tokens, !got_default_case);
+				> result = parse_match_expression(tokens, innerRegister, !got_default_case);
 
 				if(!result) {
 					return std::unexpected(result.error());
@@ -671,12 +689,15 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_loop_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::LOOP) {
-				return parse_match_structure(tokens);
+				return parse_match_structure(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
+
+			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
 
 			std::shared_ptr<Expression> initialExpression = nullptr;
 			std::shared_ptr<Expression> condition = nullptr;
@@ -691,6 +712,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
 					tokens,
+					innerRegister,
 					initialExpression
 				)	
 
@@ -700,6 +722,7 @@ namespace dim {
 					__TRY_EXPR_FUNC_WRETERR_WSAVE(
 						parse_expression,
 						tokens,
+						innerRegister,
 						condition
 					)
 
@@ -712,6 +735,7 @@ namespace dim {
 					__TRY_EXPR_FUNC_WRETERR_WSAVE(
 						parse_expression,
 						tokens,
+						innerRegister,
 						updateExpression	
 					)
 				}
@@ -727,6 +751,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
 				tokens,
+				innerRegister,
 				scopeExpression
 			)
 			auto scope = std::dynamic_pointer_cast<ScopeExpression>(scopeExpression);
@@ -739,7 +764,8 @@ namespace dim {
 					std::shared_ptr<OrExpression>,
 					std::string,
 					orExpression,
-					tokens
+					tokens,
+					innerRegister
 				)
 
 				if(
@@ -779,17 +805,21 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_assignation_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(
 				tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER
 				|| (tokens.size() > 1 && tokens.at(1).type != lexer::TokenType::EQUALS)
 			) {
-				return parse_loop_expression(tokens);
+				return parse_loop_expression(tokens, identifierRegister);
 			}
 
 			// We know it's an identifier
-			std::shared_ptr<Expression> identifierExpression = parse_identifier_expression(tokens).value();
+			std::shared_ptr<Expression> identifierExpression = parse_identifier_expression(
+				tokens,
+				identifierRegister
+			).value();
 
 			// We know it's an EQUALS token
 			(void)eat(tokens);
@@ -798,6 +828,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_expression,
 				tokens,
+				identifierRegister,
 				expression
 			)
 
@@ -806,14 +837,14 @@ namespace dim {
 			std::expected<
 				IdentifierData,
 				std::string
-			> result = GetIdentifier(name);
+			> result = identifierRegister->Get(name);
 
 			if(!result) {
 				return std::unexpected("Variable name '" + name + "' does not exist yet");
 			}
 
 			auto identifier = std::make_shared<IdentifierExpression>(
-				GetIdentifier,
+				identifierRegister,
 				result.value().name,
 				result.value().isConst,
 				nullptr,
@@ -855,10 +886,11 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_declaration_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DECL) {
-				return parse_assignation_expression(tokens);
+				return parse_assignation_expression(tokens, identifierRegister);
 			}
 
 			bool isConst = eat(tokens).value().value == "const";
@@ -867,6 +899,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_identifier_expression,
 				tokens,
+				identifierRegister,
 				identifierExpression
 			)
 
@@ -897,6 +930,7 @@ namespace dim {
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_expression,
 				tokens,
+				identifierRegister,
 				expression
 			)
 
@@ -921,20 +955,21 @@ namespace dim {
 				expression = result.value();
 			}
 
-			std::shared_ptr<IdentifierExpression> identifier = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression);
+			auto identifier = std::dynamic_pointer_cast<IdentifierExpression>(
+				identifierExpression
+			);
 
-			// NOTE: This has been commented because of scoping and MUST be fixed
-			/*
-			if(GetIdentifier(identifier->GetName())) {
+			if(identifierRegister->Get(identifier->GetName())) {
 				return std::unexpected("Variable name '" + identifier->GetName() + "' already exists");
 			}
-			*/
 
-			Identifiers.push_back(IdentifierData{
-				identifier->GetName(),
-				isConst,
-				datatype
-			});
+			identifierRegister->Register(
+				IdentifierData{
+					identifier->GetName(),
+					isConst,
+					datatype
+				}
+			);
 
 			return std::make_shared<DeclarationExpression>(
 				identifier,
@@ -948,16 +983,18 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			return parse_declaration_expression(tokens);
+			return parse_declaration_expression(tokens, identifierRegister);
 		}
 
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_scope_expression(
-			std::vector<struct lexer::Token>& tokens
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			__TRY_TOKEN_FUNC_WRETERR(
 				expect,
@@ -966,6 +1003,7 @@ namespace dim {
 			)
 
 			auto scope = std::make_shared<ScopeExpression>();
+			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
 
 			bool closingBraceFound = false;
 
@@ -984,6 +1022,7 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
 					tokens,
+					identifierRegister,
 					expr
 				)
 
@@ -1015,10 +1054,16 @@ namespace dim {
 		> Parse(
 			std::vector<struct lexer::Token>& tokens
 		) {
+
+			auto identifierRegister = std::make_shared<ScopeIdentifierRegister>();
+		
 			std::expected<
 				std::shared_ptr<Expression>,
 				std::string
-			> result = parse_scope_expression(tokens);
+			> result = parse_scope_expression(
+				tokens,
+				identifierRegister
+			);
 
 			if(!result) {
 				return std::unexpected(
