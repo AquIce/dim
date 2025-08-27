@@ -479,22 +479,35 @@ namespace dim {
 			)
 
 			std::shared_ptr<Expression> condition = nullptr;
+			std::shared_ptr<Expression> scope;
 			if(keyword.value != "else") {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_parenthesis_expression,
 					tokens,
-					identifierRegister,
 					condition
 				)
+
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_scope_expression,
+					tokens,
+					scope
+				)
+			} else {
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					scope
+				)
+				if(scope->Type() != NodeType::SCOPE) {
+					scope = std::dynamic_pointer_cast<Expression>(
+						std::make_shared<ScopeExpression>(
+							std::vector<std::shared_ptr<Expression>>{ scope }
+						)
+					);
+				}
 			}
 
-			std::shared_ptr<Expression> scope;
-			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_scope_expression,
-				tokens,
-				identifierRegister,
-				scope
-			)
+			
 
 			return std::make_shared<IfElseExpression>(
 				std::dynamic_pointer_cast<ScopeExpression>(scope),
