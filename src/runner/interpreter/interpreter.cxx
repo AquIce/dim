@@ -380,12 +380,6 @@ namespace dim {
 			std::shared_ptr<Value> scopeValue = nullptr;
 
 			while(true) {
-				__TRY_VALUE_FUNC_WRETERR(
-					EvaluateExpression,
-					forLoopExpression->GetUpdateExpression(),
-					loopRegisterManager
-				)
-				
 				__TRY_VALUE_FUNC_WRETERR_WSAVE(
 					EvaluateExpression,
 					forLoopExpression->GetCondition(),
@@ -404,6 +398,12 @@ namespace dim {
 				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
 					break;
 				}
+
+				__TRY_VALUE_FUNC_WRETERR(
+					EvaluateExpression,
+					forLoopExpression->GetUpdateExpression(),
+					loopRegisterManager
+				)
 			}
 
 			if(scopeValue == nullptr) {

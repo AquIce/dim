@@ -1,9 +1,5 @@
 {
 	var a: i32 = loop(i @ ..100) {
-		if(i < 13) {
-			i + 1000;
-		} else if(i == 55) {
-			break i;
-		} else i + 100;
+		i;
 	} or 1;
 };
