@@ -755,6 +755,73 @@ namespace dim {
 						updateExpression	
 					)
 				}
+				else if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::AT) {
+					if(initialExpression->Type() != NodeType::IDENTIFIER) {
+						return std::unexpected("Expected identifier in @ loop");
+					}
+					(void)eat(tokens);
+					std::shared_ptr<Expression> startExpression;
+					if(tokens.size() > 1 && tokens.front().type != lexer::TokenType::DOUBLE_DOT) {
+						__TRY_EXPR_FUNC_WRETERR_WSAVE(
+							parse_expression,
+							tokens,
+							innerRegister,
+							startExpression	
+						)
+						if(
+							startExpression->GetDatatype() == Datatype::BOOLEAN
+							|| startExpression->GetDatatype() == Datatype::STRING
+						) {
+							return std::unexpected("Expected number value for @ loop's start expression.");
+						}
+					} else {
+						startExpression = std::make_shared<I8Expression>(0);
+					}
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::DOUBLE_DOT)
+					)
+					std::shared_ptr<Expression> endExpression;
+					__TRY_EXPR_FUNC_WRETERR_WSAVE(
+						parse_expression,
+						tokens,
+						innerRegister,
+						endExpression
+					)
+					if(
+						endExpression->GetDatatype() == Datatype::BOOLEAN
+						|| endExpression->GetDatatype() == Datatype::STRING
+					) {
+						return std::unexpected("Expected number value for @ loop's end expression.");
+					}
+					std::string identifierName = std::dynamic_pointer_cast<IdentifierExpression>(
+						initialExpression
+					)->GetName();
+					initialExpression = std::make_shared<DeclarationExpression>(
+						std::dynamic_pointer_cast<IdentifierExpression>(initialExpression),
+						startExpression,
+						endExpression->GetDatatype(),
+						false
+					);
+					auto identifierExpression = std::make_shared<IdentifierExpression>(
+						innerRegister,
+						identifierName
+					);
+					updateExpression = std::make_shared<AssignationExpression>(
+						identifierExpression,
+						std::make_shared<BinaryExpression>(
+							identifierExpression,
+							"+",
+							std::make_shared<I8Expression>(1)
+						)
+					);
+					condition = std::make_shared<BinaryExpression>(
+						identifierExpression,
+						"<=",
+						endExpression
+					);
+				}
 
 				__TRY_TOKEN_FUNC_WRETERR(
 					expect,
