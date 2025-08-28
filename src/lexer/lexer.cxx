@@ -39,6 +39,8 @@ namespace dim {
 				case TokenType::COLON:
 				case TokenType::EQUALS:
 				case TokenType::ARROW:
+				case TokenType::AT:
+				case TokenType::DOUBLE_DOT:
 				case TokenType::IFELSE:
 				case TokenType::MATCH:
 				case TokenType::LOOP:
@@ -95,7 +97,9 @@ namespace dim {
 
 				if(first == '.') {
 					if(isDecimal) {
-						return std::unexpected("Invalid number literal \"" + number + ".\"");
+						src = std::string(".") + src;
+						number.pop_back();
+						break;
 					}
 					isDecimal = true;
 					number += utils::shift(src);
@@ -313,6 +317,30 @@ namespace dim {
 				);
 			}
 			return std::unexpected("No arrow token found.");
+		}
+
+		std::expected<struct Token, std::string> LexAt(
+			std::string& src
+		) noexcept {
+			if(src.front() == '@') {
+				return MakeToken(
+					TokenType::AT,
+					utils::shift(src, 1)
+				);
+			}
+			return std::unexpected("No at token found.");
+		}
+
+		std::expected<struct Token, std::string> LexDoubleDot(
+			std::string& src
+		) noexcept {
+			if(src.rfind("..", 0) == 0) {
+				return MakeToken(
+					TokenType::DOUBLE_DOT,
+					utils::shift(src, 2)
+				);
+			}
+			return std::unexpected("No double dot token found.");
 		}
 
 		std::expected<struct Token, std::string> LexIfElse(
