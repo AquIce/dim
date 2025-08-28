@@ -484,18 +484,21 @@ namespace dim {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_parenthesis_expression,
 					tokens,
+					identifierRegister,
 					condition
 				)
 
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_scope_expression,
 					tokens,
+					identifierRegister,
 					scope
 				)
 			} else {
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
 					tokens,
+					identifierRegister,
 					scope
 				)
 				if(scope->Type() != NodeType::SCOPE) {
