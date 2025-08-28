@@ -1,5 +1,5 @@
 {
-	var a: i32 = loop(var i: i16 = 0; i < 100; i = i + 1) {
+	var a: i32 = loop(i @ 0..100) {
 		if(i < 13) {
 			i + 1000;
 		} else if(i == 55) {
