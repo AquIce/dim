@@ -59,9 +59,10 @@ All escaped characters are also available.
 
 ### Unary Operators
 
-| Operator | Operand Type | Result Type | Example |
-| - | - | - | - | - |
-| `!` | `<any>` | `bool` | `!true` |
+| Operator | Operand Type | Result Type     | Example |
+| -------- | ------------ | --------------- | ------- |
+| `!`      | `<any>`      | `bool`          | `!true` |
+| `~`      | `bool`       | Same as Operand | `~true` |
 
 ### Binary Operators
 
@@ -102,6 +103,42 @@ Note two important things :
 1. The `;` at the end is required.
 2. The else clause is required, because every statement has to have a value.
 
+To avoid using the verbose :
+```
+if(<condition>) {
+	...
+} else {
+	<value>;
+};
+```
+You can simply do :
+```
+if(<condition>) {
+	...
+} else <value>;
+```
+
+> Match structure
+
+```
+match(<value>) {
+	(< <value>) -> {
+		...
+	}
+	<value> -> {
+		...
+	}
+	_ -> {
+		...
+	}
+};
+```
+
+There are 3 different types of cases :
+1. Value cases : When a simple value is provided, the case is triggered is the match value is equal to it.
+2. Comparison cases : When a comparison (for example `(>= 23)`) is provided, the match value is inserted in it, and the case is then resolved like an if expression.
+3. Default case : Triggered if no other case is triggered
+
 ### Loops
 
 > Loop
@@ -136,6 +173,14 @@ loop(<initial>, <condition>, <update>) {
 Before the first iteration, runs the `<initial>` statement.
 Loops while `<condition>` is `true` (or until `break` statement is met), running `<update>` after each iteration.
 If `<condition>` is instantly `false`, then the statement's value is `<value>`.
+
+> Range-base loop
+
+```
+loop(<identifier> @ [start]..<stop>) {
+	...
+} or <value>;
+```
 
 > Break
 
