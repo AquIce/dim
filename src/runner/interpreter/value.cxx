@@ -50,6 +50,87 @@ namespace dim {
 		}
 
 
+		std::shared_ptr<Value> AutoCastINumber(
+			f128 number
+		) {
+			if(number < std::numeric_limits<i8>::max()) {
+				return std::make_shared<I8Value>(
+					(i8)number
+				);
+			}
+			if(number < std::numeric_limits<i16>::max()) {
+				return std::make_shared<I16Value>(
+					(i16)number
+				);
+			}
+			if(number < std::numeric_limits<i32>::max()) {
+				return std::make_shared<I32Value>(
+					(i32)number
+				);
+			}
+			if(number < std::numeric_limits<i64>::max()) {
+				return std::make_shared<I64Value>(
+					(i64)number
+				);
+			}
+			return AutoCastFNumber(number);
+		}
+
+		std::shared_ptr<Value> AutoCastUNumber(
+			f128 number
+		) {
+			if(number < std::numeric_limits<u8>::max()) {
+				return std::make_shared<U8Value>(
+					(u8)number
+				);
+			}
+			if(number < std::numeric_limits<u16>::max()) {
+				return std::make_shared<U16Value>(
+					(u16)number
+				);
+			}
+			if(number < std::numeric_limits<u32>::max()) {
+				return std::make_shared<U32Value>(
+					(u32)number
+				);
+			}
+			if(number < std::numeric_limits<u64>::max()) {
+				return std::make_shared<U64Value>(
+					(u64)number
+				);
+			}
+			return AutoCastFNumber(number);
+		}
+
+		std::shared_ptr<Value> AutoCastFNumber(
+			f128 number
+		) {
+			if(number < std::numeric_limits<f32>::max()) {
+				return std::make_shared<F32Value>(
+					(f32)number
+				);
+			}
+			if(number < std::numeric_limits<f64>::max()) {
+				return std::make_shared<F64Value>(
+					(f64)number
+				);
+			}
+			return std::make_shared<F128Value>(number);
+		}
+
+		std::shared_ptr<Value> AutoCastNumber(
+			f128 number
+		) {
+			if(!utils::f128isint(number)) {
+				return AutoCastFNumber(number);
+			}
+			if(number > 0) {
+				return AutoCastUNumber(number);
+			}
+			return AutoCastINumber(number);
+		}
+
+
 		NullValue::NullValue() :
 			Value()
 		{}
@@ -83,76 +164,19 @@ namespace dim {
 		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NullValue, ~, null)
 
 
-		NumberValue::NumberValue(
-			double value
-		):
-			Value(),
-			m_value(value)
-		{}
+		__GEN__NUMBER_IU_CLASS_IMPL(I8Value, i8, I8)
+		__GEN__NUMBER_IU_CLASS_IMPL(I16Value, i16, I16)
+		__GEN__NUMBER_IU_CLASS_IMPL(I32Value, i32, I32)
+		__GEN__NUMBER_IU_CLASS_IMPL(I64Value, i64, I64)
 
-		double NumberValue::GetValue() {
-			return m_value;
-		}
-		void NumberValue::SetValue(
-			double value
-		) {
-			m_value = value;
-		}
+		__GEN__NUMBER_IU_CLASS_IMPL(U8Value, u8, U8)
+		__GEN__NUMBER_IU_CLASS_IMPL(U16Value, u16, U16)
+		__GEN__NUMBER_IU_CLASS_IMPL(U32Value, u32, U32)
+		__GEN__NUMBER_IU_CLASS_IMPL(U64Value, u64, U64)
 
-		bool NumberValue::IsTrue() {
-			return m_value != 0;
-		}
-
-		std::string NumberValue::Repr() {
-			return std::to_string(m_value);
-		}
-		ValueType NumberValue::Type() {
-			return ValueType::NUMBER;
-		}
-		
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, +)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, -)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, NumberValue, ValueType::NUMBER, *)
-		
-		std::expected<
-			std::shared_ptr<Value>,
-			std::string
-		> NumberValue::operator/(
-			std::shared_ptr<Value> other
-		) {
-			switch(other->Type()) {
-			case ValueType::NUMBER: {
-				double value = std::dynamic_pointer_cast<NumberValue>(other)->GetValue();
-				if(value == 0) {
-					return std::unexpected("Cannot divide by 0");
-				}
-				return std::make_shared<NumberValue>(
-					this->GetValue() / value
-				);
-			}
-			default:
-				return std::unexpected(
-					std::string("Cannot use '/' operator on number value and ")
-					+ std::string(ValueTypeStr.at(int(other->Type())))
-				);
-			}
-		}
-
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, <)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, >)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, <=)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, >=)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, &&)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, ||)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, ==)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(NumberValue, BooleanValue, ValueType::NUMBER, !=)
-
-		// Can be re-enabled when distinction between double and int is made
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, &, number) 
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, |, number)
-		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, ^, number)
-		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(NumberValue, ~, number)
-
+		__GEN__NUMBER_F_CLASS_IMPL(F32Value, f32, F32, std::to_string)
+		__GEN__NUMBER_F_CLASS_IMPL(F64Value, f64, F64, std::to_string)
+		__GEN__NUMBER_F_CLASS_IMPL(F128Value, f128, F128, utils::f128tos)
 
 
 		BooleanValue::BooleanValue(
@@ -195,9 +219,9 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ||)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ==)
 		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, !=)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, &)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, |)
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(BooleanValue, BooleanValue, ValueType::BOOLEAN, ^)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED_BITWISE(BooleanValue, &)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED_BITWISE(BooleanValue, |)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED_BITWISE(BooleanValue, ^)
 		
 		std::expected<
 			std::shared_ptr<Value>,
