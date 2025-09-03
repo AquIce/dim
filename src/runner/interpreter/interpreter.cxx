@@ -74,16 +74,19 @@ namespace dim {
 			);
 		}
 
-		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
-			std::shared_ptr<parser::Expression> expression,
-			std::shared_ptr<RegisterManager> registerManager
-		) {
-			auto numberExpression = std::dynamic_pointer_cast<parser::NumberExpression>(expression);
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateI8Expression, parser::I8Expression, I8Value, utils::stoi8)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateI16Expression, parser::I16Expression, I16Value, utils::stoi16)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateI32Expression, parser::I32Expression, I32Value, utils::stoi32)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateI64Expression, parser::I64Expression, I64Value, utils::stoi64)
 
-			return std::make_shared<NumberValue>(
-				std::stod(numberExpression->GetValue())
-			);
-		}
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateU8Expression, parser::U8Expression, U8Value, utils::stou8)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateU16Expression, parser::U16Expression, U16Value, utils::stou16)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateU32Expression, parser::U32Expression, U32Value, utils::stou32)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateU64Expression, parser::U64Expression, U64Value, utils::stou64)
+
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateF32Expression, parser::F32Expression, F32Value, utils::stof32)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateF64Expression, parser::F64Expression, F64Value, utils::stof64)
+		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateF128Expression, parser::F128Expression, F128Value, utils::stof128)
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
 			std::shared_ptr<parser::Expression> expression,
@@ -181,7 +184,17 @@ namespace dim {
 
 			switch(lhs->Type()) {
 				__GEN__BINARY_OPERATOR_TYPE_CASE(NullValue, ValueType::NUL)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(NumberValue, ValueType::NUMBER)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(I8Value, ValueType::I8)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(I16Value, ValueType::I16)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(I32Value, ValueType::I32)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(I64Value, ValueType::I64)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(U8Value, ValueType::U8)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(U16Value, ValueType::U16)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(U32Value, ValueType::U32)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(U64Value, ValueType::U64)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(F32Value, ValueType::F32)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(F64Value, ValueType::F64)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(F128Value, ValueType::F128)
 				__GEN__BINARY_OPERATOR_TYPE_CASE(BooleanValue, ValueType::BOOLEAN)
 				__GEN__BINARY_OPERATOR_TYPE_CASE(StringValue, ValueType::STRING)
 			default:

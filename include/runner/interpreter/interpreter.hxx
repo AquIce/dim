@@ -68,7 +68,19 @@ case valueTypeEnum: { \
 			+ binaryOperator \
 		); \
 	} \
-} \
+}
+
+#define __GEN__EVALUTE_NUMBER_EXPRESSION(name, _ExpressionDatatype, _ValueDatatype, convertfn) \
+std::expected<std::shared_ptr<Value>, std::string> name( \
+	std::shared_ptr<parser::Expression> expression, \
+	std::shared_ptr<RegisterManager> registerManager \
+) { \
+	auto numberExpression = std::dynamic_pointer_cast<_ExpressionDatatype>(expression); \
+ \
+	return std::make_shared<_ValueDatatype>( \
+		convertfn(numberExpression->GetValue()) \
+	); \
+}
 
 namespace dim {
 	namespace interpreter {
@@ -105,7 +117,57 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
-		std::expected<std::shared_ptr<Value>, std::string> EvaluateNumberExpression(
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateI8Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateI16Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateI32Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateI64Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateU8Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateU16Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateU32Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateU64Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateF32Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateF64Expression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateF128Expression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
 		);
@@ -185,18 +247,17 @@ namespace dim {
 			{ parser::NodeType::DISCARD,	 	&EvaluateDiscardExpression },
 			{ parser::NodeType::NUL, 			&EvaluateNullExpression },
 			{ parser::NodeType::BOOLEAN, 		&EvaluateBooleanExpression },
-			{ parser::NodeType::NUMBER, 		&EvaluateNumberExpression },
-			{ parser::NodeType::I8, 			&EvaluateNumberExpression },
-			{ parser::NodeType::I16, 			&EvaluateNumberExpression },
-			{ parser::NodeType::I32, 			&EvaluateNumberExpression },
-			{ parser::NodeType::I64, 			&EvaluateNumberExpression },
-			{ parser::NodeType::U8, 			&EvaluateNumberExpression },
-			{ parser::NodeType::U16, 			&EvaluateNumberExpression },
-			{ parser::NodeType::U32, 			&EvaluateNumberExpression },
-			{ parser::NodeType::U64, 			&EvaluateNumberExpression },
-			{ parser::NodeType::F32, 			&EvaluateNumberExpression },
-			{ parser::NodeType::F64, 			&EvaluateNumberExpression },
-			{ parser::NodeType::F128, 			&EvaluateNumberExpression },
+			{ parser::NodeType::I8, 			&EvaluateI8Expression },
+			{ parser::NodeType::I16, 			&EvaluateI16Expression },
+			{ parser::NodeType::I32, 			&EvaluateI32Expression },
+			{ parser::NodeType::I64, 			&EvaluateI64Expression },
+			{ parser::NodeType::U8, 			&EvaluateU8Expression },
+			{ parser::NodeType::U16, 			&EvaluateU16Expression },
+			{ parser::NodeType::U32, 			&EvaluateU32Expression },
+			{ parser::NodeType::U64, 			&EvaluateU64Expression },
+			{ parser::NodeType::F32, 			&EvaluateF32Expression },
+			{ parser::NodeType::F64, 			&EvaluateF64Expression },
+			{ parser::NodeType::F128, 			&EvaluateF128Expression },
 			{ parser::NodeType::STRING, 		&EvaluateStringExpression },
 			{ parser::NodeType::BREAK, 			&EvaluateBreakExpression },
 			{ parser::NodeType::OR, 			&EvaluateOrExpression },
@@ -210,6 +271,5 @@ namespace dim {
 			{ parser::NodeType::ASSIGN, 		&EvaluateAssignationExpression },
 			{ parser::NodeType::DECL, 			&EvaluateDeclarationExpression },
 		};
-
 	}
 }
