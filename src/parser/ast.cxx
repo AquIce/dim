@@ -53,11 +53,77 @@ namespace dim {
 
 
 
+		IdentifierExpression::IdentifierExpression(
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::string name,
+			bool isConst,
+			std::shared_ptr<Expression> expression,
+			Datatype datatype
+		) :
+			NestedExpression(expression),
+			m_name(name),
+			m_isConst(isConst),
+			m_datatype(datatype)
+		{
+			std::expected<
+				IdentifierData,
+				std::string
+			> result = identifierRegister->Get(name);
+
+			if(result) {
+				m_isConst = result.value().isConst;
+				m_datatype = result.value().datatype;
+			}
+		}
+
+		std::string IdentifierExpression::GetName() {
+			return m_name;
+		}
+		bool IdentifierExpression::GetIsConst() {
+			return m_isConst;
+		}
+		void IdentifierExpression::SetIsConst(
+			bool isConst
+		) {
+			m_isConst = isConst;
+		}
+		void IdentifierExpression::SetExpression(
+			std::shared_ptr<Expression> expression
+		) {
+			m_expression = expression;
+		}
+		void IdentifierExpression::SetDatatype(
+			Datatype datatype
+		) {
+			m_datatype = datatype;
+		}
+
+		std::string IdentifierExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr =
+				std::string("(") + m_name + ": "
+				+ std::string(DatatypeToStr.at(int(m_datatype)))
+				+ ")";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType IdentifierExpression::Type() {
+			return NodeType::IDENTIFIER;
+		}
+		Datatype IdentifierExpression::GetDatatype() {
+			return m_datatype;
+		}
+
+
+
 		ScopeExpression::ScopeExpression(
-			std::vector<std::shared_ptr<Expression>> expressions
+			std::vector<std::shared_ptr<Expression>> expressions,
+			std::shared_ptr<IdentifierExpression> name
 		) :
 			Expression(),
-			m_expressions(expressions)
+			m_expressions(expressions),
+			m_name(name)
 		{}
 
 		std::vector<std::shared_ptr<Expression>> ScopeExpression::GetExpressions() {
@@ -69,10 +135,20 @@ namespace dim {
 			m_expressions.push_back(expression);
 		}
 
+		std::shared_ptr<IdentifierExpression> ScopeExpression::GetName() {
+			return m_name;
+		}
+		void ScopeExpression::SetName(
+			std::shared_ptr<IdentifierExpression> name
+		) {
+			m_name = name;
+		}
+
 		std::string ScopeExpression::Repr(
 			const size_t indent
 		) {
-			std::string repr = "{\n";
+			std::string repr = m_name ? m_name->Repr() + " " : "";
+			repr += "{\n";
 			for(const auto& expression : m_expressions) {
 				repr += expression->Repr(indent + 1) + "\n";
 			}
@@ -671,15 +747,30 @@ namespace dim {
 
 
 		BreakExpression::BreakExpression(
-			std::shared_ptr<Expression> expression
+			std::shared_ptr<Expression> expression,
+			std::shared_ptr<IdentifierExpression> name
 		) :
-			NestedExpression(expression)
+			NestedExpression(expression),
+			m_name(name)
 		{}
+
+		std::shared_ptr<IdentifierExpression> BreakExpression::GetScopeName() {
+			return m_name;
+		}
+		void BreakExpression::SetScopeName(
+			std::shared_ptr<IdentifierExpression> name
+		) {
+			m_name = name;
+		}
 
 		std::string BreakExpression::Repr(
 			const size_t indent
 		) {
-			std::string repr = "break" + NestedExpression::Repr(indent);
+			std::string repr = "break ";
+			if(m_name) {
+				repr += m_name->Repr() + " ";
+			}
+			repr += NestedExpression::Repr(indent);
 			repr.insert(0, indent, '\t');
 			return repr;
 		}
@@ -708,68 +799,6 @@ namespace dim {
 		}
 		Datatype OrExpression::GetDatatype() {
 			return NestedExpression::GetDatatype();
-		}
-
-		IdentifierExpression::IdentifierExpression(
-			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-			std::string name,
-			bool isConst,
-			std::shared_ptr<Expression> expression,
-			Datatype datatype
-		) :
-			NestedExpression(expression),
-			m_name(name),
-			m_isConst(isConst),
-			m_datatype(datatype)
-		{
-			std::expected<
-				IdentifierData,
-				std::string
-			> result = identifierRegister->Get(name);
-
-			if(result) {
-				m_isConst = result.value().isConst;
-				m_datatype = result.value().datatype;
-			}
-		}
-
-		std::string IdentifierExpression::GetName() {
-			return m_name;
-		}
-		bool IdentifierExpression::GetIsConst() {
-			return m_isConst;
-		}
-		void IdentifierExpression::SetIsConst(
-			bool isConst
-		) {
-			m_isConst = isConst;
-		}
-		void IdentifierExpression::SetExpression(
-			std::shared_ptr<Expression> expression
-		) {
-			m_expression = expression;
-		}
-		void IdentifierExpression::SetDatatype(
-			Datatype datatype
-		) {
-			m_datatype = datatype;
-		}
-
-		std::string IdentifierExpression::Repr(
-			const size_t indent
-		) {
-			std::string repr =
-				std::string("(") + m_name + ": "
-				+ std::string(DatatypeToStr.at(int(m_datatype)))
-				+ ")";
-			repr.insert(0, indent, '\t');
-			return repr;
-		}
-		NodeType IdentifierExpression::Type() {
-			return NodeType::IDENTIFIER;
-		}
-		Datatype IdentifierExpression::GetDatatype() {
-			return m_datatype;
 		}
 
 

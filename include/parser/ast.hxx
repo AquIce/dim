@@ -203,15 +203,55 @@ namespace dim {
 			std::shared_ptr<Expression> m_expression;
 		};
 
+		class IdentifierExpression : public NestedExpression {
+		public:
+			IdentifierExpression(
+				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+				std::string name,
+				bool isConst = true,
+				std::shared_ptr<Expression> expression = nullptr,
+				Datatype datatype = Datatype::INFER
+			);
+
+			std::string GetName();
+			bool GetIsConst();
+			void SetIsConst(
+				bool isConst
+			);
+			void SetExpression(
+				std::shared_ptr<Expression> expression
+			);
+			void SetDatatype(
+				Datatype datatype
+			);
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::string m_name;
+			bool m_isConst;
+			Datatype m_datatype;
+		};
+
 		class ScopeExpression : public Expression {
 		public:
 			ScopeExpression(
-				std::vector<std::shared_ptr<Expression>> expressions = {}
+				std::vector<std::shared_ptr<Expression>> expressions = {},
+				std::shared_ptr<IdentifierExpression> name = nullptr
 			);
 
 			std::vector<std::shared_ptr<Expression>> GetExpressions();
 			void AddExpression(
 				std::shared_ptr<Expression> expression
+			);
+
+			std::shared_ptr<IdentifierExpression> GetName();
+			void SetName(
+				std::shared_ptr<IdentifierExpression> name
 			);
 
 			std::string Repr(
@@ -222,6 +262,7 @@ namespace dim {
 
 		private:
 			std::vector<std::shared_ptr<Expression>> m_expressions;
+			std::shared_ptr<IdentifierExpression> m_name;
 		};
 
 		class NullExpression : public Expression {
@@ -498,7 +539,13 @@ namespace dim {
 		class BreakExpression : public NestedExpression {
 		public:
 			BreakExpression(
-				std::shared_ptr<Expression> expression
+				std::shared_ptr<Expression> expression,
+				std::shared_ptr<IdentifierExpression> scopeName = nullptr
+			);
+
+			std::shared_ptr<IdentifierExpression> GetScopeName();
+			void SetScopeName(
+				std::shared_ptr<IdentifierExpression> scopeName
 			);
 
 			std::string Repr(
@@ -506,6 +553,9 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 			Datatype GetDatatype() override;
+		
+		private:
+			std::shared_ptr<IdentifierExpression> m_name;
 		};
 
 		class OrExpression : public NestedExpression {
@@ -519,40 +569,6 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 			Datatype GetDatatype() override;
-		};
-
-		class IdentifierExpression : public NestedExpression {
-		public:
-			IdentifierExpression(
-				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-				std::string name,
-				bool isConst = true,
-				std::shared_ptr<Expression> expression = nullptr,
-				Datatype datatype = Datatype::INFER
-			);
-
-			std::string GetName();
-			bool GetIsConst();
-			void SetIsConst(
-				bool isConst
-			);
-			void SetExpression(
-				std::shared_ptr<Expression> expression
-			);
-			void SetDatatype(
-				Datatype datatype
-			);
-
-			std::string Repr(
-				const size_t indent = 0
-			) override;
-			NodeType Type() override;
-			Datatype GetDatatype() override;
-
-		private:
-			std::string m_name;
-			bool m_isConst;
-			Datatype m_datatype;
 		};
 
 		class DiscardExpression : public Expression {
