@@ -188,6 +188,26 @@ namespace dim {
 				breakExpression
 			)
 
+			if(
+				breakExpression->Type() == NodeType::IDENTIFIER
+				&& tokens.size() > 0
+				&& tokens.front().type != lexer::TokenType::EOL
+			) {
+				std::shared_ptr<Expression> realBreakExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_number_expression,
+					tokens,
+					identifierRegister,
+					realBreakExpression
+				)
+				return std::make_shared<BreakExpression>(
+					realBreakExpression,
+					std::dynamic_pointer_cast<IdentifierExpression>(
+						breakExpression
+					)
+				);
+			}
+
 			return std::make_shared<BreakExpression>(
 				breakExpression
 			);
@@ -1079,6 +1099,20 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			std::shared_ptr<Expression> scopeName = nullptr;
+			if(
+				tokens.size() > 0
+				&& tokens.front().type != lexer::TokenType::BRACE
+				&& tokens.front().value != "{"
+			) {
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_identifier_expression,
+					tokens,
+					identifierRegister,
+					scopeName
+				)
+			}
+
 			__TRY_TOKEN_FUNC_WRETERR(
 				expect,
 				tokens,
@@ -1086,6 +1120,7 @@ namespace dim {
 			)
 
 			auto scope = std::make_shared<ScopeExpression>();
+			scope->SetName(std::dynamic_pointer_cast<IdentifierExpression>(scopeName));
 			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
 
 			bool closingBraceFound = false;

@@ -1,5 +1,7 @@
 {
-	var a: i32 = loop(i @ ..100) {
-		i;
+	var a: i32 = loop(i @ ..100) outer {
+		loop(var j: i8 = i; j > 0; j = j - 1) {
+			break outer 3;
+		} or 1;
 	} or 1;
 };
