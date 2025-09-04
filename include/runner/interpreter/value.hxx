@@ -382,6 +382,11 @@ namespace dim {
 			BREAK
 		};
 
+		struct ValueFlagWVal {
+			ValueFlag flag;
+			std::string breakScopeName;
+		};
+
 		const std::array<std::string_view, 15> ValueTypeStr = {
 			"NONE",
 			"NULL",
@@ -410,9 +415,9 @@ namespace dim {
 
 			Value() = default;
 
-			ValueFlag GetFlag();
+			ValueFlagWVal GetFlag();
 			void SetFlag(
-				ValueFlag flag
+				ValueFlagWVal flag
 			);
 
 			__GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(+)
@@ -438,7 +443,7 @@ namespace dim {
 			> operator!();
 
 		private:
-			ValueFlag m_flag;
+			ValueFlagWVal m_flag;
 		};
 
 		std::shared_ptr<Value> AutoCastINumber(

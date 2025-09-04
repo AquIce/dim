@@ -1,7 +1,8 @@
-{
+main {
 	var a: i32 = loop(i @ ..100) outer {
-		loop(var j: i8 = i; j > 0; j = j - 1) {
-			break outer 3;
-		} or 1;
+		loop(var j: i32 = 0; j < (i + 10); j = j + 1) {
+			break main 12345; 
+		} or 123;
+		break 1000;
 	} or 1;
 };

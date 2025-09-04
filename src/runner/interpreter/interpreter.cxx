@@ -19,7 +19,16 @@ namespace dim {
 					scopeValue
 				)
 				LOG(scopeValue->Repr());
-				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+				if(scopeValue->GetFlag().flag == ValueFlag::BREAK) {
+					if(
+						scopeExpression->GetName() != nullptr
+						&& scopeExpression->GetName()->GetName() == scopeValue->GetFlag().breakScopeName
+					) {
+						scopeValue->SetFlag({
+							.flag = ValueFlag::NONE,
+							.breakScopeName = ""
+						});
+					}
 					return scopeValue;
 				}
 			}
@@ -113,7 +122,13 @@ namespace dim {
 				breakValue
 			);
 
-			breakValue->SetFlag(ValueFlag::BREAK);
+			std::shared_ptr<parser::IdentifierExpression> scopeName = breakExpression->GetScopeName();
+			breakValue->SetFlag(
+				{
+					.flag = ValueFlag::BREAK,
+					.breakScopeName = scopeName ? scopeName->GetName() : ""
+				}
+			);
 			return breakValue;
 		}
 
@@ -322,12 +337,32 @@ namespace dim {
 					loopRegisterManager,
 					scopeValue
 				)
-				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+				if(scopeValue->GetFlag().flag == ValueFlag::BREAK) {
 					break;
 				}
 			}
 
-			scopeValue->SetFlag(ValueFlag::NONE);
+			std::shared_ptr<parser::IdentifierExpression> scopeName = loopExpression->GetScope()->GetName();
+			struct ValueFlagWVal flagWValue = scopeValue->GetFlag();
+			
+			if(
+				flagWValue.flag == ValueFlag::BREAK
+				&& (
+					flagWValue.breakScopeName == ""
+					|| (
+						scopeName
+						&& flagWValue.breakScopeName == scopeName->GetName()
+					)
+				)
+			) {
+				scopeValue->SetFlag(
+					{
+						.flag = ValueFlag::NONE,
+						.breakScopeName = ""
+					}
+				);
+			}
+
 			return scopeValue;
 		}
 
@@ -358,7 +393,7 @@ namespace dim {
 					loopRegisterManager,
 					scopeValue
 				)
-				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+				if(scopeValue->GetFlag().flag == ValueFlag::BREAK) {
 					break;
 				}
 			}
@@ -370,7 +405,26 @@ namespace dim {
 				);
 			}
 
-			scopeValue->SetFlag(ValueFlag::NONE);
+			std::shared_ptr<parser::IdentifierExpression> scopeName = whileLoopExpression->GetScope()->GetName();
+			struct ValueFlagWVal flagWValue = scopeValue->GetFlag();
+			
+			if(
+				flagWValue.flag == ValueFlag::BREAK
+				&& (
+					flagWValue.breakScopeName == ""
+					|| (
+						scopeName
+						&& flagWValue.breakScopeName == scopeName->GetName()
+					)
+				)
+			) {
+				scopeValue->SetFlag(
+					{
+						.flag = ValueFlag::NONE,
+						.breakScopeName = ""
+					}
+				);
+			}
 
 			return scopeValue;
 		}
@@ -408,7 +462,7 @@ namespace dim {
 					loopRegisterManager,
 					scopeValue
 				)
-				if(scopeValue->GetFlag() == ValueFlag::BREAK) {
+				if(scopeValue->GetFlag().flag == ValueFlag::BREAK) {
 					break;
 				}
 
@@ -426,7 +480,26 @@ namespace dim {
 				);
 			}
 
-			scopeValue->SetFlag(ValueFlag::NONE);
+			std::shared_ptr<parser::IdentifierExpression> scopeName = forLoopExpression->GetScope()->GetName();
+			struct ValueFlagWVal flagWValue = scopeValue->GetFlag();
+			
+			if(
+				flagWValue.flag == ValueFlag::BREAK
+				&& (
+					flagWValue.breakScopeName == ""
+					|| (
+						scopeName
+						&& flagWValue.breakScopeName == scopeName->GetName()
+					)
+				)
+			) {
+				scopeValue->SetFlag(
+					{
+						.flag = ValueFlag::NONE,
+						.breakScopeName = ""
+					}
+				);
+			}
 
 			return scopeValue;
 		}
