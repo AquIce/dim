@@ -14,11 +14,11 @@ namespace dim {
 			return ValueType::NONE;
 		}
 
-		ValueFlag Value::GetFlag() {
+		ValueFlagWVal Value::GetFlag() {
 			return m_flag;
 		}
 		void Value::SetFlag(
-			ValueFlag flag
+			ValueFlagWVal flag
 		) {
 			m_flag = flag;
 		}
