@@ -3,9 +3,11 @@
 ## Scopes
 
 For now, without functions being implemented yet, your program MUST be contained in a global scope.
+This scope can (and should) be called `main`.
+Note that the name is optionnal.
 
 ```
-{
+main {
     // Your code here
 };
 ```
@@ -62,7 +64,7 @@ All escaped characters are also available.
 | Operator | Operand Type | Result Type     | Example |
 | -------- | ------------ | --------------- | ------- |
 | `!`      | `<any>`      | `bool`          | `!true` |
-| `~`      | `bool`       | Same as Operand | `~true` |
+| `~`      | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as Operand | `~1234` |
 
 ### Binary Operators
 
@@ -81,9 +83,9 @@ All escaped characters are also available.
 | `>=` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` | `bool` | `14.3 >= 8.5` |
 | `==` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `bool` | `14.3 == 8.5` |
 | `!=` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `bool` | `14.3 != 8.5` |
-| `&` | `bool` | Same as LHS | Same as LHS | `true & false` |
-| `\|` | `bool` | Same as LHS | Same as LHS | `true \| false` |
-| `^` | `bool` | Same as LHS | Same as LHS | `true ^ false` |
+| `&` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `true & false` |
+| `\|` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `32 \| 43` |
+| `^` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `456 ^ 567` |
 
 ### Conditional Structures
 
@@ -150,6 +152,12 @@ loop {
 ```
 
 Loops infinitely (until `break` statement is met).
+You can also add a name to the scope :
+```
+loop myScope {
+    ...
+};
+```
 
 > While Loop
 
@@ -161,6 +169,7 @@ loop(<condition>) {
 
 Loops while `<condition>` is `true` (or until `break` statement is met).
 If `<condition>` is instantly `false`, then the statement's value is `<value>`.
+As with the basic loop, you can add a name to the scope.
 
 > For Loop
 
@@ -173,6 +182,7 @@ loop(<initial>, <condition>, <update>) {
 Before the first iteration, runs the `<initial>` statement.
 Loops while `<condition>` is `true` (or until `break` statement is met), running `<update>` after each iteration.
 If `<condition>` is instantly `false`, then the statement's value is `<value>`.
+As with the basic and while loop, you can add a name to the scope.
 
 > Range-base loop
 
@@ -191,6 +201,14 @@ loop {
 ```
 
 When breaking out of a loop, you need to provide a value.
+You can also break out of a specific scope using its name :
+```
+main {
+    loop {
+        break main 0;
+    }
+}
+```
 
 ### Variables
 
