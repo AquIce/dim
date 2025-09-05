@@ -58,6 +58,17 @@ namespace dim {
 		class ScopeExpression;
 		class NullExpression;
 		class NumberExpression;
+		class I8Expression;
+		class I16Expression;
+		class I32Expression;
+		class I64Expression;
+		class U8Expression;
+		class U16Expression;
+		class U32Expression;
+		class U64Expression;
+		class F32Expression;
+		class F64Expression;
+		class F128Expression;
 		class BooleanExpression;
 		class StringExpression;
 		class UnaryExpression;
