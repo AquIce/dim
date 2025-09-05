@@ -921,6 +921,10 @@ namespace dim {
 						&& tokens.at(1).type != lexer::TokenType::BINARY_OPERATOR
 						|| tokens.at(2).type != lexer::TokenType::EQUALS
 					)
+					&& (
+						tokens.at(1).type != lexer::TokenType::UNARY_OPERATOR
+						|| (tokens.at(1).value != "++" && tokens.at(1).value == "--")
+					)
 				)
 			) {
 				return parse_loop_expression(tokens, identifierRegister);
@@ -932,24 +936,31 @@ namespace dim {
 				identifierRegister
 			).value();
 
+			std::string unaryOperator = (tokens.size() > 0 && tokens.front().type == lexer::TokenType::UNARY_OPERATOR)
+				? std::string(1, eat(tokens).value().value.at(1))
+				: "";
+
 			std::string operatorSymbol = "";
-			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::BINARY_OPERATOR) {
-				operatorSymbol = eat(tokens).value().value;
-			}
-
-			__TRY_TOKEN_FUNC_WRETERR(
-				expect,
-				tokens,
-				lexer::MakeToken(lexer::TokenType::EQUALS)
-			)
-
 			std::shared_ptr<Expression> expression;
-			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_expression,
-				tokens,
-				identifierRegister,
-				expression
-			)
+
+			if(unaryOperator == "") {
+				if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::BINARY_OPERATOR) {
+					operatorSymbol = eat(tokens).value().value;
+				}
+
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::EQUALS)
+				)
+
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					identifierRegister,
+					expression
+				)
+			}
 
 			std::string name = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName();
 
@@ -972,6 +983,14 @@ namespace dim {
 
 			if(identifier->GetIsConst()) {
 				return std::unexpected("Trying to set constant '" + name + "'");
+			}
+
+			if(unaryOperator != "") {
+				expression = std::make_shared<BinaryExpression>(
+					identifier,
+					unaryOperator,
+					std::make_shared<I8Expression>(1)
+				);
 			}
 
 			if(operatorSymbol != "") {
