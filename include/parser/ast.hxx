@@ -283,6 +283,9 @@ namespace dim {
 			);
 
 			std::string GetValue();
+			void SetValue(
+				std::string value
+			);
 
 			std::string Repr(
 				const size_t indent = 0

@@ -198,6 +198,12 @@ namespace dim {
 			return m_value;
 		}
 
+		void NumberExpression::SetValue(
+			std::string value
+		) {
+			m_value = value;
+		}
+
 		std::string NumberExpression::Repr(
 			const size_t indent
 		) {
