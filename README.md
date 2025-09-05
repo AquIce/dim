@@ -65,6 +65,8 @@ All escaped characters are also available.
 | -------- | ------------ | --------------- | ------- |
 | `!`      | `<any>`      | `bool`          | `!true` |
 | `~`      | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as Operand | `~1234` |
+| `++` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` (has to be an identifier) | Same as Operand | `var i := 0; i++;` |
+| `--` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` (has to be an identifier) | Same as Operand | `var i := 1; i--;` |
 
 ### Binary Operators
 
