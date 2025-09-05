@@ -1,6 +1,6 @@
 main {
 	var a: i32 = loop(i @ ..100) outer {
-		loop(var j: i32 = 0; j < (i + 10); j += 1) {
+		loop(var j: i32 = 0; j < (i + 10); j++) {
 			break 12345; 
 		} or 123;
 		break 1000;

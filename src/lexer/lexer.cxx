@@ -235,6 +235,15 @@ namespace dim {
 					std::string(1, utils::shift(src))
 				);
 			}
+			if(
+				src.rfind("++", 0) == 0
+				|| src.rfind("--", 0) == 0
+			) {
+				return MakeToken(
+					TokenType::UNARY_OPERATOR,
+					utils::shift(src, 2)
+				);
+			}
 
 			return std::unexpected("No unary operator token found.");
 		}
