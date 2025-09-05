@@ -287,10 +287,17 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::UNARY_OPERATOR) {
+			if(
+				tokens.size() > 0
+				&& tokens.front().type != lexer::TokenType::UNARY_OPERATOR
+				&& (
+					tokens.front().type != lexer::TokenType::BINARY_OPERATOR
+					|| tokens.front().value != "-"
+				)
+			) {
 				return parse_parenthesis_expression(tokens, identifierRegister);
 			}
-			std::string operatorSymbol = eat(tokens).value().value;
+			std::string operatorSymbol = eat(tokens).value().value;	
 
 			std::shared_ptr<Expression> term;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -299,6 +306,30 @@ namespace dim {
 				identifierRegister,
 				term
 			)
+
+			if(operatorSymbol == "-") {
+				if(
+					term->Type() != NodeType::I8
+					&& term->Type() != NodeType::I16
+					&& term->Type() != NodeType::I32
+					&& term->Type() != NodeType::I64
+					&& term->Type() != NodeType::U8
+					&& term->Type() != NodeType::U16
+					&& term->Type() != NodeType::U32
+					&& term->Type() != NodeType::U64
+					&& term->Type() != NodeType::F32
+					&& term->Type() != NodeType::F64
+					&& term->Type() != NodeType::F128
+				) {
+					LOG((int)term->Type());
+					return std::unexpected("Trying to apply - operator to non-number expression.");
+				}
+				std::string value = std::dynamic_pointer_cast<NumberExpression>(term)->GetValue();
+				std::dynamic_pointer_cast<NumberExpression>(term)->SetValue(
+					std::string("-") + value
+				);
+				return term;
+			}
 
 			return std::make_shared<UnaryExpression>(
 				term,
