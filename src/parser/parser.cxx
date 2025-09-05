@@ -913,7 +913,15 @@ namespace dim {
 		) {
 			if(
 				tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER
-				|| (tokens.size() > 1 && tokens.at(1).type != lexer::TokenType::EQUALS)
+				|| (
+					tokens.size() > 1
+					&& tokens.at(1).type != lexer::TokenType::EQUALS
+					&& (
+						tokens.size() > 2
+						&& tokens.at(1).type != lexer::TokenType::BINARY_OPERATOR
+						|| tokens.at(2).type != lexer::TokenType::EQUALS
+					)
+				)
 			) {
 				return parse_loop_expression(tokens, identifierRegister);
 			}
@@ -924,8 +932,16 @@ namespace dim {
 				identifierRegister
 			).value();
 
-			// We know it's an EQUALS token
-			(void)eat(tokens);
+			std::string operatorSymbol = "";
+			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::BINARY_OPERATOR) {
+				operatorSymbol = eat(tokens).value().value;
+			}
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::EQUALS)
+			)
 
 			std::shared_ptr<Expression> expression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -956,6 +972,14 @@ namespace dim {
 
 			if(identifier->GetIsConst()) {
 				return std::unexpected("Trying to set constant '" + name + "'");
+			}
+
+			if(operatorSymbol != "") {
+				expression = std::make_shared<BinaryExpression>(
+					identifier,
+					operatorSymbol,
+					expression
+				);
 			}
 
 			Datatype expectedDatatype = identifier->GetDatatype();
