@@ -87,6 +87,7 @@ namespace dim {
 		class AssignationExpression;
 		class DeclarationExpression;
 		class FunctionDeclarationExpression;
+		class FunctionCallExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -117,9 +118,10 @@ namespace dim {
 			ASSIGN,
 			DECL,
 			FN,
+			FN_CALL,
 		};
 
-		const std::array<std::string_view, 36> NodeTypeToStr = {
+		const std::array<std::string_view, 37> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -148,6 +150,7 @@ namespace dim {
 			"ASSIGN",
 			"DECL",
 			"FN",
+			"FN_CALL",
 		};
 
 		enum class Datatype {
@@ -682,6 +685,29 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> m_identifier;
 			std::vector<std::shared_ptr<DeclarationExpression>> m_arguments;
 			std::shared_ptr<ScopeExpression> m_scope;
+			Datatype m_returnDatatype;
+		};
+
+		class FunctionCallExpression : public Expression {
+		public:
+			FunctionCallExpression(
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::vector<std::shared_ptr<Expression>> arguments,
+				Datatype returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::vector<std::shared_ptr<Expression>> GetArguments();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::vector<std::shared_ptr<Expression>> m_arguments;
 			Datatype m_returnDatatype;
 		};
 	}

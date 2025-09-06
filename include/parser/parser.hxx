@@ -50,6 +50,8 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 namespace dim {
 	namespace parser {
 
+		extern std::vector<std::shared_ptr<FunctionDeclarationExpression>> functions;
+
 		[[nodiscard]]
 		std::expected<struct lexer::Token, std::string> eat(
 			std::vector<struct lexer::Token>& tokens
@@ -259,6 +261,14 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_fn_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_fn_call_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
