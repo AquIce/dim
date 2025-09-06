@@ -230,3 +230,19 @@ Or infer the type :
 ```
 <name> = <value>;
 ```
+
+### Functions
+
+> Declaration
+
+You can declare functions like this :
+```
+fn add(a: i32, b: i32) -> i32 {
+    return a + b;
+}
+```
+
+Then use them like this :
+```
+const value := add(12, 34);
+```
