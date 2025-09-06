@@ -121,7 +121,6 @@ namespace dim {
 				expressions.push_back(get_root_expression(expressions.back()));
 			}
 			std::shared_ptr<Expression> expression = expressions.back();
-			LOG(expression->Repr());
 
 			if(expression->Type() == NodeType::IDENTIFIER) {
 				if(isConvertible(

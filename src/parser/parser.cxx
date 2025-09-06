@@ -61,6 +61,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+
 			lexer::Token identifier;
 			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
 				expect,
@@ -95,7 +99,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DISCARD) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::DISCARD) {
 				return parse_identifier_expression(tokens, identifierRegister);
 			}
 
@@ -110,7 +117,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUL) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::NUL) {
 				return parse_discard_expression(tokens, identifierRegister);
 			}
 
@@ -125,7 +135,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BOOLEAN) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::BOOLEAN) {
 				return parse_null_expression(tokens, identifierRegister);
 			}
 
@@ -141,7 +154,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::STRING) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::STRING) {
 				return parse_boolean_expression(tokens, identifierRegister);
 			}
 
@@ -157,7 +173,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::NUMBER) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::NUMBER) {
 				return parse_string_expression(tokens, identifierRegister);
 			}
 
@@ -175,14 +194,17 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::BREAK) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::BREAK) {
 				return parse_number_expression(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
 
 			std::shared_ptr<Expression> breakExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_number_expression,
+				parse_expression,
 				tokens,
 				identifierRegister,
 				breakExpression
@@ -195,7 +217,7 @@ namespace dim {
 			) {
 				std::shared_ptr<Expression> realBreakExpression;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
-					parse_number_expression,
+					parse_expression,
 					tokens,
 					identifierRegister,
 					realBreakExpression
@@ -220,7 +242,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::RETURN) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::RETURN) {
 				return parse_break_expression(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
@@ -228,7 +253,7 @@ namespace dim {
 			std::expected<
 				std::shared_ptr<Expression>,
 				std::string
-			> result = parse_number_expression(
+			> result = parse_expression(
 				tokens,
 				identifierRegister
 			);
@@ -249,7 +274,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::OR) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::OR) {
 				return std::unexpected("No or expression found.");
 			}
 			(void)eat(tokens);
@@ -274,12 +302,12 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			if(
-				tokens.size() > 0 &&
-				(
-					tokens.front().type != lexer::TokenType::PARENTHESIS ||
-					tokens.front().value != "("
-				)
+				tokens.front().type != lexer::TokenType::PARENTHESIS
+				|| tokens.front().value != "("
 			) {
 				return parse_return_expression(tokens, identifierRegister);
 			}
@@ -316,9 +344,11 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			if(
-				tokens.size() > 0
-				&& tokens.front().type != lexer::TokenType::UNARY_OPERATOR
+				tokens.front().type != lexer::TokenType::UNARY_OPERATOR
 				&& (
 					tokens.front().type != lexer::TokenType::BINARY_OPERATOR
 					|| tokens.front().value != "-"
@@ -350,7 +380,6 @@ namespace dim {
 					&& term->Type() != NodeType::F64
 					&& term->Type() != NodeType::F128
 				) {
-					LOG((int)term->Type());
 					return std::unexpected("Trying to apply - operator to non-number expression.");
 				}
 				std::string value = std::dynamic_pointer_cast<NumberExpression>(term)->GetValue();
@@ -373,6 +402,9 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_unary_expression,
@@ -435,6 +467,9 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_logical_expression,
@@ -483,6 +518,9 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_multiplicative_expression,
@@ -542,10 +580,14 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			const bool allow_if
 		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file in if-else structure.");
+			}
+
 			struct lexer::Token keyword;
 
 			if(
-				tokens.size() > 0 && tokens.front().type == lexer::TokenType::IFELSE
+				tokens.front().type == lexer::TokenType::IFELSE
 				&& !allow_if && tokens.front().value == "if"
 			) {
 				return std::unexpected("Start of a new structure");
@@ -589,8 +631,6 @@ namespace dim {
 					);
 				}
 			}
-
-			
 
 			return std::make_shared<IfElseExpression>(
 				std::dynamic_pointer_cast<ScopeExpression>(scope),
@@ -714,7 +754,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::MATCH) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::MATCH) {
 				return parse_ifelse_structure(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
@@ -788,7 +831,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::LOOP) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::LOOP) {
 				return parse_match_structure(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
@@ -971,14 +1017,15 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() <= 2) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			if(
-				tokens.size() > 0 && tokens.front().type != lexer::TokenType::IDENTIFIER
+				tokens.front().type != lexer::TokenType::IDENTIFIER
 				|| (
-					tokens.size() > 1
-					&& tokens.at(1).type != lexer::TokenType::EQUALS
+					tokens.at(1).type != lexer::TokenType::EQUALS
 					&& (
-						tokens.size() > 2
-						&& tokens.at(1).type != lexer::TokenType::BINARY_OPERATOR
+						tokens.at(1).type != lexer::TokenType::BINARY_OPERATOR
 						|| tokens.at(2).type != lexer::TokenType::EQUALS
 					)
 					&& (
@@ -1095,7 +1142,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::DECL) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::DECL) {
 				return parse_assignation_expression(tokens, identifierRegister);
 			}
 
@@ -1192,7 +1242,10 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::FN) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::FN) {
 				return parse_declaration_expression(tokens, identifierRegister);
 			}
 
@@ -1219,14 +1272,6 @@ namespace dim {
 			)
 
 			std::vector<std::shared_ptr<DeclarationExpression>> arguments = {};
-
-			LOG(
-				tokens.size() > 0
-				&& (
-					tokens.front().type != lexer::TokenType::PARENTHESIS
-					|| tokens.front().value != ")"
-				)
-			);
 
 			while(
 				tokens.size() > 0
@@ -1324,15 +1369,18 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(tokens.size() <= 1) {
+				return std::unexpected("Unexpected end of file.");
+			}
 			if(
-				tokens.size() > 0
-				&& tokens.front().type != lexer::TokenType::BRACE
-				&& tokens.front().value != "{"
+				(
+					tokens.front().type != lexer::TokenType::BRACE
+					|| tokens.front().value != "{"
+				)
 				&& (
-					tokens.size() > 1
-					&& tokens.front().type != lexer::TokenType::IDENTIFIER
-					&& tokens.at(1).type != lexer::TokenType::BRACE
-					&& tokens.at(1).value != "}"
+					tokens.front().type != lexer::TokenType::IDENTIFIER
+					|| tokens.at(1).type != lexer::TokenType::BRACE
+					|| tokens.at(1).value != "{"
 				)
 			) {
 				return parse_fn_declaration_expression(tokens, identifierRegister);
@@ -1426,8 +1474,6 @@ namespace dim {
 			auto scope = std::make_shared<ScopeExpression>();
 
 			while(tokens.size() > 0) {
-				LOG(std::string("WH ") + lexer::TokenRepr(tokens.front()));
-
 				std::expected<
 					std::shared_ptr<Expression>,
 					std::string

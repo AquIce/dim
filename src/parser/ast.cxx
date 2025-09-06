@@ -810,6 +810,9 @@ namespace dim {
 			return NodeType::RETURN;
 		}
 		Datatype ReturnExpression::GetDatatype() {
+			if(m_expression == nullptr) {
+				return Datatype::VOID;
+			}
 			return NestedExpression::GetDatatype();
 		}
 
