@@ -379,7 +379,8 @@ namespace dim {
 
 		enum class ValueFlag {
 			NONE = 0,
-			BREAK
+			BREAK,
+			RETURN
 		};
 
 		struct ValueFlagWVal {

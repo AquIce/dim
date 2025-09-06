@@ -3,6 +3,8 @@
 namespace dim {
 	namespace interpreter {
 
+		FunctionRegisterManager functionRegisterManager = FunctionRegisterManager();
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateScopeExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -123,13 +125,31 @@ namespace dim {
 			);
 
 			std::shared_ptr<parser::IdentifierExpression> scopeName = breakExpression->GetScopeName();
-			breakValue->SetFlag(
-				{
-					.flag = ValueFlag::BREAK,
-					.breakScopeName = scopeName ? scopeName->GetName() : ""
-				}
-			);
+			breakValue->SetFlag({
+				.flag = ValueFlag::BREAK,
+				.breakScopeName = scopeName ? scopeName->GetName() : ""
+			});
 			return breakValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateReturnExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto returnExpression = std::dynamic_pointer_cast<parser::ReturnExpression>(expression);
+
+			std::shared_ptr<Value> returnValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				returnExpression->GetExpression(),
+				registerManager,
+				returnValue
+			);
+
+			returnValue->SetFlag({
+				.flag = ValueFlag::RETURN
+			});
+			return returnValue;
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateOrExpression(
@@ -554,6 +574,19 @@ namespace dim {
 			}
 
 			return identifierValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateFunctionDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			functionRegisterManager.Register(
+				FunctionRegisterValue{
+					.function = std::dynamic_pointer_cast<parser::FunctionDeclarationExpression>(expression)
+				}
+			);
+
+			return std::make_shared<NullValue>();
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(

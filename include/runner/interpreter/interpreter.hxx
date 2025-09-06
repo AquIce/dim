@@ -76,7 +76,7 @@ std::expected<std::shared_ptr<Value>, std::string> name( \
 	std::shared_ptr<RegisterManager> registerManager \
 ) { \
 	auto numberExpression = std::dynamic_pointer_cast<_ExpressionDatatype>(expression); \
- \
+\
 	return std::make_shared<_ValueDatatype>( \
 		convertfn(numberExpression->GetValue()) \
 	); \
@@ -91,6 +91,8 @@ namespace dim {
 				std::shared_ptr<RegisterManager>
 			)
 		> EvaluateFunction;
+
+		extern FunctionRegisterManager functionRegisterManager;
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateScopeExpression(
 			std::shared_ptr<parser::Expression> expression,
@@ -182,6 +184,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 		
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateReturnExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+		
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateOrExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -232,6 +239,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateFunctionDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -260,6 +272,7 @@ namespace dim {
 			{ parser::NodeType::F128, 			&EvaluateF128Expression },
 			{ parser::NodeType::STRING, 		&EvaluateStringExpression },
 			{ parser::NodeType::BREAK, 			&EvaluateBreakExpression },
+			{ parser::NodeType::RETURN, 		&EvaluateReturnExpression },
 			{ parser::NodeType::OR, 			&EvaluateOrExpression },
 			{ parser::NodeType::UNARY, 			&EvaluateUnaryExpression },
 			{ parser::NodeType::BINARY, 		&EvaluateBinaryExpression },
@@ -270,6 +283,7 @@ namespace dim {
 			{ parser::NodeType::FOR, 			&EvaluateForLoopExpression },
 			{ parser::NodeType::ASSIGN, 		&EvaluateAssignationExpression },
 			{ parser::NodeType::DECL, 			&EvaluateDeclarationExpression },
+			{ parser::NodeType::FN, 			&EvaluateFunctionDeclarationExpression },
 		};
 	}
 }
