@@ -1,8 +1,8 @@
-fn doubleValue(value: i32) -> i32 {
-	return value * 2;
+fn add(a: i32, b: i32) -> i32 {
+	return a + b;
 }
 
 main {
 	var a: i32 = 21;
-	doubleValue(a + 23);
+	add(a, 23);
 };

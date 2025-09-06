@@ -962,8 +962,8 @@ namespace dim {
 			std::string repr = "fn ";
 			repr.insert(0, indent, '\t');
 			repr += m_identifier->GetName() + "(\n";
-			for(const auto& argument : m_arguments) {
-				repr += argument->GetIdentifier()->Repr(indent + 1) + "\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->GetIdentifier()->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
 			}
 			repr.insert(repr.size(), indent, '\t');
 			repr += ") -> " + scopeRepr;
@@ -1001,8 +1001,8 @@ namespace dim {
 		) {
 			std::string repr = m_identifier->GetName();
 			repr += "(\n";
-			for(const auto& argument : m_arguments) {
-				repr += argument->Repr(indent + 1);
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
 			}
 			repr += "\n)";
 			repr.insert(0, indent, '\t');

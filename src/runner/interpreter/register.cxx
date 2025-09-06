@@ -20,7 +20,7 @@ namespace dim {
 			RegisterValue value
 		) {
 			if(this->Exists(name)) {
-				return std::unexpected("Trying to register existing value");
+				return std::unexpected("Trying to register existing value.");
 			}
 		
 			m_register.insert(
@@ -46,7 +46,7 @@ namespace dim {
 			const std::string name
 		) {
 			if(!this->Exists(name)) {
-				return std::unexpected("Trying to get non existing value.");
+				return std::unexpected("Trying to get non existing value '" + name + "'.");
 			}
 			
 			try {
