@@ -589,6 +589,64 @@ namespace dim {
 			return std::make_shared<NullValue>();
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateFunctionCallExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto functionCallExpression = std::dynamic_pointer_cast<parser::FunctionCallExpression>(expression);
+			auto innerRegisterManager = std::make_shared<RegisterManager>(registerManager);
+
+			std::string functionName = functionCallExpression->GetIdentifier()->GetName();
+
+			std::vector<std::shared_ptr<parser::Expression>> argumentsExpressions = functionCallExpression->GetArguments();
+
+			std::shared_ptr<parser::FunctionDeclarationExpression> functionDeclarationExpression;
+
+			{
+				std::expected<
+					FunctionRegisterValue,
+					std::string
+				> result = functionRegisterManager.Get(functionName);
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				functionDeclarationExpression = result.value().function;
+			}
+
+			std::vector<std::shared_ptr<parser::DeclarationExpression>> argumentsDeclarationExpressions = functionDeclarationExpression->GetArguments();
+
+			// TODO: Move argument number check to parser
+			if(argumentsExpressions.size() != argumentsDeclarationExpressions.size()) {
+				return std::unexpected(
+					std::string("Invalid number of arguments for function '")
+					+ functionName + "', expected " + std::to_string(argumentsDeclarationExpressions.size())
+					+ " got " + std::to_string(argumentsExpressions.size())
+				);
+			}
+
+			for(size_t i = 0; i < argumentsExpressions.size(); i++) {
+				argumentsDeclarationExpressions.at(i)->GetIdentifier()->SetExpression(
+					argumentsExpressions.at(i)
+				);
+				if(
+					std::expected<
+						std::shared_ptr<Value>,
+						std::string
+					> result = EvaluateDeclarationExpression(
+						argumentsDeclarationExpressions.at(i),
+						innerRegisterManager
+					); !result
+				) {
+					return std::unexpected(result.error());
+				}
+			}
+
+			return EvaluateScopeExpression(
+				functionDeclarationExpression->GetScope(),
+				innerRegisterManager
+			);
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
