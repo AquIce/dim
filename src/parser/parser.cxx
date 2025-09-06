@@ -1282,6 +1282,14 @@ namespace dim {
 					|| tokens.front().value != ")"
 				)
 			) {
+				if(arguments.size() > 0) {
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::COMMA)
+					)
+				}
+
 				std::shared_ptr<Expression> argumentIdentifierExpression;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_identifier_expression,
@@ -1407,6 +1415,16 @@ namespace dim {
 					|| tokens.front().value != ")"
 				)
 			) {
+				if(arguments.size() > 0) {
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::COMMA)
+					)
+				}
+
+				// TODO: Add datatypes check
+
 				std::shared_ptr<Expression> argument;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,

@@ -36,6 +36,8 @@ namespace dim {
 				case TokenType::BINARY_OPERATOR:
 				case TokenType::PARENTHESIS:
 				case TokenType::BRACE:
+				case TokenType::DOT:
+				case TokenType::COMMA:
 				case TokenType::COLON:
 				case TokenType::EQUALS:
 				case TokenType::ARROW:
@@ -292,6 +294,18 @@ namespace dim {
 				);
 			}
 			return std::unexpected("No dot token found.");
+		}
+
+		std::expected<struct Token, std::string> LexComma(
+			std::string& src
+		) noexcept {
+			if(src.front() == ',') {
+				return MakeToken(
+					TokenType::COMMA,
+					std::string(1, utils::shift(src))
+				);
+			}
+			return std::unexpected("No comma token found.");
 		}
 
 		std::expected<struct Token, std::string> LexColon(

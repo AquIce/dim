@@ -594,7 +594,7 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		) {
 			auto functionCallExpression = std::dynamic_pointer_cast<parser::FunctionCallExpression>(expression);
-			auto innerRegisterManager = std::make_shared<RegisterManager>(registerManager);
+			auto innerRegisterManager = std::make_shared<RegisterManager>();
 
 			std::string functionName = functionCallExpression->GetIdentifier()->GetName();
 
@@ -625,20 +625,24 @@ namespace dim {
 			}
 
 			for(size_t i = 0; i < argumentsExpressions.size(); i++) {
-				argumentsDeclarationExpressions.at(i)->GetIdentifier()->SetExpression(
-					argumentsExpressions.at(i)
+
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = EvaluateExpression(
+					argumentsExpressions.at(i),
+					registerManager
 				);
-				if(
-					std::expected<
-						std::shared_ptr<Value>,
-						std::string
-					> result = EvaluateDeclarationExpression(
-						argumentsDeclarationExpressions.at(i),
-						innerRegisterManager
-					); !result
-				) {
+				if(!result) {
 					return std::unexpected(result.error());
 				}
+				
+				innerRegisterManager->Register(
+					argumentsDeclarationExpressions.at(i)->GetIdentifier()->GetName(),
+					RegisterValue{
+						.value = result.value()
+					}
+				);
 			}
 
 			return EvaluateScopeExpression(
