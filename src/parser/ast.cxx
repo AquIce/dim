@@ -153,6 +153,7 @@ namespace dim {
 				repr += expression->Repr(indent + 1) + "\n";
 			}
 			repr += "}";
+			repr.insert(0, indent, '\t');
 			repr.insert(repr.size() - 1, indent, '\t');
 
 			return repr;
@@ -789,6 +790,31 @@ namespace dim {
 
 
 
+		ReturnExpression::ReturnExpression(
+			std::shared_ptr<Expression> expression
+		) :
+			NestedExpression(expression)
+		{}
+
+		std::string ReturnExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "return";
+			if(m_expression) {
+				repr += std::string(" ") + NestedExpression::Repr(indent);
+			}
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType ReturnExpression::Type() {
+			return NodeType::RETURN;
+		}
+		Datatype ReturnExpression::GetDatatype() {
+			return NestedExpression::GetDatatype();
+		}
+
+
+
 		OrExpression::OrExpression(
 			std::shared_ptr<Expression> expression
 		) :
@@ -882,16 +908,7 @@ namespace dim {
 			const size_t indent
 		) {
 			std::string identifierRepr = m_identifier->Repr(indent);
-			identifierRepr.erase(
-				std::remove_if(
-					identifierRepr.begin(),
-					identifierRepr.end(),
-					[](unsigned char c) {
-						return c == '\t';
-					}
-				),
-				identifierRepr.end()
-			);
+			identifierRepr.erase(0, identifierRepr.find_first_not_of('\t'));
 			std::string repr =
 				std::string(m_identifier->GetIsConst() ? "const " : "var ")
 				+ identifierRepr + " := (\n"
@@ -906,6 +923,57 @@ namespace dim {
 		}
 		Datatype DeclarationExpression::GetDatatype() {
 			return m_identifier->GetDatatype();
+		}
+
+
+
+		FunctionDeclarationExpression::FunctionDeclarationExpression(
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::vector<std::shared_ptr<DeclarationExpression>> arguments,
+			std::shared_ptr<ScopeExpression> scope,
+			Datatype returnDatatype
+		) :
+			Expression(),
+			m_identifier(identifier),
+			m_arguments(arguments),
+			m_scope(scope),
+			m_returnDatatype(returnDatatype)
+		{}
+
+		std::shared_ptr<IdentifierExpression> FunctionDeclarationExpression::GetIdentifier() {
+			return m_identifier;
+		}
+		std::vector<std::shared_ptr<DeclarationExpression>> FunctionDeclarationExpression::GetArguments() {
+			return m_arguments;
+		}
+		std::shared_ptr<ScopeExpression> FunctionDeclarationExpression::GetScope() {
+			return m_scope;
+		}
+
+		std::string FunctionDeclarationExpression::Repr(
+			const size_t indent
+		) {
+			std::string identifierRepr = m_identifier->Repr(indent);
+			identifierRepr.erase(0, identifierRepr.find_first_not_of('\t'));
+			std::string scopeRepr = m_scope->Repr(indent);
+			scopeRepr.erase(0, scopeRepr.find_first_not_of('\t'));
+
+			std::string repr = "fn ";
+			repr.insert(0, indent, '\t');
+			repr += identifierRepr + "(\n";
+			for(const auto& argument : m_arguments) {
+				repr += argument->GetIdentifier()->Repr(indent + 1) + "\n";
+			}
+			repr.insert(repr.size(), indent, '\t');
+			repr += ") -> " + scopeRepr;
+
+			return repr;
+		}
+		NodeType FunctionDeclarationExpression::Type() {
+			return NodeType::FN;
+		}
+		Datatype FunctionDeclarationExpression::GetDatatype() {
+			return m_returnDatatype;
 		}
 	}
 }

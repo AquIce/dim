@@ -86,6 +86,7 @@ namespace dim {
 		class DiscardExpression;
 		class AssignationExpression;
 		class DeclarationExpression;
+		class FunctionDeclarationExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -93,6 +94,7 @@ namespace dim {
 			SCOPE,
 			NUL,
 			NUMBER,
+			VOID,
 			I8, I16, I32, I64,
 			U8, U16, U32, U64,
 			F32, F64, F128,
@@ -108,22 +110,25 @@ namespace dim {
 			WHILE,
 			FOR,
 			BREAK,
+			RETURN,
 			OR,
 			IDENTIFIER,
 			DISCARD,
 			ASSIGN,
 			DECL,
+			FN,
 		};
 
-		const std::array<std::string_view, 33> NodeTypeToStr = {
+		const std::array<std::string_view, 36> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
 			"NUL",
 			"NUMBER",
-			"i8", "i16", "i32", "i64",
-			"u8", "u16", "u32", "u64",
-			"f32", "f64", "f128",
+			"VOID",
+			"I8", "I16", "I32", "I64",
+			"U8", "U16", "U32", "U64",
+			"F32", "F64", "F128",
 			"BOOLEAN",
 			"STRING",
 			"UNARY",
@@ -136,22 +141,27 @@ namespace dim {
 			"WHILE",
 			"FOR",
 			"BREAK",
+			"RETURN",
 			"OR",
 			"IDENTIFIER",
+			"DISCARD",
 			"ASSIGN",
 			"DECL",
+			"FN",
 		};
 
 		enum class Datatype {
 			INFER = 0,
+			VOID,
 			I8, I16, I32, I64,
 			U8, U16, U32, U64,
 			F32, F64, F128,
 			BOOLEAN, /*CHAR,*/ STRING,
 		};
 
-		const std::array<std::string_view, 14> DatatypeToStr = {
+		const std::array<std::string_view, 15> DatatypeToStr = {
 			"INFER",
+			"void",
 			"i8", "i16", "i32", "i64",
 			"u8", "u16", "u32", "u64",
 			"f32", "f64", "f128",
@@ -572,6 +582,19 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> m_name;
 		};
 
+		class ReturnExpression : public NestedExpression {
+		public:
+			ReturnExpression(
+				std::shared_ptr<Expression> expression = nullptr
+			);
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+		};
+
 		class OrExpression : public NestedExpression {
 		public:
 			OrExpression(
@@ -634,6 +657,32 @@ namespace dim {
 
 		private:
 			std::shared_ptr<IdentifierExpression> m_identifier;
+		};
+
+		class FunctionDeclarationExpression : public Expression {
+		public:
+			FunctionDeclarationExpression(
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::vector<std::shared_ptr<DeclarationExpression>> arguments,
+				std::shared_ptr<ScopeExpression> scope,
+				Datatype returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::vector<std::shared_ptr<DeclarationExpression>> GetArguments();
+			std::shared_ptr<ScopeExpression> GetScope();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::vector<std::shared_ptr<DeclarationExpression>> m_arguments;
+			std::shared_ptr<ScopeExpression> m_scope;
+			Datatype m_returnDatatype;
 		};
 	}
 }

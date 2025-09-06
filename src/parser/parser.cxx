@@ -214,6 +214,35 @@ namespace dim {
 		}
 
 		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_return_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::RETURN) {
+				return parse_break_expression(tokens, identifierRegister);
+			}
+			(void)eat(tokens);
+
+			std::expected<
+				std::shared_ptr<Expression>,
+				std::string
+			> result = parse_number_expression(
+				tokens,
+				identifierRegister
+			);
+
+			if(!result) {
+				return std::make_shared<ReturnExpression>();
+			}
+
+			return std::make_shared<ReturnExpression>(
+				result.value()
+			);
+		}
+
+		std::expected<
 			std::shared_ptr<OrExpression>,
 			std::string
 		> parse_or_expression(
@@ -252,7 +281,7 @@ namespace dim {
 					tokens.front().value != "("
 				)
 			) {
-				return parse_break_expression(tokens, identifierRegister);
+				return parse_return_expression(tokens, identifierRegister);
 			}
 
 			__TRY_TOKEN_FUNC_WRETERR(
@@ -1159,11 +1188,133 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_expression(
+		> parse_fn_declaration_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			return parse_declaration_expression(tokens, identifierRegister);
+			if(tokens.size() > 0 && tokens.front().type != lexer::TokenType::FN) {
+				return parse_declaration_expression(tokens, identifierRegister);
+			}
+
+			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
+
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> identifierExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_identifier_expression,
+				tokens,
+				identifierRegister,
+				identifierExpression
+			)
+			auto identifier = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression);
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::PARENTHESIS,
+					"("
+				)
+			)
+
+			std::vector<std::shared_ptr<DeclarationExpression>> arguments = {};
+
+			LOG(
+				tokens.size() > 0
+				&& (
+					tokens.front().type != lexer::TokenType::PARENTHESIS
+					|| tokens.front().value != ")"
+				)
+			);
+
+			while(
+				tokens.size() > 0
+				&& (
+					tokens.front().type != lexer::TokenType::PARENTHESIS
+					|| tokens.front().value != ")"
+				)
+			) {
+				std::shared_ptr<Expression> argumentIdentifierExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_identifier_expression,
+					tokens,
+					innerRegister,
+					argumentIdentifierExpression
+				)
+				auto argumentIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(argumentIdentifierExpression);
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::COLON)
+				)
+				lexer::Token argumentDatatypeToken;
+				__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+					expect,
+					argumentDatatypeToken,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::TYPE)
+				)
+				Datatype argumentDatatype = Datatype(
+					utils::indexOfUnsafe(
+						std::begin(DatatypeToStr),
+						std::end(DatatypeToStr),
+						argumentDatatypeToken.value
+					)
+				);
+
+				// TODO: Add const arguments
+				arguments.push_back(
+					std::make_shared<DeclarationExpression>(
+						argumentIdentifier,
+						nullptr,
+						argumentDatatype,
+						false
+					)
+				);
+			}
+
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file in function declaration expression.");
+			}
+			(void)eat(tokens);
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::ARROW)
+			)
+
+			lexer::Token datatypeToken;
+			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+				expect,
+				datatypeToken,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::TYPE)
+			)
+			Datatype returnDatatype = Datatype(
+				utils::indexOfUnsafe(
+					std::begin(DatatypeToStr),
+					std::end(DatatypeToStr),
+					datatypeToken.value
+				)
+			);
+
+			std::shared_ptr<Expression> scopeExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_scope_expression,
+				tokens,
+				innerRegister,
+				scopeExpression
+			)
+			auto scope = std::dynamic_pointer_cast<ScopeExpression>(scopeExpression);
+
+			return std::make_shared<FunctionDeclarationExpression>(
+				identifier,
+				arguments,
+				scope,
+				returnDatatype
+			);
 		}
 
 		std::expected<
@@ -1173,6 +1324,20 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
+			if(
+				tokens.size() > 0
+				&& tokens.front().type != lexer::TokenType::BRACE
+				&& tokens.front().value != "{"
+				&& (
+					tokens.size() > 1
+					&& tokens.front().type != lexer::TokenType::IDENTIFIER
+					&& tokens.at(1).type != lexer::TokenType::BRACE
+					&& tokens.at(1).value != "}"
+				)
+			) {
+				return parse_fn_declaration_expression(tokens, identifierRegister);
+			}
+
 			std::shared_ptr<Expression> scopeName = nullptr;
 			if(
 				tokens.size() > 0
@@ -1241,30 +1406,57 @@ namespace dim {
 		}
 
 		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			return parse_scope_expression(tokens, identifierRegister);
+		}
+
+		std::expected<
 			std::shared_ptr<ScopeExpression>,
 			std::string
 		> Parse(
 			std::vector<struct lexer::Token>& tokens
 		) {
-
 			auto identifierRegister = std::make_shared<ScopeIdentifierRegister>();
-		
-			std::expected<
-				std::shared_ptr<Expression>,
-				std::string
-			> result = parse_scope_expression(
-				tokens,
-				identifierRegister
-			);
 
-			if(!result) {
-				return std::unexpected(
-					std::string("[ERR::PARSER] Got error :\n\t\"") + result.error()
-					+ "\"\nwhile parsing tokens."
+			auto scope = std::make_shared<ScopeExpression>();
+
+			while(tokens.size() > 0) {
+				LOG(std::string("WH ") + lexer::TokenRepr(tokens.front()));
+
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> result = parse_expression(
+					tokens,
+					identifierRegister
 				);
+
+				if(!result) {
+					return std::unexpected(
+						std::string("[ERR::PARSER] Got error :\n\t\"") + result.error()
+						+ "\"\nwhile parsing tokens."
+					);
+				}
+
+				scope->AddExpression(
+					result.value()
+				);
+
+				if(result.value()->Type() != NodeType::FN) {
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::EOL)
+					)
+				}
 			}
 
-			return std::dynamic_pointer_cast<ScopeExpression>(result.value());
+			return scope;
 		}
 	}
 }
