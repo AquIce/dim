@@ -48,6 +48,8 @@ namespace dim {
 				case TokenType::OR:
 				case TokenType::DECL:
 				case TokenType::TYPE:
+				case TokenType::FN:
+				case TokenType::RETURN:
 					return token.value;
 
 				case TokenType::IDENTIFIER:
@@ -375,7 +377,7 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No if-else token found");
+			return std::unexpected("No if-else token found.");
 		}
 
 		std::expected<struct Token, std::string> LexMatch(
@@ -401,7 +403,7 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No loop token found");
+			return std::unexpected("No loop token found.");
 		}
 
 		std::expected<struct Token, std::string> LexBreak(
@@ -415,7 +417,7 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No break token found");
+			return std::unexpected("No break token found.");
 		}
 
 		std::expected<struct Token, std::string> LexOr(
@@ -429,7 +431,7 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No or token found");
+			return std::unexpected("No or token found.");
 		}
 
 		std::expected<struct Token, std::string> LexDecl(
@@ -449,7 +451,7 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No var/const token found");
+			return std::unexpected("No var/const token found.");
 		}
 
 		std::expected<struct Token, std::string> LexType(
@@ -482,7 +484,8 @@ namespace dim {
 				);
 			}
 			if(
-				src.rfind("char", 0) == 0
+				src.rfind("void", 0) == 0
+				|| src.rfind("char", 0) == 0
 				|| src.rfind("bool", 0) == 0
 			) {
 				return MakeToken(
@@ -491,7 +494,35 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No type token found");
+			return std::unexpected("No type token found.");
+		}
+
+		std::expected<struct Token, std::string> LexFn(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("fn", 0) == 0) {
+				return MakeToken(
+					TokenType::FN,
+					utils::shift(src, 2)
+				);
+			}
+
+			return std::unexpected("No fn token found.");
+		}
+
+		std::expected<struct Token, std::string> LexReturn(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("return", 0) == 0) {
+				return MakeToken(
+					TokenType::RETURN,
+					utils::shift(src, 6)
+				);
+			}
+
+			return std::unexpected("No return token found.");
 		}
 
 		std::expected<struct Token, std::string> LexIdentifier(
