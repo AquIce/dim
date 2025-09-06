@@ -956,14 +956,12 @@ namespace dim {
 		std::string FunctionDeclarationExpression::Repr(
 			const size_t indent
 		) {
-			std::string identifierRepr = m_identifier->Repr(indent);
-			identifierRepr.erase(0, identifierRepr.find_first_not_of('\t'));
 			std::string scopeRepr = m_scope->Repr(indent);
 			scopeRepr.erase(0, scopeRepr.find_first_not_of('\t'));
 
 			std::string repr = "fn ";
 			repr.insert(0, indent, '\t');
-			repr += identifierRepr + "(\n";
+			repr += m_identifier->GetName() + "(\n";
 			for(const auto& argument : m_arguments) {
 				repr += argument->GetIdentifier()->Repr(indent + 1) + "\n";
 			}
@@ -976,6 +974,45 @@ namespace dim {
 			return NodeType::FN;
 		}
 		Datatype FunctionDeclarationExpression::GetDatatype() {
+			return m_returnDatatype;
+		}
+
+
+
+		FunctionCallExpression::FunctionCallExpression(
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::vector<std::shared_ptr<Expression>> arguments,
+			Datatype returnDatatype
+		) :
+			m_identifier(identifier),
+			m_arguments(arguments),
+			m_returnDatatype(returnDatatype)
+		{}
+
+		std::shared_ptr<IdentifierExpression> FunctionCallExpression::GetIdentifier() {
+			return m_identifier;
+		}
+		std::vector<std::shared_ptr<Expression>> FunctionCallExpression::GetArguments() {
+			return m_arguments;
+		}
+
+		std::string FunctionCallExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = m_identifier->GetName();
+			repr += "(\n";
+			for(const auto& argument : m_arguments) {
+				repr += argument->Repr(indent + 1);
+			}
+			repr += "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType FunctionCallExpression::Type() {
+			return NodeType::FN_CALL;
+		}
+		Datatype FunctionCallExpression::GetDatatype() {
 			return m_returnDatatype;
 		}
 	}
