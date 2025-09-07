@@ -20,6 +20,7 @@ namespace dim {
 			NUL,
 			NUMBER,
 			BOOLEAN,
+			CHAR,
 			STRING,
 			
 			BINARY_OPERATOR,
@@ -51,12 +52,13 @@ namespace dim {
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 28> TokenTypeStr = {
+		const std::array<std::string_view, 29> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
 			"NUMBER",
 			"BOOLEAN",
+			"CHAR",
 			"STRING",
 			"BINARY_OPERATOR",
 			"UNARY_OPERATOR",
@@ -99,6 +101,10 @@ namespace dim {
 		std::string TokenRepr(
 			const struct Token& token
 		) noexcept;
+
+		std::expected<char, std::string> to_escaped_char(
+			const std::string& chr
+		) noexcept;
 	
 		std::expected<struct Token, std::string> LexEOL(
 			std::string& src
@@ -113,6 +119,10 @@ namespace dim {
 		) noexcept;
 
 		std::expected<struct Token, std::string> LexBoolean(
+			std::string& src
+		) noexcept;
+
+		std::expected<struct Token, std::string> LexChar(
 			std::string& src
 		) noexcept;
 
@@ -204,11 +214,12 @@ namespace dim {
 			std::string& src
 		) noexcept;
 
-		const std::array<const LexFunction, 26> LexFunctionsList = {
+		const std::array<const LexFunction, 27> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
 			&LexBoolean,
+			&LexChar,
 			&LexString,
 			&LexArrow,
 			&LexUnaryOperator,
