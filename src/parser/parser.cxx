@@ -192,6 +192,78 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_fn_call_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			std::string potentialIdentifierName = tokens.front().value;
+			std::vector<std::shared_ptr<FunctionDeclarationExpression>>::iterator funcIter = std::find_if(
+				functions.begin(),
+				functions.end(),
+				[&potentialIdentifierName](const std::shared_ptr<FunctionDeclarationExpression>& function) {
+					return function->GetIdentifier()->GetName() == potentialIdentifierName;
+				}
+			);
+			if(
+				tokens.front().type != lexer::TokenType::IDENTIFIER
+				|| funcIter == functions.end()
+			) {
+				return parse_number_expression(tokens, identifierRegister);
+			}
+			(void)eat(tokens);
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(lexer::TokenType::PARENTHESIS, "(")
+			)
+
+			std::vector<std::shared_ptr<Expression>> arguments = {};
+			while(
+				tokens.size() > 0
+				&& (
+					tokens.front().type != lexer::TokenType::PARENTHESIS
+					|| tokens.front().value != ")"
+				)
+			) {
+				if(arguments.size() > 0) {
+					__TRY_TOKEN_FUNC_WRETERR(
+						expect,
+						tokens,
+						lexer::MakeToken(lexer::TokenType::COMMA)
+					)
+				}
+
+				// TODO: Add datatypes check
+
+				std::shared_ptr<Expression> argument;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					identifierRegister,
+					argument
+				)
+				arguments.push_back(argument);
+			}
+
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file in function declaration expression.");
+			}
+			(void)eat(tokens);
+
+			return std::make_shared<FunctionCallExpression>(
+				(*funcIter)->GetIdentifier(),
+				arguments,
+				(*funcIter)->GetDatatype()
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_break_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
@@ -200,7 +272,7 @@ namespace dim {
 				return std::unexpected("Unexpected end of file.");
 			}
 			if(tokens.front().type != lexer::TokenType::BREAK) {
-				return parse_number_expression(tokens, identifierRegister);
+				return parse_fn_call_expression(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
 
@@ -1355,6 +1427,15 @@ namespace dim {
 				)
 			);
 
+			functions.push_back(
+				std::make_shared<FunctionDeclarationExpression>(
+					identifier,
+					arguments,
+					nullptr,
+					returnDatatype
+				)
+			);
+
 			std::shared_ptr<Expression> scopeExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_scope_expression,
@@ -1362,89 +1443,11 @@ namespace dim {
 				innerRegister,
 				scopeExpression
 			)
-			auto scope = std::dynamic_pointer_cast<ScopeExpression>(scopeExpression);
-
-			functions.push_back(
-				std::make_shared<FunctionDeclarationExpression>(
-					identifier,
-					arguments,
-					scope,
-					returnDatatype
-				)
+			functions.back()->SetScope(
+				std::dynamic_pointer_cast<ScopeExpression>(scopeExpression)
 			);
+
 			return functions.back();
-		}
-
-		std::expected<
-			std::shared_ptr<Expression>,
-			std::string
-		> parse_fn_call_expression(
-			std::vector<struct lexer::Token>& tokens,
-			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
-		) {
-			if(tokens.size() == 0) {
-				return std::unexpected("Unexpected end of file.");
-			}
-			std::string potentialIdentifierName = tokens.front().value;
-			std::vector<std::shared_ptr<FunctionDeclarationExpression>>::iterator funcIter = std::find_if(
-				functions.begin(),
-				functions.end(),
-				[&potentialIdentifierName](const std::shared_ptr<FunctionDeclarationExpression>& function) {
-					return function->GetIdentifier()->GetName() == potentialIdentifierName;
-				}
-			);
-			if(
-				tokens.front().type != lexer::TokenType::IDENTIFIER
-				|| funcIter == functions.end()
-			) {
-				return parse_fn_declaration_expression(tokens, identifierRegister);
-			}
-			(void)eat(tokens);
-
-			__TRY_TOKEN_FUNC_WRETERR(
-				expect,
-				tokens,
-				lexer::MakeToken(lexer::TokenType::PARENTHESIS, "(")
-			)
-
-			std::vector<std::shared_ptr<Expression>> arguments = {};
-			while(
-				tokens.size() > 0
-				&& (
-					tokens.front().type != lexer::TokenType::PARENTHESIS
-					|| tokens.front().value != ")"
-				)
-			) {
-				if(arguments.size() > 0) {
-					__TRY_TOKEN_FUNC_WRETERR(
-						expect,
-						tokens,
-						lexer::MakeToken(lexer::TokenType::COMMA)
-					)
-				}
-
-				// TODO: Add datatypes check
-
-				std::shared_ptr<Expression> argument;
-				__TRY_EXPR_FUNC_WRETERR_WSAVE(
-					parse_expression,
-					tokens,
-					identifierRegister,
-					argument
-				)
-				arguments.push_back(argument);
-			}
-
-			if(tokens.size() == 0) {
-				return std::unexpected("Unexpected end of file in function declaration expression.");
-			}
-			(void)eat(tokens);
-
-			return std::make_shared<FunctionCallExpression>(
-				(*funcIter)->GetIdentifier(),
-				arguments,
-				(*funcIter)->GetDatatype()
-			);
 		}
 
 		std::expected<
@@ -1468,7 +1471,7 @@ namespace dim {
 					|| tokens.at(1).value != "{"
 				)
 			) {
-				return parse_fn_call_expression(tokens, identifierRegister);
+				return parse_fn_declaration_expression(tokens, identifierRegister);
 			}
 
 			std::shared_ptr<Expression> scopeName = nullptr;

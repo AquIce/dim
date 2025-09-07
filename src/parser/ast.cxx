@@ -952,6 +952,11 @@ namespace dim {
 		std::shared_ptr<ScopeExpression> FunctionDeclarationExpression::GetScope() {
 			return m_scope;
 		}
+		void FunctionDeclarationExpression::SetScope(
+			std::shared_ptr<ScopeExpression> scope
+		) {
+			m_scope = scope;
+		}
 
 		std::string FunctionDeclarationExpression::Repr(
 			const size_t indent

@@ -674,6 +674,9 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> GetIdentifier();
 			std::vector<std::shared_ptr<DeclarationExpression>> GetArguments();
 			std::shared_ptr<ScopeExpression> GetScope();
+			void SetScope(
+				std::shared_ptr<ScopeExpression> scope
+			);
 
 			std::string Repr(
 				const size_t indent = 0

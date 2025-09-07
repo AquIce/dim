@@ -1,8 +1,15 @@
-fn add(a: i32, b: i32) -> i32 {
-	return a + b;
+fn nthFibonacci(n: u32) -> u32 {
+
+    // Base case
+    if(n <= 1) {
+        return n;
+    } else 0;
+
+    // Recursive case: sum of the two preceding Fibonacci numbers
+    return nthFibonacci(n - 1) + nthFibonacci(n - 2);
 }
 
 main {
-	var a: i32 = 21;
-	add(a, 23);
+    var n := 7;
+    nthFibonacci(n);
 };
