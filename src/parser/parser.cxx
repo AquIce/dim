@@ -152,6 +152,25 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_char_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::CHAR) {
+				return parse_boolean_expression(tokens, identifierRegister);
+			}
+
+			return std::make_shared<CharExpression>(
+				eat(tokens).value().value
+			);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_string_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
@@ -160,7 +179,7 @@ namespace dim {
 				return std::unexpected("Unexpected end of file.");
 			}
 			if(tokens.front().type != lexer::TokenType::STRING) {
-				return parse_boolean_expression(tokens, identifierRegister);
+				return parse_char_expression(tokens, identifierRegister);
 			}
 
 			return std::make_shared<StringExpression>(

@@ -64,6 +64,22 @@ namespace dim {
 		}
 
 		std::expected<
+			std::shared_ptr<CharExpression>,
+			std::string
+		> try_cast_char(
+			std::shared_ptr<Expression> expression
+		) noexcept {
+			auto charExpression = std::dynamic_pointer_cast<CharExpression>(
+				expression
+			);
+			if(charExpression == nullptr) {
+				return std::unexpected("Invalid cast to char.");
+			}
+
+			return charExpression;
+		}
+
+		std::expected<
 			std::shared_ptr<StringExpression>,
 			std::string
 		> try_cast_str(

@@ -70,6 +70,7 @@ namespace dim {
 		class F64Expression;
 		class F128Expression;
 		class BooleanExpression;
+		class CharExpression;
 		class StringExpression;
 		class UnaryExpression;
 		class BinaryExpression;
@@ -100,6 +101,7 @@ namespace dim {
 			U8, U16, U32, U64,
 			F32, F64, F128,
 			BOOLEAN,
+			CHAR,
 			STRING,
 			UNARY,
 			BINARY,
@@ -121,7 +123,7 @@ namespace dim {
 			FN_CALL,
 		};
 
-		const std::array<std::string_view, 37> NodeTypeToStr = {
+		const std::array<std::string_view, 38> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -132,6 +134,7 @@ namespace dim {
 			"U8", "U16", "U32", "U64",
 			"F32", "F64", "F128",
 			"BOOLEAN",
+			"CHAR",
 			"STRING",
 			"UNARY",
 			"BINARY",
@@ -159,16 +162,16 @@ namespace dim {
 			I8, I16, I32, I64,
 			U8, U16, U32, U64,
 			F32, F64, F128,
-			BOOLEAN, /*CHAR,*/ STRING,
+			BOOLEAN, CHAR, STRING,
 		};
 
-		const std::array<std::string_view, 15> DatatypeToStr = {
+		const std::array<std::string_view, 16> DatatypeToStr = {
 			"INFER",
 			"void",
 			"i8", "i16", "i32", "i64",
 			"u8", "u16", "u32", "u64",
 			"f32", "f64", "f128",
-			"bool", /*"char",*/ "str",
+			"bool", "char", "str",
 		};
 
 		typedef struct {
@@ -338,6 +341,24 @@ namespace dim {
 		class BooleanExpression : public Expression {
 		public:
 			BooleanExpression(
+				std::string value
+			);
+
+			std::string GetValue();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			Datatype GetDatatype() override;
+
+		private:
+			std::string m_value;
+		};
+
+		class CharExpression : public Expression {
+		public:
+			CharExpression(
 				std::string value
 			);
 

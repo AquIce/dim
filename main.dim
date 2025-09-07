@@ -2,5 +2,5 @@ main {
 	var ch: char = 'f';
 	ch = '\t';
 	ch = '"';
-	ch = '\'';
+	const s: str = "\"" + ch;
 };
