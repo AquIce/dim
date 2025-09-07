@@ -28,6 +28,9 @@ namespace dim {
 				case TokenType::BOOLEAN:
 					return "BOOLEAN(" + token.value + ")";
 
+				case TokenType::CHAR:
+					return "CHAR('" + token.value + "')";
+
 				case TokenType::STRING:
 					return "STRING(\"" + token.value + "\")";
 				
@@ -60,6 +63,34 @@ namespace dim {
 				default:
 					return "UNKNOWN";
 			}
+		}
+
+		std::expected<char, std::string> to_escaped_char(
+			const std::string& chr
+		) noexcept {
+		    if(chr.size() == 1) {
+		        return chr[0];
+		    }
+
+		    if(chr.size() == 2 && chr[0] == '\\') {
+		        switch(chr[1]) {
+		            case 'n': return '\n';
+		            case 't': return '\t';
+		            case 'r': return '\r';
+		            case 'b': return '\b';
+		            case 'f': return '\f';
+		            case 'v': return '\v';
+		            case 'a': return '\a';
+		            case '\\': return '\\';
+		            case '\'': return '\'';
+		            case '\"': return '\"';
+		            case '0': return '\0';
+		            default:
+		                return std::unexpected("Unsupported escape sequence: " + chr);
+		        }
+		    }
+
+		    return std::unexpected("Invalid input: " + chr);
 		}
 
 		std::expected<struct Token, std::string> LexEOL(
@@ -113,7 +144,7 @@ namespace dim {
 				if(std::isdigit(first)) {
 					number += utils::shift(src);
 				} else {
-					break;
+					return std::unexpected("Invalid character in number literal: " + std::string(1, first));
 				}
 			}
 			if(number.length() == 0 || (number.length() == 1 && number == ".")) {
@@ -143,6 +174,37 @@ namespace dim {
 			}
 
 			return std::unexpected("No boolean token found");
+		}
+
+		std::expected<struct Token, std::string> LexChar(
+			std::string& src
+		) noexcept {
+			if(src.at(0) != '\'') {
+				return std::unexpected("No char token found");
+			}
+			(void)utils::shift(src);
+
+			std::string chr = "";
+			if(src.front() != '\\') {
+				chr = std::string(1, utils::shift(src));
+			} else {
+				chr = utils::shift(src, 2);
+			}
+
+			if(src.front() != '\'') {
+				return std::unexpected("Invalid character found.");
+			}
+			(void)utils::shift(src);
+
+			std::expected<char, std::string> result = to_escaped_char(chr);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+
+			return MakeToken(
+				TokenType::CHAR,
+				std::string(1, result.value())
+			);
 		}
 
 		std::expected<struct Token, std::string> LexString(
@@ -179,6 +241,10 @@ namespace dim {
 				}
 
 				str += first;
+			}
+
+			if(src.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
 			}
 			
 			return MakeToken(
