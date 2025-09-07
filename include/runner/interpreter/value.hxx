@@ -374,6 +374,7 @@ namespace dim {
 			F64,
 			F128,
 			BOOLEAN,
+			CHAR,
 			STRING
 		};
 
@@ -388,7 +389,7 @@ namespace dim {
 			std::string breakScopeName;
 		};
 
-		const std::array<std::string_view, 15> ValueTypeStr = {
+		const std::array<std::string_view, 16> ValueTypeStr = {
 			"NONE",
 			"NULL",
 			"I8",
@@ -403,6 +404,7 @@ namespace dim {
 			"F64",
 			"F128",
 			"BOOLEAN",
+			"CHAR",
 			"STRING"
 		};
 
@@ -541,6 +543,44 @@ namespace dim {
 
 		private:
 			bool m_value;
+		};
+
+		class CharValue : public Value {
+		public:
+
+			CharValue(
+				char value
+			);
+
+			char GetValue();
+			void SetValue(
+				char value
+			);
+
+			bool IsTrue() override;
+
+			ValueType Type() override;
+			std::string Repr() override;
+
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
+			__GEN__UNARY_OPERATOR_VALUE_PROTOTYPE_OVERRIDE(~)
+
+		private:
+			char m_value;
 		};
 
 		class StringValue : public Value {
