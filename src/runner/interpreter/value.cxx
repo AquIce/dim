@@ -231,6 +231,75 @@ namespace dim {
 		}
 		
 
+		CharValue::CharValue(
+			char value
+		):
+			Value(),
+			m_value(value)
+		{}
+
+		char CharValue::GetValue() {
+			return m_value;
+		}
+		void CharValue::SetValue(
+			char value
+		) {
+			m_value = value;
+		}
+
+		bool CharValue::IsTrue() {
+			return m_value != '\0';
+		}
+
+		std::string CharValue::Repr() {
+			return "'" + std::string(1, m_value) + "'";
+		}
+		ValueType CharValue	::Type() {
+			return ValueType::CHAR;
+		}
+
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> CharValue::operator+(
+			std::shared_ptr<Value> other
+		) {
+			switch(other->Type()) {
+			case ValueType::CHAR:
+				return std::make_shared<StringValue>(
+					std::string(1, this->GetValue()) + std::dynamic_pointer_cast<CharValue>(other)->GetValue()
+				);
+			case ValueType::STRING:
+				return std::make_shared<StringValue>(
+					std::string(1, this->GetValue()) + std::dynamic_pointer_cast<StringValue>(other)->GetValue()
+				);
+			default:
+				return std::unexpected(
+					std::string("Cannot use '+' operator on CharValue value and ")
+					+ std::string(ValueTypeStr.at(int(other->Type())))
+				);
+			}
+		}
+		
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, -, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, *, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, /, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, <, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, >, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, <=, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, >=, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, &&, char) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, ||, char)
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(CharValue, BooleanValue, ValueType::CHAR, ==)
+		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(CharValue, BooleanValue, ValueType::CHAR, !=)
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, &, char)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, |, char) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, ^, char)
+		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(CharValue, ~, char)
+		
+
 		StringValue::StringValue(
 			std::string value
 		):
@@ -258,7 +327,28 @@ namespace dim {
 			return ValueType::STRING;
 		}
 
-		__GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(StringValue, StringValue, ValueType::STRING, +)
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StringValue::operator+(
+			std::shared_ptr<Value> other
+		) {
+			switch(other->Type()) {
+			case ValueType::STRING:
+				return std::make_shared<StringValue>(
+					this->GetValue() + std::dynamic_pointer_cast<StringValue>(other)->GetValue()
+				);
+			case ValueType::CHAR:
+				return std::make_shared<StringValue>(
+					this->GetValue() + std::string(1, std::dynamic_pointer_cast<CharValue>(other)->GetValue())
+				);
+			default:
+				return std::unexpected(
+					std::string("Cannot use '+' operator on StringValue value and ")
+					+ std::string(ValueTypeStr.at(int(other->Type())))
+				);
+			}
+		}
 		
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, -, string)
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, *, string)

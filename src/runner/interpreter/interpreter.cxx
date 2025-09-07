@@ -102,6 +102,17 @@ namespace dim {
 		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateF64Expression, parser::F64Expression, F64Value, utils::stof64)
 		__GEN__EVALUTE_NUMBER_EXPRESSION(EvaluateF128Expression, parser::F128Expression, F128Value, utils::stof128)
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateCharExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto stringExpression = std::dynamic_pointer_cast<parser::CharExpression>(expression);
+
+			return std::make_shared<CharValue>(
+				stringExpression->GetValue().at(0)
+			);
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -234,6 +245,7 @@ namespace dim {
 				__GEN__BINARY_OPERATOR_TYPE_CASE(F64Value, ValueType::F64)
 				__GEN__BINARY_OPERATOR_TYPE_CASE(F128Value, ValueType::F128)
 				__GEN__BINARY_OPERATOR_TYPE_CASE(BooleanValue, ValueType::BOOLEAN)
+				__GEN__BINARY_OPERATOR_TYPE_CASE(CharValue, ValueType::CHAR)
 				__GEN__BINARY_OPERATOR_TYPE_CASE(StringValue, ValueType::STRING)
 			default:
 				return std::unexpected(std::string("Invalid lhs type"));

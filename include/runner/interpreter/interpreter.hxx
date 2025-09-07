@@ -174,6 +174,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateCharExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateStringExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -275,6 +280,7 @@ namespace dim {
 			{ parser::NodeType::F32, 			&EvaluateF32Expression },
 			{ parser::NodeType::F64, 			&EvaluateF64Expression },
 			{ parser::NodeType::F128, 			&EvaluateF128Expression },
+			{ parser::NodeType::CHAR,	 		&EvaluateCharExpression },
 			{ parser::NodeType::STRING, 		&EvaluateStringExpression },
 			{ parser::NodeType::BREAK, 			&EvaluateBreakExpression },
 			{ parser::NodeType::RETURN, 		&EvaluateReturnExpression },
