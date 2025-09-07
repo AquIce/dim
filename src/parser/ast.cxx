@@ -257,6 +257,7 @@ namespace dim {
 		}
 
 
+
 		BooleanExpression::BooleanExpression(
 			std::string value
 		) :
@@ -281,6 +282,34 @@ namespace dim {
 		}
 		Datatype BooleanExpression::GetDatatype() {
 			return Datatype::BOOLEAN;
+		}
+
+
+
+		CharExpression::CharExpression(
+			std::string value
+		) :
+			Expression(),
+			m_value(value)
+		{}
+
+		std::string CharExpression::GetValue() {
+			return m_value;
+		}
+
+		std::string CharExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "CharExpression('" + m_value + "')";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+
+		NodeType CharExpression::Type() {
+			return NodeType::CHAR;
+		}
+		Datatype CharExpression::GetDatatype() {
+			return Datatype::CHAR;
 		}
 
 

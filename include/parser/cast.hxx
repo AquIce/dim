@@ -125,7 +125,7 @@ namespace dim {
 		typedef utils::Iterator<Datatype, Datatype::I8, Datatype::STRING> DatatypeIterator;
 
 		const auto ConversionTable = std::array<uint16_t, 15>({
-			0b0011111111111111, // INFER
+			0b0111111111111111, // INFER
 			0b0000111000011111, // I8
 			0b0000111000011101, // I16
 			0b0000111000011001, // I32
@@ -138,7 +138,8 @@ namespace dim {
 			0b0000110000000001, // F64
 			0b0000100000000001, // F128
 			0b0001000000000001, // BOOLEAN
-			0b0010000000000001, // STRING
+			0b0010000000000001, // CHAR
+			0b0100000000000001, // STRING
 		});
 
 		bool isConvertible(
@@ -164,6 +165,13 @@ namespace dim {
 			std::shared_ptr<BooleanExpression>,
 			std::string
 		> try_cast_bool(
+			std::shared_ptr<Expression> expression
+		) noexcept;
+
+		std::expected<
+			std::shared_ptr<CharExpression>,
+			std::string
+		> try_cast_char(
 			std::shared_ptr<Expression> expression
 		) noexcept;
 

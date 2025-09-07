@@ -98,6 +98,14 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_char_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_string_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
