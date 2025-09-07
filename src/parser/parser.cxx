@@ -533,7 +533,7 @@ namespace dim {
 					right
 				)
 
-				if(!try_n_cast(std::vector({left, right}))) {
+				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
 					return std::unexpected(
 						std::string("Got non-matching operands types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
@@ -586,7 +586,7 @@ namespace dim {
 					right
 				)
 
-				if(!try_n_cast(std::vector({left, right}))) {
+				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
@@ -637,7 +637,7 @@ namespace dim {
 					right
 				)
 
-				if(!try_n_cast(std::vector({left, right}))) {
+				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
