@@ -49,6 +49,15 @@ Booleans are assigned this way :
 };
 ```
 
+### Char
+
+Characters are assigned this way :
+```
+{
+    const valChar: char = '\0';
+};
+```
+
 ### String
 
 Strings are assigned this way :
@@ -57,7 +66,7 @@ Strings are assigned this way :
     const valStr: str = "Hello, World!\n";
 };
 ```
-All escaped characters are also available.
+Escaped characters are also available.
 
 ### Unary Operators
 
