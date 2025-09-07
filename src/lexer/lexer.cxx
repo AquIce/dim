@@ -217,28 +217,26 @@ namespace dim {
 			(void)utils::shift(src);
 
 			std::string str = "";
-			bool isBackslashed = false;
 
 			while(src.length() > 0) {
 				char first = utils::shift(src);
 
-				if(isBackslashed) {
-					isBackslashed = false;
-					if(first == '"') {
-						str += first;
-						continue;
-					}
-				}
+        if(first == '"') {
+          break;
+        }
 
-				if(first == '\\') {
-					str += first;
-					isBackslashed = true;
-					continue;
-				}
-
-				if(first == '"') {
-					break;
-				}
+        if(first == '\\') {
+          std::expected<char, std::string> result = to_escaped_char(
+              std::string(1, first) + src.front()
+          );
+          if(!result) {
+            LOG(result.error());
+            return std::unexpected(result.error());
+          }
+          str += std::string(1, result.value());
+          (void)utils::shift(src);
+          continue;
+        }
 
 				str += first;
 			}
