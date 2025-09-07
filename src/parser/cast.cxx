@@ -3,6 +3,35 @@
 namespace dim {
 	namespace parser {
 
+		std::expected<
+			Datatype,
+			std::string
+		> GetUnaryOutputDatatype(
+			std::string operatorSymbol, 
+			Datatype termType
+		) {
+			try {
+				return UnaryOutputType.at(operatorSymbol).at(termType);
+			} catch(...) {
+				return std::unexpected("Invalid operator type.");
+			}
+		}
+
+		std::expected<
+			Datatype,
+			std::string
+		> GetBinaryOutputDatatype(
+			Datatype leftType,
+			std::string operatorSymbol,
+			Datatype rightType
+		) {
+			try {
+				return BinaryOutputType.at(operatorSymbol).at({ leftType, rightType });
+			} catch(...) {
+				return std::unexpected("Invalid operator types.");
+			}
+		}
+
 		bool isConvertible(
 			Datatype from,
 			Datatype to

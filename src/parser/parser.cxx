@@ -449,7 +449,7 @@ namespace dim {
 			) {
 				return parse_parenthesis_expression(tokens, identifierRegister);
 			}
-			std::string operatorSymbol = eat(tokens).value().value;	
+			std::string operatorSymbol = eat(tokens).value().value;
 
 			std::shared_ptr<Expression> term;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -881,7 +881,7 @@ namespace dim {
 				tokens.size() > 0
 				&& tokens.front().type != lexer::TokenType::BRACE
 				&& tokens.front().value != "}"
-			)  {
+			) {
 				std::expected<
 					std::shared_ptr<Expression>,
 					std::string
@@ -971,7 +971,7 @@ namespace dim {
 						parse_expression,
 						tokens,
 						innerRegister,
-						updateExpression	
+						updateExpression
 					)
 				}
 				else if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::AT) {
@@ -985,7 +985,7 @@ namespace dim {
 							parse_expression,
 							tokens,
 							innerRegister,
-							startExpression	
+							startExpression
 						)
 						if(
 							startExpression->GetDatatype() == Datatype::BOOLEAN

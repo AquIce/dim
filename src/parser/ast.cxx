@@ -337,7 +337,7 @@ namespace dim {
 			return NodeType::STRING;
 		}
 		Datatype StringExpression::GetDatatype() {
-			return Datatype::INFER;
+			return Datatype::STRING;
 		}
 
 
@@ -378,13 +378,10 @@ namespace dim {
 			return NodeType::UNARY;
 		}
 		Datatype UnaryExpression::GetDatatype() {
-			if(m_operatorSymbol == "!") {
-				return Datatype::BOOLEAN;
-			}
-			/*
-				m_operatorSymbol == "~"
-			*/
-			return m_term->GetDatatype();
+			return GetUnaryOutputDatatype(
+				m_operatorSymbol,
+				m_term->GetDatatype()
+			).value();
 		}
 
 
@@ -455,28 +452,11 @@ namespace dim {
 			return NodeType::BINARY;
 		}
 		Datatype BinaryExpression::GetDatatype() {
-			if(
-				m_operatorSymbol == "+"
-				|| m_operatorSymbol == "-"
-				|| m_operatorSymbol == "*"
-				|| m_operatorSymbol == "/"
-				|| m_operatorSymbol == "&"
-				|| m_operatorSymbol == "|"
-				|| m_operatorSymbol == "^"
-			) {
-				return m_left->GetDatatype();
-			}
-			/*
-				m_operatorSymbol == "<"
-				|| m_operatorSymbol == ">"
-				|| m_operatorSymbol == "<="
-				|| m_operatorSymbol == ">="
-				|| m_operatorSymbol == "&&"
-				|| m_operatorSymbol == "||"
-				|| m_operatorSymbol == "=="
-				|| m_operatorSymbol == "!="
-			*/
-			return Datatype::BOOLEAN;		
+			return GetBinaryOutputDatatype(
+				m_left->GetDatatype(),
+				m_operatorSymbol,
+				m_right->GetDatatype()
+			).value();
 		}
 
 
@@ -902,7 +882,7 @@ namespace dim {
 
 		std::string AssignationExpression::Repr(
 			const size_t indent
-		) {			
+		) {
 			std::string repr =
 				m_identifier->Repr(indent) + " = (\n"
 				+ m_identifier->GetExpression()->Repr(indent + 1)
