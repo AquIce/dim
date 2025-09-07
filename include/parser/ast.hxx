@@ -179,6 +179,13 @@ namespace dim {
 			const bool isConst;
 			const Datatype datatype;
 		} IdentifierData;
+	}
+}
+
+#include <parser/cast.hxx>
+
+namespace dim {
+	namespace parser {
 
 		class ScopeIdentifierRegister {
 		public:
