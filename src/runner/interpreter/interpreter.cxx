@@ -33,6 +33,9 @@ namespace dim {
 					}
 					return scopeValue;
 				}
+				if(scopeValue->GetFlag().flag == ValueFlag::RETURN) {
+					return scopeValue;
+				}
 			}
 
 			return scopeValue;
@@ -375,12 +378,9 @@ namespace dim {
 					)
 				)
 			) {
-				scopeValue->SetFlag(
-					{
-						.flag = ValueFlag::NONE,
-						.breakScopeName = ""
-					}
-				);
+				scopeValue->SetFlag({
+					.flag = ValueFlag::NONE
+				});
 			}
 
 			return scopeValue;
@@ -438,12 +438,9 @@ namespace dim {
 					)
 				)
 			) {
-				scopeValue->SetFlag(
-					{
-						.flag = ValueFlag::NONE,
-						.breakScopeName = ""
-					}
-				);
+				scopeValue->SetFlag({
+					.flag = ValueFlag::NONE
+				});
 			}
 
 			return scopeValue;
@@ -513,12 +510,9 @@ namespace dim {
 					)
 				)
 			) {
-				scopeValue->SetFlag(
-					{
-						.flag = ValueFlag::NONE,
-						.breakScopeName = ""
-					}
-				);
+				scopeValue->SetFlag({
+					.flag = ValueFlag::NONE
+				});
 			}
 
 			return scopeValue;
@@ -645,10 +639,32 @@ namespace dim {
 				);
 			}
 
-			return EvaluateScopeExpression(
-				functionDeclarationExpression->GetScope(),
-				innerRegisterManager
-			);
+			std::shared_ptr<Value> scopeValue;
+			{
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = EvaluateScopeExpression(
+					functionDeclarationExpression->GetScope(),
+					innerRegisterManager
+				);
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				scopeValue = result.value();
+			}
+			
+			struct ValueFlagWVal flagWValue = scopeValue->GetFlag();
+			
+			if(
+				flagWValue.flag == ValueFlag::RETURN
+			) {
+				scopeValue->SetFlag({
+					.flag = ValueFlag::NONE
+				});
+			}
+
+			return scopeValue;
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
