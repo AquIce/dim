@@ -79,27 +79,27 @@ namespace dim {
 			Iter last,
 			const typename std::iterator_traits<Iter>::value_type& x
 		) {
-		    size_t i = 0;
-		    while(first != last && *first != x) {
-		      	++first, ++i;
-		    }
-		    return i;
+			size_t i = 0;
+			while(first != last && *first != x) {
+				++first, ++i;
+			}
+			return i;
 		}
 		
 		template <typename Iter>
 		std::optional<size_t> indexOf(
-		    Iter first,
-		    Iter last,
-		    const typename std::iterator_traits<Iter>::value_type& x
+			Iter first,
+			Iter last,
+			const typename std::iterator_traits<Iter>::value_type& x
 		) {
-		    size_t i = 0;
-		    while (first != last) {
-		        if (*first == x) {
-		            return i;
-		        }
-		        ++first; ++i;
-		    }
-		    return std::nullopt;
+			size_t i = 0;
+			while (first != last) {
+				if (*first == x) {
+					return i;
+				}
+				++first; ++i;
+			}
+			return std::nullopt;
 		}
 
 		__GEN__STOIU_FN_BODY(stoi8, i8)

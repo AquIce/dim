@@ -710,7 +710,7 @@ namespace dim {
 				std::string
 			> result = EvaluateScopeExpression(
 				program,
-				std::make_shared<RegisterManager>(nullptr)	
+				std::make_shared<RegisterManager>(nullptr)
 			);
 
 			if(!result) {

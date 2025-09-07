@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
 		std::cout << "\n> TOKENS\n";
 		for(const auto& token : tokens) {
-			std::cout << dim::lexer::TokenRepr(token) << std::endl;		
+			std::cout << dim::lexer::TokenRepr(token) << std::endl;
 		}
 	}
 

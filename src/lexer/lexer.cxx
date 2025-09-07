@@ -68,29 +68,29 @@ namespace dim {
 		std::expected<char, std::string> to_escaped_char(
 			const std::string& chr
 		) noexcept {
-		    if(chr.size() == 1) {
-		        return chr[0];
-		    }
+			if(chr.size() == 1) {
+				return chr[0];
+			}
 
-		    if(chr.size() == 2 && chr[0] == '\\') {
-		        switch(chr[1]) {
-		            case 'n': return '\n';
-		            case 't': return '\t';
-		            case 'r': return '\r';
-		            case 'b': return '\b';
-		            case 'f': return '\f';
-		            case 'v': return '\v';
-		            case 'a': return '\a';
-		            case '\\': return '\\';
-		            case '\'': return '\'';
-		            case '\"': return '\"';
-		            case '0': return '\0';
-		            default:
-		                return std::unexpected("Unsupported escape sequence: " + chr);
-		        }
-		    }
+			if(chr.size() == 2 && chr[0] == '\\') {
+				switch(chr[1]) {
+					case 'n': return '\n';
+					case 't': return '\t';
+					case 'r': return '\r';
+					case 'b': return '\b';
+					case 'f': return '\f';
+					case 'v': return '\v';
+					case 'a': return '\a';
+					case '\\': return '\\';
+					case '\'': return '\'';
+					case '\"': return '\"';
+					case '0': return '\0';
+					default:
+							return std::unexpected("Unsupported escape sequence: " + chr);
+				}
+			}
 
-		    return std::unexpected("Invalid input: " + chr);
+				return std::unexpected("Invalid input: " + chr);
 		}
 
 		std::expected<struct Token, std::string> LexEOL(
