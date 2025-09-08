@@ -143,8 +143,8 @@ namespace dim {
 
 				if(std::isdigit(first)) {
 					number += utils::shift(src);
-				} else {
-					return std::unexpected("Invalid character in number literal: " + std::string(1, first));
+        } else {
+          break;
 				}
 			}
 			if(number.length() == 0 || (number.length() == 1 && number == ".")) {

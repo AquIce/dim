@@ -533,7 +533,11 @@ namespace dim {
 					right
 				)
 
-				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
+				if(
+           left->GetDatatype() != Datatype::INFER
+           && right->GetDatatype() != Datatype::INFER
+           && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
+        ) {
 					return std::unexpected(
 						std::string("Got non-matching operands types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
@@ -585,8 +589,12 @@ namespace dim {
 					identifierRegister,
 					right
 				)
-
-				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
+        
+        if(
+          left->GetDatatype() != Datatype::INFER
+          && right->GetDatatype() != Datatype::INFER
+          && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
+        ) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
@@ -637,7 +645,11 @@ namespace dim {
 					right
 				)
 
-				if(!GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())) {
+        if(
+          left->GetDatatype() != Datatype::INFER
+          && right->GetDatatype() != Datatype::INFER
+          && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
+        ) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
 						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
@@ -989,6 +1001,7 @@ namespace dim {
 						)
 						if(
 							startExpression->GetDatatype() == Datatype::BOOLEAN
+							|| startExpression->GetDatatype() == Datatype::CHAR
 							|| startExpression->GetDatatype() == Datatype::STRING
 						) {
 							return std::unexpected("Expected number value for @ loop's start expression.");
@@ -1010,6 +1023,7 @@ namespace dim {
 					)
 					if(
 						endExpression->GetDatatype() == Datatype::BOOLEAN
+						|| endExpression->GetDatatype() == Datatype::CHAR
 						|| endExpression->GetDatatype() == Datatype::STRING
 					) {
 						return std::unexpected("Expected number value for @ loop's end expression.");
@@ -1023,16 +1037,30 @@ namespace dim {
 						endExpression->GetDatatype(),
 						false
 					);
+
+          if(innerRegister->Get(identifierName)) {
+    				return std::unexpected("Variable name '" + identifierName + "' already exists");
+    			}
+
+	    		innerRegister->Register(
+	    			IdentifierData{
+	    				identifierName,
+	    				false,
+	    				endExpression->GetDatatype()
+            }
+	    		);
+
 					auto identifierExpression = std::make_shared<IdentifierExpression>(
 						innerRegister,
 						identifierName
 					);
+
 					updateExpression = std::make_shared<AssignationExpression>(
 						identifierExpression,
 						std::make_shared<BinaryExpression>(
 							identifierExpression,
 							"+",
-							std::make_shared<I8Expression>(1)
+              std::make_shared<I8Expression>(1)
 						)
 					);
 					condition = std::make_shared<BinaryExpression>(
