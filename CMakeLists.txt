@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD		 	23)
 set(CMAKE_CXX_STANDARD_REQUIRED	YES)
 set(CMAKE_CXX_EXTENSIONS		OFF)
 
+set(CMAKE_CXX_COMPILER, g++)
+
 # Binary directory
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -48,6 +50,9 @@ target_link_libraries(
 	PRIVATE
 	quadmath
 )
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g -O1")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 
 set(CMAKE_BUILD_TYPE Debug)
 
