@@ -1497,6 +1497,95 @@ namespace dim {
 			return functions.back();
 		}
 
+    std::expected<
+      std::shared_ptr<Expression>,
+      std::string
+    > parse_struct_declaration_expression(
+      std::vector<struct lexer::Token>& tokens,
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+    ) {
+      if(tokens.size() == 0) {
+        return std::unexpected("Unexpected end of file.");
+      }
+      if(tokens.front().type != lexer::TokenType::STRUCT) {
+        return parse_fn_declaration_expression(tokens, identifierRegister);
+      }
+      (void)eat(tokens);
+
+      __TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+          lexer::TokenType::BRACE,
+          "{"
+        )
+			)
+
+      std::vector<std::shared_ptr<IdentifierExpression>> memberExpressions = {};
+
+      while(tokens.size() > 0) {
+        if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
+          break;
+        }
+        std::shared_ptr<Expression> memberIdentifierExpression;
+        __TRY_EXPR_FUNC_WRETERR_WSAVE(
+		  		parse_identifier_expression,
+		  		tokens,
+		  		identifierRegister,
+		  		memberIdentifierExpression
+        )
+        auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
+
+        __TRY_TOKEN_FUNC_WRETERR(
+          expect,
+          tokens,
+          lexer::MakeToken(lexer::TokenType::COLON)
+        )
+
+        lexer::Token memberDatatypeToken;
+				__TRY_TOKEN_FUNC_WRETERR_WSAVE(
+					expect,
+					memberDatatypeToken,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::TYPE)
+				)
+				Datatype argumentDatatype = Datatype(
+					utils::indexOfUnsafe(
+						std::begin(DatatypeToStr),
+						std::end(DatatypeToStr),
+						memberDatatypeToken.value
+					)
+				);
+
+        memberIdentifier->SetDatatype(argumentDatatype);
+        memberExpressions.push_back(memberIdentifier);
+
+        __TRY_TOKEN_FUNC_WRETERR(
+          expect,
+          tokens,
+          lexer::MakeToken(lexer::TokenType::EOL)
+        )
+      }
+      if(tokens.size() == 0) {
+        return std::unexpected("Unexpected end of file in struct declaration.");
+      }
+      (void)eat(tokens);
+
+      std::shared_ptr<Expression> structIdentifierExpression;
+      __TRY_EXPR_FUNC_WRETERR_WSAVE(
+		    parse_identifier_expression,
+		  	tokens,
+		  	identifierRegister,
+		  	structIdentifierExpression
+      )
+      auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
+
+      return std::make_shared<StructDeclarationExpression>(
+         memberExpressions,
+         structIdentifier
+      );
+    }
+
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
@@ -1518,7 +1607,7 @@ namespace dim {
 					|| tokens.at(1).value != "{"
 				)
 			) {
-				return parse_fn_declaration_expression(tokens, identifierRegister);
+				return parse_struct_declaration_expression(tokens, identifierRegister);
 			}
 
 			std::shared_ptr<Expression> scopeName = nullptr;

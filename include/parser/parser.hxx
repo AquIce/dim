@@ -260,14 +260,6 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
-		> parse_expression(
-			std::vector<struct lexer::Token>& tokens,
-			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
-		);
-
-		std::expected<
-			std::shared_ptr<Expression>,
-			std::string
 		> parse_scope_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
@@ -277,6 +269,22 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_fn_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_struct_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
