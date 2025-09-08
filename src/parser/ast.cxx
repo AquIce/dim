@@ -1029,5 +1029,46 @@ namespace dim {
 		Datatype FunctionCallExpression::GetDatatype() {
 			return m_returnDatatype;
 		}
+
+
+
+    StructDeclarationExpression::StructDeclarationExpression(
+      std::vector<std::shared_ptr<IdentifierExpression>> members,
+      std::shared_ptr<IdentifierExpression> name
+    ) :
+      Expression(),
+      m_members(members),
+      m_name(name)
+    {}
+
+    std::vector<std::shared_ptr<IdentifierExpression>> StructDeclarationExpression::GetMembers() {
+      return m_members;
+    }
+    std::shared_ptr<IdentifierExpression> StructDeclarationExpression::GetName() {
+      return m_name;
+    }
+
+    std::string StructDeclarationExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = "struct {\n";
+      for(const auto& member : m_members) {
+        repr.insert(repr.size(), indent + 1, '\t');
+        repr += member->GetName() + ": "
+          + std::string(DatatypeToStr.at((int)member->GetDatatype())) + "\n";
+      }
+      repr += "} ";
+      repr.insert(0, indent, '\t');
+      repr.insert(repr.size() - 2, indent, '\t');
+      repr += m_name->GetName() + ";";
+      return repr;
+    }
+    NodeType StructDeclarationExpression::Type() {
+      return NodeType::STRUCT;
+    }
+    Datatype StructDeclarationExpression::GetDatatype() {
+      // TODO Change when custom datatypes are implemented
+      return Datatype::INFER;
+    }
 	}
 }
