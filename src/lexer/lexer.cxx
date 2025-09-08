@@ -55,6 +55,8 @@ namespace dim {
 				case TokenType::TYPE:
 				case TokenType::FN:
 				case TokenType::RETURN:
+        case TokenType::STRUCT:
+        case TokenType::DISCARD:
 					return token.value;
 
 				case TokenType::IDENTIFIER:
@@ -601,6 +603,20 @@ namespace dim {
 			}
 
 			return std::unexpected("No return token found.");
+		}
+
+		std::expected<struct Token, std::string> LexStruct(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("struct", 0) == 0) {
+				return MakeToken(
+					TokenType::STRUCT,
+					utils::shift(src, 6)
+				);
+			}
+
+			return std::unexpected("No struct token found.");
 		}
 
 		std::expected<struct Token, std::string> LexIdentifier(
