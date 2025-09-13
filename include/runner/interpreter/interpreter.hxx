@@ -301,7 +301,7 @@ namespace dim {
 			{ parser::NodeType::DECL,			&EvaluateDeclarationExpression },
 			{ parser::NodeType::FN,				&EvaluateFunctionDeclarationExpression },
 			{ parser::NodeType::FN_CALL,		&EvaluateFunctionCallExpression },
-			{ parser::NodeType::STRUCT,			&EvaluateStructDeclarationExpression },
+			{ parser::NodeType::STRUCT_DECL,	&EvaluateStructDeclarationExpression },
 		};
 	}
 }
