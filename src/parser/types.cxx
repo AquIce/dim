@@ -126,6 +126,25 @@ namespace dim {
       return m_members;
     }
 
+    std::expected<
+      CustomDatatypeMember,
+      std::string
+    > CustomDatatypeClass::GetMember(
+      const std::string& name
+    ) {
+      std::unordered_set<CustomDatatypeMember>::iterator iter = std::find_if(
+        m_members.begin(),
+        m_members.end(),
+        [&name](const CustomDatatypeMember& member) {
+          return member.name == name;
+        }
+      );
+      if(iter == m_members.end()) {
+        return std::unexpected("Member '" + name + "' does not exists in struct " + m_name);
+      }
+      return *iter;
+    }
+
     bool CustomDatatypeClass::operator==(
       const std::shared_ptr<DatatypeClass>& other
     ) {

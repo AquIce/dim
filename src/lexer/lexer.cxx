@@ -129,6 +129,10 @@ namespace dim {
 			std::string number = "";
 			bool isDecimal = false;
 
+			if(src.front() == '.') {
+				return std::unexpected(". at the start of number token.");
+			}
+
 			while(src.length() > 0) {
 				char first = src.front();
 
