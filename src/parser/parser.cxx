@@ -1526,6 +1526,9 @@ namespace dim {
 					lexer::MakeToken(lexer::TokenType::TYPE)
 				)
 				DatatypeStr argumentDatatype = memberDatatypeToken.value;
+				if(!GetDatatypeClass(argumentDatatype)) {
+					return std::unexpected("Invalid datatype in struct declaration : " + argumentDatatype);
+				}
 
         memberIdentifier->SetDatatype(argumentDatatype);
         memberExpressions.push_back(memberIdentifier);
@@ -1549,6 +1552,23 @@ namespace dim {
 		  	structIdentifierExpression
       )
       auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
+
+      datatypes.push_back(
+      	std::make_shared<CustomDatatypeClass>(
+      		structIdentifier->GetName(),
+      		dim::utils::to_unordered_set<CustomDatatypeMember>(
+      			dim::utils::map<std::shared_ptr<IdentifierExpression>, CustomDatatypeMember>(
+	      			memberExpressions,
+	      			[](const std::shared_ptr<IdentifierExpression>& member) {
+	      				return CustomDatatypeMember{
+	      					.type = GetDatatypeClass(member->GetDatatype()).value(),
+	      					.name = member->GetName()
+	      				};
+	      			}
+	    			)
+    			)
+    		)
+  		);
 
       return std::make_shared<StructDeclarationExpression>(
          memberExpressions,
@@ -1694,6 +1714,10 @@ namespace dim {
 						lexer::MakeToken(lexer::TokenType::EOL)
 					)
 				}
+			}
+
+			for(const auto& datatype : datatypes) {
+				LOG(datatype->GetName());
 			}
 
 			return scope;

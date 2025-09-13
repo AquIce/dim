@@ -1066,8 +1066,7 @@ namespace dim {
 		  return NodeType::STRUCT;
 		}
 		DatatypeStr StructDeclarationExpression::GetDatatype() {
-		  // TODO Change when custom datatypes are implemented
-		  return "INFER";
+		  return m_name->GetName();
 		}
 	}
 }
