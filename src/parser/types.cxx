@@ -23,6 +23,24 @@ namespace dim {
     };
 
     std::expected<
+      std::shared_ptr<DatatypeClass>,
+      std::string
+    > GetDatatypeClass(
+      const std::string& name
+    ) {
+      std::vector<std::shared_ptr<DatatypeClass>>::iterator result = std::find_if(
+        datatypes.begin(), datatypes.end(),
+        [&name](std::shared_ptr<DatatypeClass> datatype) {
+          return datatype->GetName() == name;
+        }
+      );
+      if(result == datatypes.end()) {
+        return std::unexpected("Invalid datatype for lookup.");
+      }
+      return *result;
+    }
+
+    std::expected<
       DatatypeStr,
       std::string
     > GetUnaryOutputDatatype(
