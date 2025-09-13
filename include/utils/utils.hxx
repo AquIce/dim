@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <stdfloat>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 
 using i8 = int8_t;
 using i16 = int16_t;
@@ -179,5 +181,23 @@ namespace dim {
 			typedef typename std::underlying_type<T>::type ValueType;
 			size_t m_value;
 		};
+
+		template <typename InputType, typename OutputType>
+		std::vector<OutputType> map(
+			std::vector<InputType> vec,
+			std::function<OutputType (const InputType&)> func
+		) {
+		    std::vector<OutputType> output;
+		    output.reserve(vec.size());
+		    for(const InputType& element : vec) {
+		        output.push_back(func(element));
+		    }
+		    return output;
+		}
+		
+		template <typename T>
+		std::unordered_set<T> to_unordered_set(const std::vector<T>& vec) {
+			return std::unordered_set<T>(vec.begin(), vec.end());
+		}
 	}
 }
