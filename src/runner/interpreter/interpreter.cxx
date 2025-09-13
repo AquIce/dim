@@ -231,25 +231,23 @@ namespace dim {
 				rhs
 			)
 
-			switch(lhs->Type()) {
-				__GEN__BINARY_OPERATOR_TYPE_CASE(NullValue, ValueType::NUL)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(I8Value, ValueType::I8)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(I16Value, ValueType::I16)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(I32Value, ValueType::I32)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(I64Value, ValueType::I64)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(U8Value, ValueType::U8)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(U16Value, ValueType::U16)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(U32Value, ValueType::U32)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(U64Value, ValueType::U64)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(F32Value, ValueType::F32)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(F64Value, ValueType::F64)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(F128Value, ValueType::F128)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(BooleanValue, ValueType::BOOLEAN)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(CharValue, ValueType::CHAR)
-				__GEN__BINARY_OPERATOR_TYPE_CASE(StringValue, ValueType::STRING)
-			default:
-				return std::unexpected(std::string("Invalid lhs type"));
-			}
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), NullValue, "VOID")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), I8Value, "I8")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), I16Value, "I16")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), I32Value, "I32")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), I64Value, "I64")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), U8Value, "U8")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), U16Value, "U16")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), U32Value, "U32")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), U64Value, "U64")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), F32Value, "F32")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), F64Value, "F64")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), F128Value, "F128")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), BooleanValue, "BOOLEAN")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), CharValue, "CHAR")
+			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), StringValue, "STRING")
+
+			return std::unexpected(std::string("Invalid lhs type"));
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateIfElseStructure(
@@ -336,7 +334,7 @@ namespace dim {
 
 				if(
 					(
-						condition_value->Type() == ValueType::BOOLEAN
+						condition_value->Type() == "BOOLEAN"
 						&& condition_value->IsTrue()
 					) ||
 					(result && result.value()->IsTrue())
@@ -677,6 +675,14 @@ namespace dim {
 			}
 
 			return scopeValue;
+		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStructDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto structDeclarationExpression = std::dynamic_pointer_cast<parser::StructDeclarationExpression>(expression);
+			return std::make_shared<NullValue>();
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(

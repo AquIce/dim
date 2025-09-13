@@ -1,5 +1,7 @@
 #pragma once
 
+#include <parser/types.hxx>
+
 #include <utils/utils.hxx>
 
 #include <array>
@@ -43,43 +45,36 @@ std::expected< \
 	return std::unexpected(std::string("Cannot use '") + #operatorSymbol + "' operator on " + #errorMessageName + " value"); \
 }
 
-#define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(_InputClass, _OutputClass, inputClassEnum, operatorSymbol) \
+#define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_WDISCARD(_InputClass, _OutputClass, inputClassDatatype, operatorSymbol) \
 std::expected< \
 	std::shared_ptr<Value>, \
 	std::string \
 > _InputClass::operator operatorSymbol( \
 	std::shared_ptr<Value> other \
 ) { \
-	switch(other->Type()) { \
-	case inputClassEnum: \
+	if(other->Type() == inputClassDatatype) { \
 		return std::make_shared<_OutputClass>( \
 			this->GetValue() \
 			operatorSymbol std::dynamic_pointer_cast<_InputClass>(other)->GetValue() \
 		); \
-	default: \
-		return std::unexpected( \
-			std::string(std::string("Cannot use '") + #operatorSymbol + "' operator on " + #_InputClass + " value and ") \
-			+ std::string(ValueTypeStr.at(int(other->Type()))) \
-		); \
-	} \
+	}\
+	return std::unexpected( \
+		std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " \
+		+ std::string(#_InputClass) + " value and " + other->Type() \
+	); \
 }
 
-#define __GEN__AUTO_CAST_NUMBER_SWITCH_CASE(_Class, classEnum, operatorSymbol) \
-case ValueType::classEnum: \
-	return AutoCastNumber(m_value operatorSymbol std::dynamic_pointer_cast<_Class>(other)->GetValue());
-
-#define __GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(_Class, classEnum) \
-case ValueType::classEnum: {\
-	auto otherCast = std::dynamic_pointer_cast<_Class>(other); \
-	if(otherCast->GetValue() == 0) { \
-		return std::unexpected("Cannot divide by zero."); \
-	} \
-	return AutoCastNumber(m_value / otherCast->GetValue()); \
+#define __GEN__AUTO_CAST_NUMBER_SWITCH_CASE(otherType, _Class, classDatatype, operatorSymbol) \
+if(otherType == classDatatype) { \
+	return AutoCastNumber( \
+		m_value operatorSymbol std::dynamic_pointer_cast<_Class>(other)->GetValue() \
+	); \
 }
 
-#define __GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(_InputClass, _OutputClass, classEnum, operatorSymbol) \
-case ValueType::classEnum: \
-	return std::make_shared<_OutputClass>(m_value operatorSymbol std::dynamic_pointer_cast<_InputClass>(other)->GetValue());
+#define __GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(otherType, _InputClass, _OutputClass, classDatatype, operatorSymbol) \
+if(otherType == classDatatype) { \
+	return std::make_shared<_OutputClass>(m_value operatorSymbol std::dynamic_pointer_cast<_InputClass>(other)->GetValue()); \
+}
 
 #define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED(_InputClass, operatorSymbol) \
 std::expected< \
@@ -88,24 +83,21 @@ std::expected< \
 > _InputClass::operator operatorSymbol( \
 	std::shared_ptr<Value> other \
 ) { \
-	switch(other->Type()) { \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(I8Value, I8, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(I16Value, I16, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(I32Value, I32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(I64Value, I64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(U8Value, U8, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(U16Value, U16, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(U32Value, U32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(U64Value, U64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(F32Value, F32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(F64Value, F64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(F128Value, F128, operatorSymbol) \
-	default: \
-		return std::unexpected( \
-			std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " + std::string(#_InputClass) + " and " \
-			+ std::string(ValueTypeStr.at(int(other->Type()))) \
-		); \
-	} \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I8Value, "I8", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I16Value, "I16", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I32Value, "I32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I64Value, "I64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U8Value, "U8", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U16Value, "U16", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U32Value, "U32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U64Value, "U64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F32Value, "F32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F64Value, "F64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F128Value, "F128", operatorSymbol) \
+	return std::unexpected( \
+		std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " \
+		+ std::string(#_InputClass) + " and " + other->Type() \
+	); \
 }
 
 #define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED_BITWISE(_InputClass, operatorSymbol) \
@@ -117,8 +109,8 @@ std::expected< \
 ) { \
 	if(other->Type() != this->Type()) { \
 		return std::unexpected( \
-			std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " + std::string(#_InputClass) + " and " \
-			+ std::string(ValueTypeStr.at(int(other->Type()))) \
+			std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " \
+			+ std::string(#_InputClass) + " and " + other->Type() \
 		); \
 	} \
 	return std::make_shared<_InputClass>( \
@@ -133,24 +125,21 @@ std::expected< \
 > _InputClass::operator/( \
 	std::shared_ptr<Value> other \
 ) { \
-	switch(other->Type()) { \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(I8Value, I8) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(I16Value, I16) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(I32Value, I32) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(I64Value, I64) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(U8Value, U8) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(U16Value, U16) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(U32Value, U32) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(U64Value, U64) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(F32Value, F32) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(F64Value, F64) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_DIV(F128Value, F128) \
-	default: \
-		return std::unexpected( \
-			std::string("Cannot use '/' operator on ") + std::string(#_InputClass) + " and " \
-			+ std::string(ValueTypeStr.at(int(other->Type()))) \
-		); \
-	} \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I8Value, "I8", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I16Value, "I16", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I32Value, "I32", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), I64Value, "I64", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U8Value, "U8", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U16Value, "U16", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U32Value, "U32", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), U64Value, "U64", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F32Value, "F32", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F64Value, "F64", /) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE(other->Type(), F128Value, "F128", /) \
+	return std::unexpected( \
+		std::string("Cannot use '/' operator on ") \
+		+ std::string(#_InputClass) + " and " + other->Type() \
+	); \
 }
 
 #define __GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED_NON_NUMBER(_InputClass, _OutputClass, operatorSymbol) \
@@ -160,24 +149,21 @@ std::expected< \
 > _InputClass::operator operatorSymbol( \
 	std::shared_ptr<Value> other \
 ) { \
-	switch(other->Type()) { \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(I8Value, _OutputClass, I8, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(I16Value, _OutputClass, I16, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(I32Value, _OutputClass, I32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(I64Value, _OutputClass, I64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(U8Value, _OutputClass, U8, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(U16Value, _OutputClass, U16, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(U32Value, _OutputClass, U32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(U64Value, _OutputClass, U64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(F32Value, _OutputClass, F32, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(F64Value, _OutputClass, F64, operatorSymbol) \
-	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(F128Value, _OutputClass, F128, operatorSymbol) \
-	default: \
-		return std::unexpected( \
-			std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " + std::string(#_InputClass) + " and " \
-			+ std::string(ValueTypeStr.at(int(other->Type()))) \
-		); \
-	} \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), I8Value, _OutputClass, "I8", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), I16Value, _OutputClass, "I16", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), I32Value, _OutputClass, "I32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), I64Value, _OutputClass, "I64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), U8Value, _OutputClass, "U8", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), U16Value, _OutputClass, "U16", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), U32Value, _OutputClass, "U32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), U64Value, _OutputClass, "U64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), F32Value, _OutputClass, "F32", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), F64Value, _OutputClass, "F64", operatorSymbol) \
+	__GEN__AUTO_CAST_NUMBER_SWITCH_CASE_NON_NUMBER(other->Type(), F128Value, _OutputClass, "F128", operatorSymbol) \
+	return std::unexpected( \
+		std::string("Cannot use '") + std::string(#operatorSymbol) + "' operator on " \
+		+ std::string(#_InputClass) + " and " + other->Type() \
+	); \
 }
 
 #define __GEN__NUMBER_CLASS_DECL(_Class, _Datatype) \
@@ -195,7 +181,7 @@ public: \
 \
 	bool IsTrue() override; \
 \
-	ValueType Type() override; \
+	parser::DatatypeStr Type() override; \
 	std::string Repr() override; \
 \
 	__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+) \
@@ -219,7 +205,7 @@ private: \
 	_Datatype m_value; \
 };
 
-#define __GEN__NUMBER_IU_CLASS_IMPL(_Class, _Datatype, enumType) \
+#define __GEN__NUMBER_IU_CLASS_IMPL(_Class, _Datatype, datatypeStr) \
 _Class::_Class( \
 	_Datatype value \
 ): \
@@ -243,8 +229,8 @@ bool _Class::IsTrue() { \
 std::string _Class::Repr() { \
 	return std::to_string(m_value); \
 } \
-ValueType _Class::Type() { \
-	return ValueType::enumType; \
+parser::DatatypeStr _Class::Type() { \
+	return datatypeStr; \
 } \
 \
 __GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED(_Class, +) \
@@ -271,7 +257,7 @@ std::expected< \
 	return std::make_shared<_Class>(~m_value); \
 }
 
-#define __GEN__NUMBER_F_CLASS_IMPL(_Class, _Datatype, enumType, to_string_fn) \
+#define __GEN__NUMBER_F_CLASS_IMPL(_Class, _Datatype, datatypeStr, to_string_fn) \
 _Class::_Class( \
 	_Datatype value \
 ): \
@@ -295,8 +281,8 @@ bool _Class::IsTrue() { \
 std::string _Class::Repr() { \
 	return to_string_fn(m_value); \
 } \
-ValueType _Class::Type() { \
-	return ValueType::enumType; \
+parser::DatatypeStr _Class::Type() { \
+	return datatypeStr; \
 } \
 \
 __GEN__OPERATOR_VALUE_BODY_OVERRIDE_ADVANCED(_Class, +) \
@@ -359,25 +345,6 @@ std::expected< \
 namespace dim {
 	namespace interpreter {
 
-		enum class ValueType {
-			NONE = 0,
-			NUL,
-			I8,
-			I16,
-			I32,
-			I64,
-			U8,
-			U16,
-			U32,
-			U64,
-			F32,
-			F64,
-			F128,
-			BOOLEAN,
-			CHAR,
-			STRING
-		};
-
 		enum class ValueFlag {
 			NONE = 0,
 			BREAK,
@@ -389,32 +356,13 @@ namespace dim {
 			std::string breakScopeName;
 		};
 
-		const std::array<std::string_view, 16> ValueTypeStr = {
-			"NONE",
-			"NULL",
-			"I8",
-			"I16",
-			"I32",
-			"I64",
-			"U8",
-			"U16",
-			"U32",
-			"U64",
-			"F32",
-			"F64",
-			"F128",
-			"BOOLEAN",
-			"CHAR",
-			"STRING"
-		};
-
 		class Value {
 		public:
 
 			virtual bool IsTrue();
 
 			virtual std::string Repr();
-			virtual ValueType Type();
+			virtual parser::DatatypeStr Type();
 
 			Value() = default;
 
@@ -465,6 +413,7 @@ namespace dim {
 			f128 number
 		);
 
+		// TODO: Determine if it should be removed
 		class NullValue : public Value {
 		public:
 
@@ -472,7 +421,7 @@ namespace dim {
 
 			bool IsTrue() override;
 
-			ValueType Type() override;
+			parser::DatatypeStr Type() override;
 			std::string Repr() override;
 
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
@@ -521,7 +470,7 @@ namespace dim {
 
 			bool IsTrue() override;
 
-			ValueType Type() override;
+			parser::DatatypeStr Type() override;
 			std::string Repr() override;
 
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
@@ -559,7 +508,7 @@ namespace dim {
 
 			bool IsTrue() override;
 
-			ValueType Type() override;
+			parser::DatatypeStr Type() override;
 			std::string Repr() override;
 
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
@@ -597,7 +546,7 @@ namespace dim {
 
 			bool IsTrue() override;
 
-			ValueType Type() override;
+			parser::DatatypeStr Type() override;
 			std::string Repr() override;
 
 			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
