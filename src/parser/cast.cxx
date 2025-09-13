@@ -4,44 +4,6 @@ namespace dim {
 	namespace parser {
 
 		std::expected<
-			Datatype,
-			std::string
-		> GetUnaryOutputDatatype(
-			std::string operatorSymbol, 
-			Datatype termType
-		) {
-			try {
-				return UnaryOutputType.at(operatorSymbol).at(termType);
-			} catch(...) {
-				return std::unexpected("Invalid operator type.");
-			}
-		}
-
-		std::expected<
-			Datatype,
-			std::string
-		> GetBinaryOutputDatatype(
-			Datatype leftType,
-			std::string operatorSymbol,
-			Datatype rightType
-		) {
-			try {
-				return BinaryOutputType.at(operatorSymbol).at({ leftType, rightType });
-			} catch(...) {
-				return std::unexpected("Invalid operator types.");
-			}
-		}
-
-		bool isConvertible(
-			Datatype from,
-			Datatype to
-		) noexcept {
-			return (
-				(ConversionTable.at(int(from)) & (1 << int(to))) != 0
-			);
-		}
-
-		std::expected<
 			std::shared_ptr<NumberExpression>,
 			std::string
 		> try_cast_number(
@@ -159,7 +121,7 @@ namespace dim {
 			std::string
 		> try_cast(
 			std::shared_ptr<Expression> expressionRef,
-			Datatype datatype
+			DatatypeStr datatype
 		) noexcept {
 			auto expressions = std::vector<std::shared_ptr<Expression>>({ expressionRef, get_root_expression(expressionRef) });
 			while(expressions.back() != expressions.at(expressions.size() - 2)) {
@@ -176,18 +138,17 @@ namespace dim {
 				}
 			}
 
-			switch(datatype) {
-			case Datatype::I8: { __GEN__TRY_CAST_ITYPE(i8, I8Expression) }
-			case Datatype::I16: { __GEN__TRY_CAST_ITYPE(i16, I16Expression) }
-			case Datatype::I32: { __GEN__TRY_CAST_ITYPE(i32, I32Expression) }
-			case Datatype::I64: { __GEN__TRY_CAST_ITYPE(i64, I64Expression)}
-			case Datatype::U8: { __GEN__TRY_CAST_UTYPE(u8, U8Expression)}
-			case Datatype::U16: { __GEN__TRY_CAST_UTYPE(u16, U16Expression)}
-			case Datatype::U32: { __GEN__TRY_CAST_UTYPE(u32, U32Expression)}
-			case Datatype::U64: { __GEN__TRY_CAST_UTYPE(u64, U64Expression)}
-			case Datatype::F32: { __GEN__TRY_CAST_FTYPE(f32, F32Expression)}
-			case Datatype::F64: { __GEN__TRY_CAST_FTYPE(f64, F64Expression)}
-			case Datatype::F128: {
+			if(datatype == "I8") { __GEN__TRY_CAST_ITYPE(i8, I8Expression) }
+			else if(datatype == "I16") { __GEN__TRY_CAST_ITYPE(i16, I16Expression) }
+			else if(datatype == "I32") { __GEN__TRY_CAST_ITYPE(i32, I32Expression) }
+			else if(datatype == "I64") { __GEN__TRY_CAST_ITYPE(i64, I64Expression)}
+			else if(datatype == "U8") { __GEN__TRY_CAST_UTYPE(u8, U8Expression)}
+			else if(datatype == "U16") { __GEN__TRY_CAST_UTYPE(u16, U16Expression)}
+			else if(datatype == "U32") { __GEN__TRY_CAST_UTYPE(u32, U32Expression)}
+			else if(datatype == "U64") { __GEN__TRY_CAST_UTYPE(u64, U64Expression)}
+			else if(datatype == "F32") { __GEN__TRY_CAST_FTYPE(f32, F32Expression)}
+			else if(datatype == "F64") { __GEN__TRY_CAST_FTYPE(f64, F64Expression)}
+			else if(datatype == "F128") {
 				std::shared_ptr<NumberExpression> numberExpression;
 				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
 					try_cast_number,
@@ -210,8 +171,7 @@ namespace dim {
 						+ "' out of global bounds"
 					);
 				}
-			}
-			case Datatype::BOOLEAN: {
+			} else if(datatype == "BOOLEAN") {
 				std::shared_ptr<BooleanExpression> boolExpression;
 				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
 					try_cast_bool,
@@ -224,10 +184,20 @@ namespace dim {
 					return expressionRef;
 				}
 				return boolExpression;
-			}
-			/*case Datatype::CHAR:
-				NOIMP;*/
-			case Datatype::STRING: {
+			} else if (datatype == "CHAR") {
+				std::shared_ptr<CharExpression> charExpression;
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
+					try_cast_char,
+					std::shared_ptr<CharExpression>,
+					std::string,
+					charExpression,
+					expression
+				)
+				if(expressions.size() != 2) {
+					return expressionRef;
+				}
+				return charExpression;
+			} else if(datatype == "STRING") {
 				std::shared_ptr<StringExpression> strExpression;
 				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
 					try_cast_str,
@@ -240,8 +210,7 @@ namespace dim {
 					return expressionRef;
 				}
 				return strExpression;
-			}
-			default:
+			} else {
 				return std::unexpected("Invalid datatype.");
 			}
 		}
@@ -256,8 +225,8 @@ namespace dim {
 				std::shared_ptr<Expression>,
 				std::string
 			> result;
-			for(const auto& datatype : DatatypeIterator()) {
-				result = try_cast(expression, datatype);
+			for(const auto& datatype : datatypes) {
+				result = try_cast(expression, datatype->GetName());
 				if(result) {
 					return result;
 				}

@@ -538,41 +538,105 @@ namespace dim {
 			std::string& src
 		) noexcept {
 
-			if(
-				src.rfind("i8", 0) == 0
-				|| src.rfind("u8", 0) == 0
-			) {
+			if(src.rfind("i8", 0) == 0) {
+				(void)utils::shift(src, 2);
 				return MakeToken(
 					TokenType::TYPE,
-					utils::shift(src, 2)
+					"I8"
 				);
 			}
-			if(
-				src.rfind("i16", 0) == 0
-				|| src.rfind("i32", 0) == 0
-				|| src.rfind("i64", 0) == 0
-				|| src.rfind("u16", 0) == 0
-				|| src.rfind("u32", 0) == 0
-				|| src.rfind("u64", 0) == 0
-				|| src.rfind("f32", 0) == 0
-				|| src.rfind("f64", 0) == 0
-				|| src.rfind("str", 0) == 0
-			) {
+			if(src.rfind("u8", 0) == 0) {
+				(void)utils::shift(src, 2);
 				return MakeToken(
 					TokenType::TYPE,
-					utils::shift(src, 3)
+					"U8"
 				);
 			}
-			if(
-				src.rfind("void", 0) == 0
-				|| src.rfind("char", 0) == 0
-				|| src.rfind("bool", 0) == 0
-			) {
+			if(src.rfind("i16", 0) == 0) {
+				(void)utils::shift(src, 3);
 				return MakeToken(
 					TokenType::TYPE,
-					utils::shift(src, 4)
+					"I16"
 				);
 			}
+			if(src.rfind("i32", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"I32"
+				);
+			}
+			if(src.rfind("i64", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"I64"
+				);
+			}
+			if(src.rfind("u16", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"U16"
+				);
+			}
+			if(src.rfind("u32", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"U32"
+				);
+			}
+			if(src.rfind("u64", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"U64"
+				);
+			}
+			if(src.rfind("f32", 0) == 0) {
+			(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"F32"
+				);
+			}
+			if(src.rfind("f64", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"F64"
+				);
+			}
+			if(src.rfind("str", 0) == 0) {
+				(void)utils::shift(src, 3);
+				return MakeToken(
+					TokenType::TYPE,
+					"STRING"
+				);
+			}
+			if(src.rfind("void", 0) == 0) {
+				(void)utils::shift(src, 4);
+				return MakeToken(
+					TokenType::TYPE,
+					"VOID"
+				);
+			}
+			if(src.rfind("char", 0) == 0) {
+				(void)utils::shift(src, 4);
+				return MakeToken(
+					TokenType::TYPE,
+					"CHAR"
+				);
+			}
+			if(src.rfind("bool", 0) == 0) {
+				(void)utils::shift(src, 4);
+				return MakeToken(
+					TokenType::TYPE,
+					"BOOL"
+				);
+			}
+
 
 			return std::unexpected("No type token found.");
 		}
