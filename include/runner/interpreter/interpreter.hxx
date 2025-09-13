@@ -29,8 +29,8 @@ __TRY_EXPECTED_FUNC_WRETERR_WSAVE( \
 	registerManager \
 )
 
-#define __GEN__BINARY_OPERATOR_TYPE_CASE(valueType, valueTypeEnum) \
-case valueTypeEnum: { \
+#define __GEN__BINARY_OPERATOR_TYPE_CASE(lookupType, valueType, currentType) \
+if(lookupType == currentType) { \
 	auto lhsCast = std::dynamic_pointer_cast<valueType>(lhs); \
 	if(binaryOperator == "+") { \
 		return *lhsCast + rhs; \
@@ -254,6 +254,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStructDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -296,6 +301,7 @@ namespace dim {
 			{ parser::NodeType::DECL,			&EvaluateDeclarationExpression },
 			{ parser::NodeType::FN,				&EvaluateFunctionDeclarationExpression },
 			{ parser::NodeType::FN_CALL,		&EvaluateFunctionCallExpression },
+			{ parser::NodeType::STRUCT,			&EvaluateStructDeclarationExpression },
 		};
 	}
 }
