@@ -1063,9 +1063,48 @@ namespace dim {
 			return repr;
 		}
 		NodeType StructDeclarationExpression::Type() {
-		  return NodeType::STRUCT;
+		  return NodeType::STRUCT_DECL;
 		}
 		DatatypeStr StructDeclarationExpression::GetDatatype() {
+		  return m_name->GetName();
+		}
+
+
+
+		StructExpression::StructExpression(
+			std::vector<std::shared_ptr<IdentifierExpression>> members,
+			std::shared_ptr<IdentifierExpression> name
+		) :
+			m_members(members),
+			m_name(name)
+		{}
+
+		std::vector<std::shared_ptr<IdentifierExpression>> StructExpression::GetMembers() {
+			return m_members;
+		}
+
+		std::shared_ptr<IdentifierExpression> StructExpression::GetName() {
+			return m_name;
+		}
+
+		std::string StructExpression::Repr(
+		  size_t indent
+		) {
+			std::string repr = m_name->GetName() + " {\n";
+			for(const auto& member : m_members) {
+				repr.insert(repr.size(), indent + 1, '\t');
+				repr += member->GetName() + ": "
+			  		+ member->GetDatatype() + "\n";
+			}
+			repr += "}";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType StructExpression::Type() {
+		  return NodeType::STRUCT;
+		}
+		DatatypeStr StructExpression::GetDatatype() {
 		  return m_name->GetName();
 		}
 	}

@@ -56,6 +56,26 @@ namespace dim {
 			return tk;
 		}
 
+		[[nodiscard]]
+		std::expected<std::string, std::string> expect_type(
+			std::vector<struct lexer::Token>& tokens
+		) {
+			if(
+				tokens.size() > 0 && (
+					tokens.front().type == lexer::TokenType::TYPE
+					|| (
+						tokens.front().type == lexer::TokenType::IDENTIFIER
+						&& GetDatatypeClass(tokens.front().value)
+					)
+				)
+			) {
+				return eat(tokens).value().value;
+			}
+			return std::unexpected("Expected type, found " + lexer::TokenRepr(
+				tokens.front()
+			));
+		}
+
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
@@ -283,6 +303,138 @@ namespace dim {
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
+		> parse_struct_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected("Unexpected end of file.");
+			}
+			if(tokens.front().type != lexer::TokenType::IDENTIFIER) {
+				return parse_fn_call_expression(tokens, identifierRegister);
+			}
+
+			LOG("TOO");
+			
+			std::shared_ptr<DatatypeClass> structClass;
+			{
+				std::expected<
+					std::shared_ptr<DatatypeClass>,
+					std::string
+				> result = GetDatatypeClass(tokens.front().value);
+				if(!result) {
+					return parse_fn_call_expression(tokens, identifierRegister);
+				}
+				structClass = result.value();
+			}
+			(void)eat(tokens);
+
+			if(structClass->isNative()) {
+				return std::unexpected("Invalid type '" + structClass->GetName() + "' is a native datatype.");
+			}
+			auto customDatatypeClass = std::dynamic_pointer_cast<CustomDatatypeClass>(structClass);
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+          lexer::TokenType::BRACE,
+          "{"
+        )
+			)
+
+      std::vector<std::shared_ptr<IdentifierExpression>> memberExpressions = {};
+
+      while(tokens.size() > 0) {
+        if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
+          break;
+        }
+        __TRY_TOKEN_FUNC_WRETERR(
+		  		expect,
+		  		tokens,
+		  		lexer::MakeToken(lexer::TokenType::DOT)
+        )
+        std::shared_ptr<Expression> memberIdentifierExpression;
+        __TRY_EXPR_FUNC_WRETERR_WSAVE(
+		  		parse_identifier_expression,
+		  		tokens,
+		  		identifierRegister,
+		  		memberIdentifierExpression
+        )
+        auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
+
+        DatatypeStr structMemberType;
+        {
+        	std::expected<
+        		CustomDatatypeMember,
+        		std::string
+      		> result = customDatatypeClass->GetMember(memberIdentifier->GetName());
+      		if(!result) {
+      			return std::unexpected(result.error());
+      		}
+      		structMemberType = result.value().type->GetName();
+        }
+
+        __TRY_TOKEN_FUNC_WRETERR(
+          expect,
+          tokens,
+          lexer::MakeToken(lexer::TokenType::EQUALS)
+        )
+
+        std::shared_ptr<Expression> argument;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_expression,
+					tokens,
+					identifierRegister,
+					argument
+				)
+
+				if(argument->GetDatatype() != structMemberType) {
+					std::expected<
+						std::shared_ptr<Expression>,
+						std::string
+					> result = try_cast(argument, structMemberType);
+
+					if(!result) {
+						return std::unexpected(
+							"Expected member '" + memberIdentifier->GetName()
+							+ "' of type : " + structMemberType + ", got : " + argument->GetDatatype()
+						);
+					}
+
+					argument = result.value();
+				}
+				
+				memberIdentifier->SetDatatype(structMemberType);
+				memberIdentifier->SetExpression(argument);
+
+        memberExpressions.push_back(memberIdentifier);
+
+        __TRY_TOKEN_FUNC_WRETERR(
+          expect,
+          tokens,
+          lexer::MakeToken(lexer::TokenType::COMMA)
+        )
+      }
+      if(tokens.size() == 0) {
+        return std::unexpected("Unexpected end of file in struct declaration.");
+      }
+      (void)eat(tokens);
+
+      LOG("PARSING");
+
+      return std::make_shared<StructExpression>(
+      	memberExpressions,
+      	std::make_shared<IdentifierExpression>(
+      		identifierRegister,
+      		structClass->GetName()
+    		)
+    	);
+		}
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
 		> parse_break_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
@@ -291,7 +443,7 @@ namespace dim {
 				return std::unexpected("Unexpected end of file.");
 			}
 			if(tokens.front().type != lexer::TokenType::BREAK) {
-				return parse_fn_call_expression(tokens, identifierRegister);
+				return parse_struct_expression(tokens, identifierRegister);
 			}
 			(void)eat(tokens);
 
@@ -1282,7 +1434,15 @@ namespace dim {
 			)
 
 			DatatypeStr datatype = "INFER";
-			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::TYPE) {
+			if(
+				tokens.size() > 0 && (
+					tokens.front().type == lexer::TokenType::TYPE
+					|| (
+						tokens.front().type == lexer::TokenType::IDENTIFIER
+						&& GetDatatypeClass(tokens.front().value)
+					)
+				)
+			) {
 				datatype = eat(tokens).value().value;
 			}
 
@@ -1410,14 +1570,14 @@ namespace dim {
 					tokens,
 					lexer::MakeToken(lexer::TokenType::COLON)
 				)
-				lexer::Token argumentDatatypeToken;
-				__TRY_TOKEN_FUNC_WRETERR_WSAVE(
-					expect,
-					argumentDatatypeToken,
-					tokens,
-					lexer::MakeToken(lexer::TokenType::TYPE)
+				DatatypeStr argumentDatatype = "";
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
+					expect_type,
+					std::string,
+					std::string,
+					argumentDatatype,
+					tokens
 				)
-				DatatypeStr argumentDatatype = argumentDatatypeToken.value;
 
 				// TODO: Add const arguments
 				arguments.push_back(
@@ -1441,14 +1601,14 @@ namespace dim {
 				lexer::MakeToken(lexer::TokenType::ARROW)
 			)
 
-			lexer::Token datatypeToken;
-			__TRY_TOKEN_FUNC_WRETERR_WSAVE(
-				expect,
-				datatypeToken,
-				tokens,
-				lexer::MakeToken(lexer::TokenType::TYPE)
+			DatatypeStr returnDatatype = "";
+			__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
+				expect_type,
+				std::string,
+				std::string,
+				returnDatatype,
+				tokens
 			)
-			DatatypeStr returnDatatype = datatypeToken.value;
 
 			functions.push_back(
 				std::make_shared<FunctionDeclarationExpression>(
@@ -1518,14 +1678,15 @@ namespace dim {
           lexer::MakeToken(lexer::TokenType::COLON)
         )
 
-        lexer::Token memberDatatypeToken;
-				__TRY_TOKEN_FUNC_WRETERR_WSAVE(
-					expect,
-					memberDatatypeToken,
-					tokens,
-					lexer::MakeToken(lexer::TokenType::TYPE)
+        DatatypeStr argumentDatatype = "";
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE(
+					expect_type,
+					std::string,
+					std::string,
+					argumentDatatype,
+					tokens
 				)
-				DatatypeStr argumentDatatype = memberDatatypeToken.value;
+
 				if(!GetDatatypeClass(argumentDatatype)) {
 					return std::unexpected("Invalid datatype in struct declaration : " + argumentDatatype);
 				}
@@ -1593,6 +1754,7 @@ namespace dim {
 				)
 				&& (
 					tokens.front().type != lexer::TokenType::IDENTIFIER
+					|| GetDatatypeClass(tokens.front().value)
 					|| tokens.at(1).type != lexer::TokenType::BRACE
 					|| tokens.at(1).value != "{"
 				)

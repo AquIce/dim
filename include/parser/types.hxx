@@ -1589,7 +1589,7 @@ namespace dim {
 				const std::shared_ptr<DatatypeClass>& other
 			);
 
-		private:
+		protected:
 			std::string m_name;
 		};
 
@@ -1601,6 +1601,13 @@ namespace dim {
 			);
 
 			std::unordered_set<CustomDatatypeMember> GetMembers();
+			std::expected<
+				CustomDatatypeMember,
+				std::string
+			> GetMember(
+				const std::string& name
+			);
+			
 			bool isNative() override;
 
 			bool operator==(

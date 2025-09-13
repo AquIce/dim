@@ -63,6 +63,11 @@ namespace dim {
 			const struct lexer::Token expected
 		);
 
+		[[nodiscard]]
+		std::expected<std::string, std::string> expect_type(
+			std::vector<struct lexer::Token>& tokens
+		);
+
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
@@ -123,6 +128,14 @@ namespace dim {
 			std::shared_ptr<Expression>,
 			std::string
 		> parse_fn_call_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		std::expected<
+			std::shared_ptr<Expression>,
+			std::string
+		> parse_struct_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
