@@ -47,8 +47,8 @@ namespace dim {
 		NodeType Expression::Type() {
 			return NodeType::NONE;
 		}
-		Datatype Expression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr Expression::GetDatatype() {
+			return "INFER";
 		}
 
 
@@ -58,7 +58,7 @@ namespace dim {
 			std::string name,
 			bool isConst,
 			std::shared_ptr<Expression> expression,
-			Datatype datatype
+			DatatypeStr datatype
 		) :
 			NestedExpression(expression),
 			m_name(name),
@@ -93,7 +93,7 @@ namespace dim {
 			m_expression = expression;
 		}
 		void IdentifierExpression::SetDatatype(
-			Datatype datatype
+			DatatypeStr datatype
 		) {
 			m_datatype = datatype;
 		}
@@ -103,15 +103,14 @@ namespace dim {
 		) {
 			std::string repr =
 				std::string("(") + m_name + ": "
-				+ std::string(DatatypeToStr.at(int(m_datatype)))
-				+ ")";
+				+ m_datatype + ")";
 			repr.insert(0, indent, '\t');
 			return repr;
 		}
 		NodeType IdentifierExpression::Type() {
 			return NodeType::IDENTIFIER;
 		}
-		Datatype IdentifierExpression::GetDatatype() {
+		DatatypeStr IdentifierExpression::GetDatatype() {
 			return m_datatype;
 		}
 
@@ -161,7 +160,7 @@ namespace dim {
 		NodeType ScopeExpression::Type() {
 			return NodeType::SCOPE;
 		}
-		Datatype ScopeExpression::GetDatatype() {
+		DatatypeStr ScopeExpression::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
@@ -182,8 +181,8 @@ namespace dim {
 		NodeType NullExpression::Type() {
 			return NodeType::NUL;
 		}
-		Datatype NullExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr NullExpression::GetDatatype() {
+			return "INFER";
 		}
 
 
@@ -216,8 +215,8 @@ namespace dim {
 		NodeType NumberExpression::Type() {
 			return NodeType::NUMBER;
 		}
-		Datatype NumberExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr NumberExpression::GetDatatype() {
+			return "INFER";
 		}
 
 
@@ -252,8 +251,8 @@ namespace dim {
 		NodeType F128Expression::Type() {
 			return NodeType::F128;
 		}
-		Datatype F128Expression::GetDatatype() {
-			return Datatype::F128;
+		DatatypeStr F128Expression::GetDatatype() {
+			return "F128";
 		}
 
 
@@ -280,8 +279,8 @@ namespace dim {
 		NodeType BooleanExpression::Type() {
 			return NodeType::BOOLEAN;
 		}
-		Datatype BooleanExpression::GetDatatype() {
-			return Datatype::BOOLEAN;
+		DatatypeStr BooleanExpression::GetDatatype() {
+			return "BOOLEAN";
 		}
 
 
@@ -308,8 +307,8 @@ namespace dim {
 		NodeType CharExpression::Type() {
 			return NodeType::CHAR;
 		}
-		Datatype CharExpression::GetDatatype() {
-			return Datatype::CHAR;
+		DatatypeStr CharExpression::GetDatatype() {
+			return "CHAR";
 		}
 
 
@@ -336,8 +335,8 @@ namespace dim {
 		NodeType StringExpression::Type() {
 			return NodeType::STRING;
 		}
-		Datatype StringExpression::GetDatatype() {
-			return Datatype::STRING;
+		DatatypeStr StringExpression::GetDatatype() {
+			return "STRING";
 		}
 
 
@@ -377,7 +376,7 @@ namespace dim {
 		NodeType UnaryExpression::Type() {
 			return NodeType::UNARY;
 		}
-		Datatype UnaryExpression::GetDatatype() {
+		DatatypeStr UnaryExpression::GetDatatype() {
 			return GetUnaryOutputDatatype(
 				m_operatorSymbol,
 				m_term->GetDatatype()
@@ -451,7 +450,7 @@ namespace dim {
 		NodeType BinaryExpression::Type() {
 			return NodeType::BINARY;
 		}
-		Datatype BinaryExpression::GetDatatype() {
+		DatatypeStr BinaryExpression::GetDatatype() {
 			return GetBinaryOutputDatatype(
 				m_left->GetDatatype(),
 				m_operatorSymbol,
@@ -495,7 +494,7 @@ namespace dim {
 		NodeType IfElseExpression::Type() {
 			return NodeType::IFELSE_EXPR;
 		}
-		Datatype IfElseExpression::GetDatatype() {
+		DatatypeStr IfElseExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
@@ -536,7 +535,7 @@ namespace dim {
 		NodeType IfElseStructure::Type() {
 			return NodeType::IFELSE_STRUCT;
 		}
-		Datatype IfElseStructure::GetDatatype() {
+		DatatypeStr IfElseStructure::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
@@ -578,7 +577,7 @@ namespace dim {
 		NodeType MatchExpression::Type() {
 			return NodeType::MATCH_EXPR;
 		}
-		Datatype MatchExpression::GetDatatype() {
+		DatatypeStr MatchExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
@@ -619,7 +618,7 @@ namespace dim {
 		NodeType MatchStructure::Type() {
 			return NodeType::MATCH_STRUCT;
 		}
-		Datatype MatchStructure::GetDatatype() {
+		DatatypeStr MatchStructure::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
@@ -646,7 +645,7 @@ namespace dim {
 		NodeType LoopExpression::Type() {
 			return NodeType::LOOP;
 		}
-		Datatype LoopExpression::GetDatatype() {
+		DatatypeStr LoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
@@ -684,7 +683,7 @@ namespace dim {
 		NodeType WhileLoopExpression::Type() {
 			return NodeType::WHILE;
 		}
-		Datatype WhileLoopExpression::GetDatatype() {
+		DatatypeStr WhileLoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
@@ -730,7 +729,7 @@ namespace dim {
 		NodeType ForLoopExpression::Type() {
 			return NodeType::FOR;
 		}
-		Datatype ForLoopExpression::GetDatatype() {
+		DatatypeStr ForLoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
@@ -756,7 +755,7 @@ namespace dim {
 		NodeType NestedExpression::Type() {
 			return NodeType::NESTED;
 		}
-		Datatype NestedExpression::GetDatatype() {
+		DatatypeStr NestedExpression::GetDatatype() {
 			return m_expression->GetDatatype();
 		}
 
@@ -793,7 +792,7 @@ namespace dim {
 		NodeType BreakExpression::Type() {
 			return NodeType::BREAK;
 		}
-		Datatype BreakExpression::GetDatatype() {
+		DatatypeStr BreakExpression::GetDatatype() {
 			return NestedExpression::GetDatatype();
 		}
 
@@ -818,9 +817,9 @@ namespace dim {
 		NodeType ReturnExpression::Type() {
 			return NodeType::RETURN;
 		}
-		Datatype ReturnExpression::GetDatatype() {
+		DatatypeStr ReturnExpression::GetDatatype() {
 			if(m_expression == nullptr) {
-				return Datatype::VOID;
+				return "VOID";
 			}
 			return NestedExpression::GetDatatype();
 		}
@@ -841,7 +840,7 @@ namespace dim {
 		NodeType OrExpression::Type() {
 			return NodeType::OR;
 		}
-		Datatype OrExpression::GetDatatype() {
+		DatatypeStr OrExpression::GetDatatype() {
 			return NestedExpression::GetDatatype();
 		}
 
@@ -861,8 +860,8 @@ namespace dim {
 		NodeType DiscardExpression::Type() {
 			return NodeType::DISCARD;
 		}
-		Datatype DiscardExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr DiscardExpression::GetDatatype() {
+			return "INFER";
 		}
 
 
@@ -893,7 +892,7 @@ namespace dim {
 		NodeType AssignationExpression::Type() {
 			return NodeType::ASSIGN;
 		}
-		Datatype AssignationExpression::GetDatatype() {
+		DatatypeStr AssignationExpression::GetDatatype() {
 			return m_identifier->GetDatatype();
 		}
 
@@ -902,7 +901,7 @@ namespace dim {
 		DeclarationExpression::DeclarationExpression(
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::shared_ptr<Expression> expression,
-			Datatype datatype,
+			DatatypeStr datatype,
 			bool isConst
 		) :
 			m_identifier(identifier)
@@ -933,7 +932,7 @@ namespace dim {
 		NodeType DeclarationExpression::Type() {
 			return NodeType::DECL;
 		}
-		Datatype DeclarationExpression::GetDatatype() {
+		DatatypeStr DeclarationExpression::GetDatatype() {
 			return m_identifier->GetDatatype();
 		}
 
@@ -943,7 +942,7 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::vector<std::shared_ptr<DeclarationExpression>> arguments,
 			std::shared_ptr<ScopeExpression> scope,
-			Datatype returnDatatype
+			DatatypeStr returnDatatype
 		) :
 			Expression(),
 			m_identifier(identifier),
@@ -987,7 +986,7 @@ namespace dim {
 		NodeType FunctionDeclarationExpression::Type() {
 			return NodeType::FN;
 		}
-		Datatype FunctionDeclarationExpression::GetDatatype() {
+		DatatypeStr FunctionDeclarationExpression::GetDatatype() {
 			return m_returnDatatype;
 		}
 
@@ -996,7 +995,7 @@ namespace dim {
 		FunctionCallExpression::FunctionCallExpression(
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::vector<std::shared_ptr<Expression>> arguments,
-			Datatype returnDatatype
+			DatatypeStr returnDatatype
 		) :
 			m_identifier(identifier),
 			m_arguments(arguments),
@@ -1026,49 +1025,49 @@ namespace dim {
 		NodeType FunctionCallExpression::Type() {
 			return NodeType::FN_CALL;
 		}
-		Datatype FunctionCallExpression::GetDatatype() {
+		DatatypeStr FunctionCallExpression::GetDatatype() {
 			return m_returnDatatype;
 		}
 
 
 
-    StructDeclarationExpression::StructDeclarationExpression(
-      std::vector<std::shared_ptr<IdentifierExpression>> members,
-      std::shared_ptr<IdentifierExpression> name
-    ) :
-      Expression(),
-      m_members(members),
-      m_name(name)
-    {}
+		StructDeclarationExpression::StructDeclarationExpression(
+		  std::vector<std::shared_ptr<IdentifierExpression>> members,
+		  std::shared_ptr<IdentifierExpression> name
+		) :
+		  Expression(),
+		  m_members(members),
+		  m_name(name)
+		{}
 
-    std::vector<std::shared_ptr<IdentifierExpression>> StructDeclarationExpression::GetMembers() {
-      return m_members;
-    }
-    std::shared_ptr<IdentifierExpression> StructDeclarationExpression::GetName() {
-      return m_name;
-    }
+		std::vector<std::shared_ptr<IdentifierExpression>> StructDeclarationExpression::GetMembers() {
+		  return m_members;
+		}
+		std::shared_ptr<IdentifierExpression> StructDeclarationExpression::GetName() {
+		  return m_name;
+		}
 
-    std::string StructDeclarationExpression::Repr(
-      size_t indent
-    ) {
-      std::string repr = "struct {\n";
-      for(const auto& member : m_members) {
-        repr.insert(repr.size(), indent + 1, '\t');
-        repr += member->GetName() + ": "
-          + std::string(DatatypeToStr.at((int)member->GetDatatype())) + "\n";
-      }
-      repr += "} ";
-      repr.insert(0, indent, '\t');
-      repr.insert(repr.size() - 2, indent, '\t');
-      repr += m_name->GetName() + ";";
-      return repr;
-    }
-    NodeType StructDeclarationExpression::Type() {
-      return NodeType::STRUCT;
-    }
-    Datatype StructDeclarationExpression::GetDatatype() {
-      // TODO Change when custom datatypes are implemented
-      return Datatype::INFER;
-    }
+		std::string StructDeclarationExpression::Repr(
+		  size_t indent
+		) {
+			std::string repr = "struct {\n";
+			for(const auto& member : m_members) {
+				repr.insert(repr.size(), indent + 1, '\t');
+				repr += member->GetName() + ": "
+			  		+ member->GetDatatype() + "\n";
+			}
+			repr += "} ";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 2, indent, '\t');
+			repr += m_name->GetName() + ";";
+			return repr;
+		}
+		NodeType StructDeclarationExpression::Type() {
+		  return NodeType::STRUCT;
+		}
+		DatatypeStr StructDeclarationExpression::GetDatatype() {
+		  // TODO Change when custom datatypes are implemented
+		  return "INFER";
+		}
 	}
 }

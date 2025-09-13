@@ -534,14 +534,13 @@ namespace dim {
 				)
 
 				if(
-           left->GetDatatype() != Datatype::INFER
-           && right->GetDatatype() != Datatype::INFER
+           left->GetDatatype() != "INFER"
+           && right->GetDatatype() != "INFER"
            && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
         ) {
 					return std::unexpected(
 						std::string("Got non-matching operands types : ")
-						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
-						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+						+ left->GetDatatype() + " and " + right->GetDatatype()
 					);
 				}
 
@@ -591,14 +590,13 @@ namespace dim {
 				)
         
         if(
-          left->GetDatatype() != Datatype::INFER
-          && right->GetDatatype() != Datatype::INFER
+          left->GetDatatype() != "INFER"
+          && right->GetDatatype() != "INFER"
           && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
         ) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
-						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
-						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+						+ left->GetDatatype() + " and " + right->GetDatatype()
 					);
 				}
 
@@ -646,14 +644,13 @@ namespace dim {
 				)
 
         if(
-          left->GetDatatype() != Datatype::INFER
-          && right->GetDatatype() != Datatype::INFER
+          left->GetDatatype() != "INFER"
+          && right->GetDatatype() != "INFER"
           && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
         ) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
-						+ std::string(DatatypeToStr.at(int(left->GetDatatype())))
-						+ " and " + std::string(DatatypeToStr.at(int(right->GetDatatype())))
+						+ left->GetDatatype() + " and " + right->GetDatatype()
 					);
 				}
 
@@ -1000,9 +997,9 @@ namespace dim {
 							startExpression
 						)
 						if(
-							startExpression->GetDatatype() == Datatype::BOOLEAN
-							|| startExpression->GetDatatype() == Datatype::CHAR
-							|| startExpression->GetDatatype() == Datatype::STRING
+							startExpression->GetDatatype() == "BOOLEAN"
+							|| startExpression->GetDatatype() == "CHAR"
+							|| startExpression->GetDatatype() == "STRING"
 						) {
 							return std::unexpected("Expected number value for @ loop's start expression.");
 						}
@@ -1022,9 +1019,9 @@ namespace dim {
 						endExpression
 					)
 					if(
-						endExpression->GetDatatype() == Datatype::BOOLEAN
-						|| endExpression->GetDatatype() == Datatype::CHAR
-						|| endExpression->GetDatatype() == Datatype::STRING
+						endExpression->GetDatatype() == "BOOLEAN"
+						|| endExpression->GetDatatype() == "CHAR"
+						|| endExpression->GetDatatype() == "STRING"
 					) {
 						return std::unexpected("Expected number value for @ loop's end expression.");
 					}
@@ -1106,8 +1103,7 @@ namespace dim {
 				) {
 					return std::unexpected(
 						std::string("Got non-matching operand types : ")
-						+ std::string(DatatypeToStr.at(int(orExpression->GetDatatype())))
-						+ " and " + std::string(DatatypeToStr.at(int(scope->GetDatatype())))
+						+ orExpression->GetDatatype() + " and " + scope->GetDatatype()
 					);
 				}
 			} else {
@@ -1229,8 +1225,8 @@ namespace dim {
 				);
 			}
 
-			Datatype expectedDatatype = identifier->GetDatatype();
-			Datatype gotDatatype = expression->GetDatatype();
+			DatatypeStr expectedDatatype = identifier->GetDatatype();
+			DatatypeStr gotDatatype = expression->GetDatatype();
 			if(expectedDatatype != gotDatatype) {
 				std::expected<
 					std::shared_ptr<Expression>,
@@ -1240,8 +1236,7 @@ namespace dim {
 				if(!castResult) {
 					return std::unexpected(
 						std::string("Expected type ")
-						+ std::string(DatatypeToStr.at(int(expectedDatatype)))
-						+ ", got " + std::string(DatatypeToStr.at(int(gotDatatype)))
+						+ expectedDatatype + ", got " + gotDatatype
 					);
 				}
 
@@ -1286,15 +1281,9 @@ namespace dim {
 				lexer::MakeToken(lexer::TokenType::COLON)
 			)
 
-			Datatype datatype = Datatype::INFER;
+			DatatypeStr datatype = "INFER";
 			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::TYPE) {
-				datatype = Datatype(
-					utils::indexOfUnsafe(
-						std::begin(DatatypeToStr),
-						std::end(DatatypeToStr),
-						eat(tokens).value().value
-					)
-				);
+				datatype = eat(tokens).value().value;
 			}
 
 			__TRY_TOKEN_FUNC_WRETERR(
@@ -1311,9 +1300,9 @@ namespace dim {
 				expression
 			)
 
-			Datatype gotDatatype = expression->GetDatatype();
+			DatatypeStr gotDatatype = expression->GetDatatype();
 
-			if(datatype == Datatype::INFER) {
+			if(datatype == "INFER") {
 				datatype = gotDatatype;
 			} else if(datatype != gotDatatype) {
 				std::expected<
@@ -1324,8 +1313,7 @@ namespace dim {
 				if(!result) {
 					return std::unexpected(
 						std::string("Expected type ")
-						+ std::string(DatatypeToStr.at(int(datatype)))
-						+ ", got " + std::string(DatatypeToStr.at(int(gotDatatype)))
+						+ datatype + ", got " + gotDatatype
 					);
 				}
 
@@ -1429,13 +1417,7 @@ namespace dim {
 					tokens,
 					lexer::MakeToken(lexer::TokenType::TYPE)
 				)
-				Datatype argumentDatatype = Datatype(
-					utils::indexOfUnsafe(
-						std::begin(DatatypeToStr),
-						std::end(DatatypeToStr),
-						argumentDatatypeToken.value
-					)
-				);
+				DatatypeStr argumentDatatype = argumentDatatypeToken.value;
 
 				// TODO: Add const arguments
 				arguments.push_back(
@@ -1466,13 +1448,7 @@ namespace dim {
 				tokens,
 				lexer::MakeToken(lexer::TokenType::TYPE)
 			)
-			Datatype returnDatatype = Datatype(
-				utils::indexOfUnsafe(
-					std::begin(DatatypeToStr),
-					std::end(DatatypeToStr),
-					datatypeToken.value
-				)
-			);
+			DatatypeStr returnDatatype = datatypeToken.value;
 
 			functions.push_back(
 				std::make_shared<FunctionDeclarationExpression>(
@@ -1549,13 +1525,7 @@ namespace dim {
 					tokens,
 					lexer::MakeToken(lexer::TokenType::TYPE)
 				)
-				Datatype argumentDatatype = Datatype(
-					utils::indexOfUnsafe(
-						std::begin(DatatypeToStr),
-						std::end(DatatypeToStr),
-						memberDatatypeToken.value
-					)
-				);
+				DatatypeStr argumentDatatype = memberDatatypeToken.value;
 
         memberIdentifier->SetDatatype(argumentDatatype);
         memberExpressions.push_back(memberIdentifier);
