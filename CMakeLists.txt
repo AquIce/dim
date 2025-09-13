@@ -24,6 +24,7 @@ set(NR_SRC
 	
 	${PROJECT_SOURCE_DIR}/src/lexer/lexer.cxx
 	
+	${PROJECT_SOURCE_DIR}/src/parser/types.cxx
 	${PROJECT_SOURCE_DIR}/src/parser/ast.cxx
 	${PROJECT_SOURCE_DIR}/src/parser/cast.cxx
 	${PROJECT_SOURCE_DIR}/src/parser/parser.cxx
