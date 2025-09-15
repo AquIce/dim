@@ -685,6 +685,30 @@ namespace dim {
 			return std::make_shared<NullValue>();
 		}
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStructExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto structExpression = std::dynamic_pointer_cast<parser::StructExpression>(expression);
+			std::unordered_map<std::string, std::shared_ptr<Value>> members = {};
+
+			for(const auto& member : structExpression->GetMembers()) {
+				std::shared_ptr<Value> memberValue;
+				__TRY_VALUE_FUNC_WRETERR_WSAVE(
+					EvaluateExpression,
+					member->GetExpression(),
+					registerManager,
+					memberValue
+				)
+				members.insert({ member->GetName(), memberValue });
+			}
+
+			return std::make_shared<StructValue>(
+				structExpression->GetName()->GetName(),
+				members
+			);
+		}
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager

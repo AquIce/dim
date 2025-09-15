@@ -8,6 +8,7 @@
 #include <expected>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #define __GEN__OPERATOR_VALUE_PROTOTYPE_VIRTUAL(operatorSymbol) \
 virtual std::expected< \
@@ -568,6 +569,62 @@ namespace dim {
 
 		private:
 			std::string m_value;
+		};
+
+		class StructValue : public Value {
+		public:
+			StructValue(
+				parser::DatatypeStr name,
+				std::unordered_map<std::string, std::shared_ptr<Value>> members
+			);
+
+			parser::DatatypeStr GetName();
+			std::unordered_map<std::string, std::shared_ptr<Value>> GetValue();
+			std::expected<
+				std::shared_ptr<Value>,
+				std::string
+			> GetValue(
+				std::string key
+			);
+			void SetName(
+				parser::DatatypeStr name
+			);
+			void SetValue(
+				std::unordered_map<std::string, std::shared_ptr<Value>> members
+			);
+			std::expected<
+				Success,
+				std::string
+			> SetValue(
+				std::string key,
+				std::shared_ptr<Value> value
+			);
+
+			bool IsTrue() override;
+			
+			parser::DatatypeStr Type() override;
+			std::string Repr() override;
+
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(+)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(-)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(*)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(/)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(<=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(>=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(||)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(==)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(!=)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(&)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(|)
+			__GEN__OPERATOR_VALUE_PROTOTYPE_OVERRIDE(^)
+			__GEN__UNARY_OPERATOR_VALUE_PROTOTYPE_OVERRIDE(~)
+
+		private:
+			parser::DatatypeStr m_name;
+			std::unordered_map<std::string, std::shared_ptr<Value>> m_members;
 		};
 	}
 }
