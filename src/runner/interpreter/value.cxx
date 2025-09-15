@@ -365,5 +365,131 @@ namespace dim {
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, |, string) 
 		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ^, string)
 		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StringValue, ~, string)
+
+
+
+		StructValue::StructValue(
+			parser::DatatypeStr name,
+			std::unordered_map<std::string, std::shared_ptr<Value>> members
+		):
+			Value(),
+			m_name(name),
+			m_members(members)
+		{}
+
+		parser::DatatypeStr StructValue::GetName() {
+			return m_name;
+		}
+		std::unordered_map<std::string, std::shared_ptr<Value>> StructValue::GetValue() {
+			return m_members;
+		}
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StructValue::GetValue(
+			std::string key
+		) {
+			try {
+				return m_members.at(key);
+			} catch(...) {
+				return std::unexpected("Invalid member name " + key);
+			}
+		}
+		void StructValue::SetName(
+			parser::DatatypeStr name
+		) {
+			m_name = name;
+		}
+		void StructValue::SetValue(
+			std::unordered_map<std::string, std::shared_ptr<Value>> members 
+		) {
+			m_members = members;
+		}
+		std::expected<
+			Success,
+			std::string
+		> StructValue::SetValue(
+			std::string key,
+			std::shared_ptr<Value> value
+		) {
+			try {
+				m_members.at(key) = value;
+				return Success{};
+			} catch(...) {
+				return std::unexpected("Invalid member name " + key);
+			}
+		}
+
+		bool StructValue::IsTrue() {
+			return m_members.size() > 0;
+		}
+
+		std::string StructValue::Repr() {
+			std::string repr = "{";
+			for(const auto& [name, member] : m_members) {
+				repr += "\n\t" + name + ": " + member->Repr();
+			}
+			return repr + "\n}";
+		}
+		parser::DatatypeStr StructValue::Type() {
+			return m_name;
+		}
+		
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, +, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, -, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, *, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, /, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, <, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, >, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, <=, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, >=, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, &&, struct) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, ||, struct)
+
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StructValue::operator==(
+			std::shared_ptr<Value> other
+		) {
+			if(auto otherStruct = std::dynamic_pointer_cast<StructValue>(other)) {
+				// TODO: Fix so it also checks the other way around
+				for(const auto& [name, member] : m_members) {
+					if(std::expected<std::shared_ptr<Value>, std::string> result = otherStruct->GetValue(name)) {
+						if(*member != result.value()) {
+							return std::make_shared<BooleanValue>(false);
+						}
+						continue;
+					}
+					return std::make_shared<BooleanValue>(false);
+				}
+				return std::make_shared<BooleanValue>(true);
+			}
+			return std::unexpected(
+				std::string("Cannot use '==' operator on StructValue and ")
+				+ other->Type()
+			);
+		}
+	
+		std::expected<
+			std::shared_ptr<Value>,
+			std::string
+		> StructValue::operator!=(
+			std::shared_ptr<Value> other
+		) {
+			std::expected<std::shared_ptr<Value>, std::string> result = *this == other;
+			if(result) {
+				return result.value();
+			}
+			return std::unexpected(
+				std::string("Cannot use '!=' operator on StructValue and ")
+				+ other->Type()
+			);
+		}
+
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, &, struct)
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, |, struct) 
+		__GEN__OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, ^, struct)
+		__GEN__UNARY_OPERATOR_VALUE_BODY_OVERRRIDE_ERR(StructValue, ~, struct)
 	}
 }

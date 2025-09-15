@@ -314,8 +314,6 @@ namespace dim {
 				return parse_fn_call_expression(tokens, identifierRegister);
 			}
 
-			LOG("TOO");
-			
 			std::shared_ptr<DatatypeClass> structClass;
 			{
 				std::expected<
@@ -420,8 +418,6 @@ namespace dim {
         return std::unexpected("Unexpected end of file in struct declaration.");
       }
       (void)eat(tokens);
-
-      LOG("PARSING");
 
       return std::make_shared<StructExpression>(
       	memberExpressions,
@@ -1876,10 +1872,6 @@ namespace dim {
 						lexer::MakeToken(lexer::TokenType::EOL)
 					)
 				}
-			}
-
-			for(const auto& datatype : datatypes) {
-				LOG(datatype->GetName());
 			}
 
 			return scope;
