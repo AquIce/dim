@@ -90,8 +90,9 @@ namespace dim {
 		class DeclarationExpression;
 		class FunctionDeclarationExpression;
 		class FunctionCallExpression;
-  	class StructDeclarationExpression;
-  	class StructExpression;
+		class StructDeclarationExpression;
+		class StructExpression;
+		class StructMemberAccessExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -124,11 +125,12 @@ namespace dim {
 			DECL,
 			FN,
 			FN_CALL,
-  		STRUCT_DECL,
-  		STRUCT,
+			STRUCT_DECL,
+			STRUCT,
+			STRUCT_ACCESS,
 		};
 
-		const std::array<std::string_view, 40> NodeTypeToStr = {
+		const std::array<std::string_view, 41> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -159,8 +161,9 @@ namespace dim {
 			"DECL",
 			"FN",
 			"FN_CALL",
-  		"STRUCT_DECL",
-  		"STRUCT",
+			"STRUCT_DECL",
+			"STRUCT",
+			"STRUCT_ACCESS",
 		};
 
 		typedef struct {
@@ -731,46 +734,68 @@ namespace dim {
 			DatatypeStr m_returnDatatype;
 		};
 
-    class StructDeclarationExpression : public Expression {
-    public:
-      StructDeclarationExpression(
-        std::vector<std::shared_ptr<IdentifierExpression>> members,
-        std::shared_ptr<IdentifierExpression> name
-      );
+		class StructDeclarationExpression : public Expression {
+		public:
+			StructDeclarationExpression(
+				std::vector<std::shared_ptr<IdentifierExpression>> members,
+				std::shared_ptr<IdentifierExpression> name
+			);
 
-      std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
-      std::shared_ptr<IdentifierExpression> GetName();
+			std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
+			std::shared_ptr<IdentifierExpression> GetName();
 
-      std::string Repr(
-        size_t indent = 0
-      ) override;
-      NodeType Type() override;
-      DatatypeStr GetDatatype() override;
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
 
-    private:
-      std::vector<std::shared_ptr<IdentifierExpression>> m_members;
-      std::shared_ptr<IdentifierExpression> m_name;
-    };
+		private:
+			std::vector<std::shared_ptr<IdentifierExpression>> m_members;
+			std::shared_ptr<IdentifierExpression> m_name;
+		};
 
-    class StructExpression : public Expression {
-    public:
-      StructExpression(
-        std::vector<std::shared_ptr<IdentifierExpression>> members,
-        std::shared_ptr<IdentifierExpression> name
-      );
+		class StructExpression : public Expression {
+		public:
+			StructExpression(
+				std::vector<std::shared_ptr<IdentifierExpression>> members,
+				std::shared_ptr<IdentifierExpression> name
+			);
 
-      std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
-      std::shared_ptr<IdentifierExpression> GetName();
+			std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
+			std::shared_ptr<IdentifierExpression> GetName();
 
-      std::string Repr(
-        size_t indent = 0
-      ) override;
-      NodeType Type() override;
-      DatatypeStr GetDatatype() override;
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
 
-    private:
-      std::vector<std::shared_ptr<IdentifierExpression>> m_members;
-      std::shared_ptr<IdentifierExpression> m_name;
-    };
+		private:
+			std::vector<std::shared_ptr<IdentifierExpression>> m_members;
+			std::shared_ptr<IdentifierExpression> m_name;
+		};
+
+		class StructMemberAccessExpression : public Expression {
+		public:
+			StructMemberAccessExpression(
+				std::shared_ptr<IdentifierExpression> structIdentifier,
+				std::shared_ptr<IdentifierExpression> memberIdentifier,
+				DatatypeStr datatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetStruct();
+			std::shared_ptr<IdentifierExpression> GetMember();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_structIdentifier;
+			std::shared_ptr<IdentifierExpression> m_memberIdentifier;
+		};
 	}
 }

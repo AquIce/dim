@@ -1,26 +1,28 @@
 struct {
-  age: i32;
-  name: str;
+	age: i32;
+	name: str;
 } User;
 
 main {
 
-  const steve := User {
-    .age = 21,
-    .name = "Steve",
-  };
+	const steve := User {
+		.age = 21,
+		.name = "Steve",
+	};
 
-  var a: str = loop(i @ -10..100) {
-    match(i++) {
-      15 -> {
-        "I AM 15";
-      }
-      (> 10) -> {
-          "more than 10.";
-      }
-      _ -> {
-        "I";
-      }
-    };
-  } or "nope";
+	steve.name;
+
+	var a: str = loop(i @ -10..100) {
+		match(i++) {
+		15 -> {
+			"I AM 15";
+		}
+		(> 10) -> {
+		    "more than 10.";
+		}
+		_ -> {
+			"I";
+		}
+		};
+	} or "nope";
 };
