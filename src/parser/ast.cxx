@@ -1107,5 +1107,39 @@ namespace dim {
 		DatatypeStr StructExpression::GetDatatype() {
 		  return m_name->GetName();
 		}
+
+		
+		
+		StructMemberAccessExpression::StructMemberAccessExpression(
+			std::shared_ptr<IdentifierExpression> structIdentfier,
+			std::shared_ptr<IdentifierExpression> memberIdentifier,
+			DatatypeStr datatype
+		) :
+			m_structIdentifier(structIdentfier),
+			m_memberIdentifier(memberIdentifier)
+		{
+			m_memberIdentifier->SetDatatype(datatype);
+		}
+
+		std::shared_ptr<IdentifierExpression> StructMemberAccessExpression::GetStruct() {
+			return m_structIdentifier;
+		}
+		std::shared_ptr<IdentifierExpression> StructMemberAccessExpression::GetMember() {
+			return m_memberIdentifier;
+		}
+
+		std::string StructMemberAccessExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = m_structIdentifier->GetName() + "." + m_memberIdentifier->GetName();
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType StructMemberAccessExpression::Type() {
+			return NodeType::STRUCT_ACCESS;
+		}
+		DatatypeStr StructMemberAccessExpression::GetDatatype() {
+			return m_memberIdentifier->GetDatatype();
+		}
 	}
 }
