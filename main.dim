@@ -3,6 +3,12 @@ struct {
 	name: str;
 } User;
 
+impl User {
+	fn greet(void) -> str {
+		return "Hello, " + this.name;
+	}
+};
+
 main {
 
 	var steve := User {
