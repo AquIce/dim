@@ -25,4 +25,6 @@ main {
 		}
 		};
 	} or "nope";
+
+	steve.name;
 };
