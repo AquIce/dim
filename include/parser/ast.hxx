@@ -19,7 +19,7 @@ public: \
 	); \
 	\
 	std::string Repr( \
-		size_t indent = 0 \
+	  size_t indent = 0 \
 	) override; \
 	NodeType Type() override; \
 	DatatypeStr GetDatatype() override; \
@@ -73,6 +73,7 @@ namespace dim {
 		class BooleanExpression;
 		class CharExpression;
 		class StringExpression;
+    class AssignableExpression;
 		class UnaryExpression;
 		class BinaryExpression;
 		class IfElseExpression;
@@ -107,6 +108,7 @@ namespace dim {
 			BOOLEAN,
 			CHAR,
 			STRING,
+      ASSIGNABLE,
 			UNARY,
 			BINARY,
 			IFELSE_EXPR,
@@ -130,7 +132,7 @@ namespace dim {
 			STRUCT_ACCESS,
 		};
 
-		const std::array<std::string_view, 41> NodeTypeToStr = {
+		const std::array<std::string_view, 42> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -143,6 +145,7 @@ namespace dim {
 			"BOOLEAN",
 			"CHAR",
 			"STRING",
+      "ASSIGNABLE",
 			"UNARY",
 			"BINARY",
 			"IFELSE_EXPR",
@@ -229,7 +232,25 @@ namespace dim {
 			std::shared_ptr<Expression> m_expression;
 		};
 
-		class IdentifierExpression : public NestedExpression {
+    class AssignableExpression : public Expression {
+    public:
+      AssignableExpression();
+
+      std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+      virtual std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      );
+    };
+
+		class IdentifierExpression : public AssignableExpression {
 		public:
 			IdentifierExpression(
 				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
@@ -244,6 +265,7 @@ namespace dim {
 			void SetIsConst(
 				bool isConst
 			);
+      std::shared_ptr<Expression> GetExpression();
 			void SetExpression(
 				std::shared_ptr<Expression> expression
 			);
@@ -256,8 +278,16 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      ) override;
 
 		private:
+      std::shared_ptr<Expression> m_expression;
 			std::string m_name;
 			bool m_isConst;
 			DatatypeStr m_datatype;
@@ -631,7 +661,7 @@ namespace dim {
 			DatatypeStr GetDatatype() override;
 		};
 
-		class DiscardExpression : public Expression {
+		class DiscardExpression : public AssignableExpression {
 		public:
 			DiscardExpression();
 
@@ -640,16 +670,23 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      );
 		};
 
-		class AssignationExpression : public Expression {
+		class AssignationExpression : public NestedExpression {
 		public:
 			AssignationExpression(
-				std::shared_ptr<IdentifierExpression> identifier,
+				std::shared_ptr<AssignableExpression> destination,
 				std::shared_ptr<Expression> expression
 			);
 
-			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::shared_ptr<AssignableExpression> GetDestination();
 
 			std::string Repr(
 				const size_t indent = 0
@@ -658,7 +695,7 @@ namespace dim {
 			DatatypeStr GetDatatype() override;
 
 		private:
-			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::shared_ptr<AssignableExpression> m_destination;
 		};
 
 		class DeclarationExpression : public Expression {
@@ -776,7 +813,7 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> m_name;
 		};
 
-		class StructMemberAccessExpression : public Expression {
+		class StructMemberAccessExpression : public AssignableExpression {
 		public:
 			StructMemberAccessExpression(
 				std::shared_ptr<IdentifierExpression> structIdentifier,
@@ -792,6 +829,13 @@ namespace dim {
 			) override;
 			NodeType Type() override;
 			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      ) override;
 
 		private:
 			std::shared_ptr<IdentifierExpression> m_structIdentifier;

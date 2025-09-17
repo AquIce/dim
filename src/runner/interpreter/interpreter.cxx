@@ -534,22 +534,30 @@ namespace dim {
 		) {
 			auto assignationExpression = std::dynamic_pointer_cast<parser::AssignationExpression>(expression);
 
-			std::string name = assignationExpression->GetIdentifier()->GetName();
+      switch(assignationExpression->GetDestination()->Type()) {
+        case parser::NodeType::IDENTIFIER: {
+          std::string name = std::dynamic_pointer_cast<parser::IdentifierExpression>(
+            assignationExpression->GetDestination()
+          )->GetName();
 
-			std::shared_ptr<Value> identifierValue;
-			__TRY_VALUE_FUNC_WRETERR_WSAVE(
-				EvaluateExpression,
-				assignationExpression->GetIdentifier()->GetExpression(),
-				registerManager,
-				identifierValue
-			)
+  		  	std::shared_ptr<Value> identifierValue;
+  		  	__TRY_VALUE_FUNC_WRETERR_WSAVE(
+  		  		EvaluateExpression,
+  		  		assignationExpression->GetExpression(),
+  		  		registerManager,
+  		  		identifierValue
+  		  	)
 
-			std::expected<
-				Success,
-				std::string
-			> result = registerManager->Set(name, RegisterValue{ identifierValue });
+	     		std::expected<
+	   	  		Success,
+	   		  	std::string
+	  		  > result = registerManager->Set(name, RegisterValue{ identifierValue });
 
-			return identifierValue;
+		  	  return identifierValue;
+        }
+        default:
+          return std::unexpected("Invalid expression type as assignable.");
+      }
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateDeclarationExpression(

@@ -53,6 +53,35 @@ namespace dim {
 
 
 
+    AssignableExpression::AssignableExpression() :
+      Expression()
+    {}
+
+    std::string AssignableExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = "ASSIGNABLE EXPRESSION";
+			repr.insert(0, indent, '\t');
+			return repr;
+    }
+    NodeType AssignableExpression::Type() {
+      return NodeType::ASSIGNABLE;
+    }
+    DatatypeStr AssignableExpression::GetDatatype() {
+      return "INFER";
+    }
+    std::expected<
+      Success,
+      std::string
+    > AssignableExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      return std::unexpected("Using AssignableExpression on its own.");
+    }
+
+
+
 		IdentifierExpression::IdentifierExpression(
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			std::string name,
@@ -60,7 +89,8 @@ namespace dim {
 			std::shared_ptr<Expression> expression,
 			DatatypeStr datatype
 		) :
-			NestedExpression(expression),
+      AssignableExpression(),
+      m_expression(expression),
 			m_name(name),
 			m_isConst(isConst),
 			m_datatype(datatype)
@@ -87,6 +117,9 @@ namespace dim {
 		) {
 			m_isConst = isConst;
 		}
+    std::shared_ptr<Expression> IdentifierExpression::GetExpression() {
+      return m_expression;
+    }
 		void IdentifierExpression::SetExpression(
 			std::shared_ptr<Expression> expression
 		) {
@@ -113,6 +146,56 @@ namespace dim {
 		DatatypeStr IdentifierExpression::GetDatatype() {
 			return m_datatype;
 		}
+    std::expected<
+      Success,
+      std::string
+    > IdentifierExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      std::shared_ptr<IdentifierExpression> identifier;
+      {
+        std::expected<
+          IdentifierData,
+          std::string
+        > result = identifierRegister->Get(m_name);
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        identifier = std::make_shared<IdentifierExpression>(
+				  identifierRegister,
+  				result.value().name,
+  				result.value().isConst,
+  				nullptr,
+  				result.value().datatype
+  			);
+      }
+
+      if(identifier->GetIsConst()) {
+				return std::unexpected("Trying to assign to constant expression '" + m_name + "'");
+			}
+
+      DatatypeStr expectedDatatype = identifier->GetDatatype();
+			DatatypeStr gotDatatype = expression->GetDatatype();
+			if(expectedDatatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> castResult = try_cast(expression, expectedDatatype);
+
+				if(!castResult) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ expectedDatatype + ", got " + gotDatatype
+					);
+				}
+				expression = castResult.value();
+			}
+
+			identifier->SetExpression(expression);
+
+      return Success{};
+    }
 
 
 
@@ -847,7 +930,7 @@ namespace dim {
 
 
 		DiscardExpression::DiscardExpression() :
-			Expression()
+			AssignableExpression()
 		{}
 
 		std::string DiscardExpression::Repr(
@@ -863,28 +946,37 @@ namespace dim {
 		DatatypeStr DiscardExpression::GetDatatype() {
 			return "INFER";
 		}
+    std::expected<
+      Success,
+      std::string
+    > DiscardExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      // TODO: Add discard logic to parser
+      return Success{};
+    }
 
 
 
 		AssignationExpression::AssignationExpression(
-			std::shared_ptr<IdentifierExpression> identifier,
+			std::shared_ptr<AssignableExpression> destination,
 			std::shared_ptr<Expression> expression
 		) :
-			m_identifier(identifier)
-		{
-			m_identifier->SetExpression(expression);
-		}
+      NestedExpression(expression),
+			m_destination(destination)
+		{}
 
-		std::shared_ptr<IdentifierExpression> AssignationExpression::GetIdentifier() {
-			return m_identifier;
+		std::shared_ptr<AssignableExpression> AssignationExpression::GetDestination() {
+			return m_destination;
 		}
 
 		std::string AssignationExpression::Repr(
 			const size_t indent
 		) {
 			std::string repr =
-				m_identifier->Repr(indent) + " = (\n"
-				+ m_identifier->GetExpression()->Repr(indent + 1)
+				m_destination->Repr(indent) + " = (\n"
+				+ m_expression->Repr(indent + 1)
 				+ "\n)";
 			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;
@@ -893,7 +985,7 @@ namespace dim {
 			return NodeType::ASSIGN;
 		}
 		DatatypeStr AssignationExpression::GetDatatype() {
-			return m_identifier->GetDatatype();
+			return m_destination->GetDatatype();
 		}
 
 		
@@ -1115,6 +1207,7 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> memberIdentifier,
 			DatatypeStr datatype
 		) :
+      AssignableExpression(),
 			m_structIdentifier(structIdentfier),
 			m_memberIdentifier(memberIdentifier)
 		{
@@ -1141,5 +1234,72 @@ namespace dim {
 		DatatypeStr StructMemberAccessExpression::GetDatatype() {
 			return m_memberIdentifier->GetDatatype();
 		}
-	}
+    std::expected<
+      Success,
+      std::string
+    > StructMemberAccessExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      std::shared_ptr<IdentifierExpression> structIdentifier;
+      {
+        std::expected<
+          IdentifierData,
+          std::string
+        > result = identifierRegister->Get(m_structIdentifier->GetName());
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        structIdentifier = std::make_shared<IdentifierExpression>(
+				  identifierRegister,
+  				result.value().name,
+  				result.value().isConst,
+  				nullptr,
+  				result.value().datatype
+  			);
+      }
+
+      if(structIdentifier->GetIsConst()) {
+				return std::unexpected("Trying to assign to constant struct expression '" + m_structIdentifier->GetName() + "'");
+			}
+
+      std::shared_ptr<CustomDatatypeClass> structClass;
+      {
+        std::expected<
+          std::shared_ptr<DatatypeClass>,
+          std::string
+        > result = GetDatatypeClass(structIdentifier->GetDatatype());
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        structClass = std::dynamic_pointer_cast<CustomDatatypeClass>(
+          result.value()
+        );
+      }
+
+      DatatypeStr expectedDatatype = structClass->GetMember(
+				m_memberIdentifier->GetName()
+			).value().type->GetName();
+
+			DatatypeStr gotDatatype = expression->GetDatatype();
+			if(expectedDatatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> castResult = try_cast(expression, expectedDatatype);
+
+				if(!castResult) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ expectedDatatype + ", got " + gotDatatype
+					);
+				}
+				expression = castResult.value();
+			}
+
+			m_memberIdentifier->SetExpression(expression);
+
+      return Success{};
+    }
+  }
 }

@@ -247,6 +247,7 @@ namespace dim {
 			}
 
 			std::string typeName;
+      std::string structInstanceName = tokens.front().value;
 			{
 				std::expected<
 					IdentifierData,
@@ -297,7 +298,7 @@ namespace dim {
 			return std::make_shared<StructMemberAccessExpression>(
 				std::make_shared<IdentifierExpression>(
 					identifierRegister,
-					structClass->GetName()
+					structInstanceName
 				),
 				memberIdentifier,
 				result.value().type->GetName()
@@ -1359,32 +1360,59 @@ namespace dim {
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
-			if(tokens.size() <= 2) {
+			if(tokens.size() == 0) {
 				return std::unexpected("Unexpected end of file.");
 			}
 			// TODO: Add struct member access as a possiblity
 			if(
 				tokens.front().type != lexer::TokenType::IDENTIFIER
-				|| (
-					tokens.at(1).type != lexer::TokenType::EQUALS
-					&& (
-						tokens.at(1).type != lexer::TokenType::BINARY_OPERATOR
-						|| tokens.at(2).type != lexer::TokenType::EQUALS
-					)
-					&& (
-						tokens.at(1).type != lexer::TokenType::UNARY_OPERATOR
-						|| (tokens.at(1).value != "++" && tokens.at(1).value == "--")
-					)
+      ) {
+        return parse_loop_expression(tokens, identifierRegister);
+      }
+      size_t memberOffset = 0;
+      if(
+        tokens.at(1).type == lexer::TokenType::DOT
+        && tokens.at(2).type == lexer::TokenType::IDENTIFIER
+      ) {
+        memberOffset = 2;
+      }
+      if(tokens.size() <= 2 + memberOffset) {
+        return parse_loop_expression(tokens, identifierRegister);
+      }
+			if(
+			  tokens.at(1 + memberOffset).type != lexer::TokenType::EQUALS
+				&& (
+					tokens.at(1 + memberOffset).type != lexer::TokenType::BINARY_OPERATOR
+					|| tokens.at(2 + memberOffset).type != lexer::TokenType::EQUALS
+				)
+				&& (
+					tokens.at(1 + memberOffset).type != lexer::TokenType::UNARY_OPERATOR
+					|| (tokens.at(1 + memberOffset).value != "++" && tokens.at(1).value == "--")
 				)
 			) {
 				return parse_loop_expression(tokens, identifierRegister);
 			}
 
-			// We know it's an identifier
-			std::shared_ptr<Expression> identifierExpression = parse_identifier_expression(
-				tokens,
-				identifierRegister
-			).value();
+			std::shared_ptr<AssignableExpression> assignable;
+      std::string name;
+      if(memberOffset == 0) {
+        assignable = std::dynamic_pointer_cast<IdentifierExpression>(
+          parse_identifier_expression(
+		  		  tokens,
+		  		  identifierRegister
+		  	  ).value()
+        );
+        name = std::dynamic_pointer_cast<IdentifierExpression>(assignable)->GetName();
+      } else {
+        assignable = std::dynamic_pointer_cast<StructMemberAccessExpression>(
+          parse_struct_member_access_expression(
+            tokens,
+            identifierRegister
+          ).value()
+        );
+        LOG(assignable->Repr());
+        name = std::dynamic_pointer_cast<StructMemberAccessExpression>(assignable)->GetStruct()->GetName();
+      }
 
 			std::string unaryOperator = (tokens.size() > 0 && tokens.front().type == lexer::TokenType::UNARY_OPERATOR)
 				? std::string(1, eat(tokens).value().value.at(1))
@@ -1412,32 +1440,13 @@ namespace dim {
 				)
 			}
 
-			std::string name = std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName();
-
-			std::expected<
-				IdentifierData,
-				std::string
-			> result = identifierRegister->Get(name);
-
-			if(!result) {
+			if(!identifierRegister->Get(name)) {
 				return std::unexpected("Variable name '" + name + "' does not exist yet");
-			}
-
-			auto identifier = std::make_shared<IdentifierExpression>(
-				identifierRegister,
-				result.value().name,
-				result.value().isConst,
-				nullptr,
-				result.value().datatype
-			);
-
-			if(identifier->GetIsConst()) {
-				return std::unexpected("Trying to set constant '" + name + "'");
 			}
 
 			if(unaryOperator != "") {
 				expression = std::make_shared<BinaryExpression>(
-					identifier,
+					assignable,
 					unaryOperator,
 					std::make_shared<I8Expression>(1)
 				);
@@ -1445,34 +1454,27 @@ namespace dim {
 
 			if(operatorSymbol != "") {
 				expression = std::make_shared<BinaryExpression>(
-					identifier,
+					assignable,
 					operatorSymbol,
 					expression
 				);
 			}
 
-			DatatypeStr expectedDatatype = identifier->GetDatatype();
-			DatatypeStr gotDatatype = expression->GetDatatype();
-			if(expectedDatatype != gotDatatype) {
-				std::expected<
-					std::shared_ptr<Expression>,
-					std::string
-				> castResult = try_cast(expression, expectedDatatype);
-
-				if(!castResult) {
-					return std::unexpected(
-						std::string("Expected type ")
-						+ expectedDatatype + ", got " + gotDatatype
-					);
-				}
-
-				expression = castResult.value();
-			}
-
-			identifier->SetExpression(expression);
+      {
+        std::expected<
+          Success,
+          std::string
+        > result = assignable->TryAssign(
+          identifierRegister,
+          expression
+        );
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+      }
 
 			return std::make_shared<AssignationExpression>(
-				identifier,
+				assignable,
 				expression
 			);
 		}
