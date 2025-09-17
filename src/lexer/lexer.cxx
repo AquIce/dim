@@ -55,8 +55,9 @@ namespace dim {
 				case TokenType::TYPE:
 				case TokenType::FN:
 				case TokenType::RETURN:
-        case TokenType::STRUCT:
-        case TokenType::DISCARD:
+				case TokenType::STRUCT:
+				case TokenType::IMPL:
+				case TokenType::DISCARD:
 					return token.value;
 
 				case TokenType::IDENTIFIER:
@@ -685,6 +686,34 @@ namespace dim {
 			}
 
 			return std::unexpected("No struct token found.");
+		}
+
+		std::expected<struct Token, std::string> LexImpl(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("impl", 0) == 0) {
+				return MakeToken(
+					TokenType::IMPL,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No impl token found.");
+		}
+
+		std::expected<struct Token, std::string> LexThis(
+			std::string& src
+		) noexcept {
+
+			if(src.rfind("this", 0) == 0) {
+				return MakeToken(
+					TokenType::THIS,
+					utils::shift(src, 4)
+				);
+			}
+
+			return std::unexpected("No this token found.");
 		}
 
 		std::expected<struct Token, std::string> LexIdentifier(
