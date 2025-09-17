@@ -264,6 +264,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStructMemberAccessExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -308,6 +313,7 @@ namespace dim {
 			{ parser::NodeType::FN_CALL,		&EvaluateFunctionCallExpression },
 			{ parser::NodeType::STRUCT_DECL,	&EvaluateStructDeclarationExpression },
 			{ parser::NodeType::STRUCT,			&EvaluateStructExpression },
+			{ parser::NodeType::STRUCT_ACCESS,	&EvaluateStructMemberAccessExpression },
 		};
 	}
 }

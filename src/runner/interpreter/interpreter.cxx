@@ -534,30 +534,76 @@ namespace dim {
 		) {
 			auto assignationExpression = std::dynamic_pointer_cast<parser::AssignationExpression>(expression);
 
-      switch(assignationExpression->GetDestination()->Type()) {
-        case parser::NodeType::IDENTIFIER: {
-          std::string name = std::dynamic_pointer_cast<parser::IdentifierExpression>(
-            assignationExpression->GetDestination()
-          )->GetName();
+			switch(assignationExpression->GetDestination()->Type()) {
+				case parser::NodeType::IDENTIFIER: {
+					std::string name = std::dynamic_pointer_cast<parser::IdentifierExpression>(
+						assignationExpression->GetDestination()
+					)->GetName();
 
-  		  	std::shared_ptr<Value> identifierValue;
-  		  	__TRY_VALUE_FUNC_WRETERR_WSAVE(
-  		  		EvaluateExpression,
-  		  		assignationExpression->GetExpression(),
-  		  		registerManager,
-  		  		identifierValue
-  		  	)
+					std::shared_ptr<Value> identifierValue;
+					__TRY_VALUE_FUNC_WRETERR_WSAVE(
+						EvaluateExpression,
+						assignationExpression->GetExpression(),
+						registerManager,
+						identifierValue
+					)
 
-	     		std::expected<
-	   	  		Success,
-	   		  	std::string
-	  		  > result = registerManager->Set(name, RegisterValue{ identifierValue });
+					std::expected<
+						Success,
+						std::string
+					> result = registerManager->Set(name, RegisterValue{ identifierValue });
 
-		  	  return identifierValue;
-        }
-        default:
-          return std::unexpected("Invalid expression type as assignable.");
-      }
+					if(!result) {
+						return std::unexpected(result.error());
+					}
+
+					return identifierValue;
+				}
+				case parser::NodeType::STRUCT_ACCESS: {
+					auto structMemberAccessExpression = std::dynamic_pointer_cast<parser::StructMemberAccessExpression>(
+						assignationExpression->GetDestination()
+					);
+
+					std::shared_ptr<StructValue> structValue;
+					{
+						std::expected<
+							RegisterValue,
+							std::string
+						> result = registerManager->Get(structMemberAccessExpression->GetStruct()->GetName());
+
+						if(!result) {
+							return std::unexpected(result.error());
+						}
+						structValue = std::dynamic_pointer_cast<StructValue>(result.value().value);
+					}
+
+					std::shared_ptr<Value> structMemberValue;
+					__TRY_VALUE_FUNC_WRETERR_WSAVE(
+						EvaluateExpression,
+						assignationExpression->GetExpression(),
+						registerManager,
+						structMemberValue
+					)
+
+					{
+						std::expected<
+							Success,
+							std::string
+						> result = structValue->SetValue(
+							structMemberAccessExpression->GetMember()->GetName(),
+							structMemberValue
+						);
+
+						if(!result) {
+							return std::unexpected(result.error());
+						}
+					}
+
+					return structMemberValue;
+				}
+				default:
+					return std::unexpected("Invalid expression type as assignable.");
+			}
 		}
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateDeclarationExpression(
@@ -716,6 +762,50 @@ namespace dim {
 				members
 			);
 		}
+
+		std::expected<std::shared_ptr<Value>, std::string> EvaluateStructMemberAccessExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto structMemberAccessExpression = std::dynamic_pointer_cast<parser::StructMemberAccessExpression>(expression);
+			
+			RegisterValue structValue;
+			{
+				std::expected<
+					RegisterValue,
+					std::string
+				> result = registerManager->Get(structMemberAccessExpression->GetStruct()->GetName());
+
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				structValue = result.value();
+			}
+
+			if(std::dynamic_pointer_cast<StructValue>(structValue.value) == nullptr) {
+				return std::unexpected("Invalid non struct value for " + structMemberAccessExpression->GetStruct()->GetName());
+			}
+			
+			std::shared_ptr<Value> value;
+
+			{
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = std::dynamic_pointer_cast<StructValue>(
+					structValue.value
+				)->GetValue(structMemberAccessExpression->GetMember()->GetName());
+
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+
+				value = result.value();
+			}
+
+			return value;
+		}
+
 
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
