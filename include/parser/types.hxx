@@ -69,9 +69,9 @@ namespace dim {
 		std::expected<
 	      std::shared_ptr<DatatypeClass>,
 	      std::string
-	    > GetDatatypeClass(
-	      const std::string& name
-	    );
+	  > GetDatatypeClass(
+	    const std::string& name
+	  );
 
 		const auto ConversionTable = std::unordered_map<DatatypeStr, uint16_t>({
 			{ "INFER",    0b1111111111111111 },
