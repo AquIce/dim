@@ -119,7 +119,8 @@ namespace dim {
       std::unordered_set<CustomDatatypeMember> members
     ) :
       DatatypeClass(name),
-      m_members(members)
+      m_members(members),
+      m_memberFunctions()
     {}
 
     std::unordered_set<CustomDatatypeMember> CustomDatatypeClass::GetMembers() {
@@ -143,6 +144,42 @@ namespace dim {
         return std::unexpected("Member '" + name + "' does not exists in struct " + m_name);
       }
       return *iter;
+    }
+
+    std::unordered_set<CustomDatatypeMemberFunction> CustomDatatypeClass::GetMemberFunctions() {
+      return m_memberFunctions;
+    }
+
+    std::expected<
+      CustomDatatypeMemberFunction,
+      std::string
+    > CustomDatatypeClass::GetMemberFunction(
+      const std::string& name
+    ) {
+      std::unordered_set<CustomDatatypeMemberFunction>::iterator iter = std::find_if(
+        m_memberFunctions.begin(),
+        m_memberFunctions.end(),
+        [&name](const CustomDatatypeMemberFunction& member) {
+          return member.name == name;
+        }
+      );
+      if(iter == m_memberFunctions.end()) {
+        return std::unexpected("Member method '" + name + "' does not exists in struct " + m_name);
+      }
+      return *iter;
+    }
+
+    std::expected<
+      Success,
+      std::string
+    > CustomDatatypeClass::AddMemberFunction(
+      CustomDatatypeMemberFunction memberFunction
+    ) {
+      if(this->GetMemberFunction(memberFunction.name)) {
+        return std::unexpected("Member function '" + memberFunction.name + "' already exists in struct " + m_name);
+      }
+      m_memberFunctions.insert(memberFunction);
+      return Success{};
     }
 
     bool CustomDatatypeClass::operator==(

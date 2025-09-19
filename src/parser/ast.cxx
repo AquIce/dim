@@ -1301,5 +1301,65 @@ namespace dim {
 
       return Success{};
     }
+
+
+
+    StructImplementationExpression::StructImplementationExpression(
+      std::shared_ptr<IdentifierExpression> structIdentifier,
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
+    ) :
+      Expression(),
+      m_structIdentifier(structIdentifier),
+      m_memberFunctions(memberFunctions)
+    {}
+
+    std::shared_ptr<IdentifierExpression> StructImplementationExpression::GetStruct() {
+      return m_structIdentifier;
+    }
+    std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> StructImplementationExpression::GetMemberFunctions() {
+      return m_memberFunctions;
+    }
+    std::expected<
+      std::shared_ptr<FunctionDeclarationExpression>,
+      std::string
+    > StructImplementationExpression::GetMemberFunction(
+      const std::string& name
+    ) {
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>>::iterator itResult = std::find_if(
+        m_memberFunctions.begin(),
+        m_memberFunctions.end(),
+        [&name](const std::shared_ptr<FunctionDeclarationExpression>& element) {
+          return element->GetIdentifier()->GetName() == name;
+        }
+      );
+      if(itResult == m_memberFunctions.end()) {
+        return std::unexpected("Invalid member function '" + name + "' requested on struct '" + m_structIdentifier->GetName() + "'");
+      }
+      return *itResult;
+    }
+
+    std::string StructImplementationExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = "impl ";
+      repr += m_structIdentifier->GetName() + " {\n";
+      std::for_each(
+				m_memberFunctions.begin(),
+				m_memberFunctions.end(),
+				[&repr, &indent](const std::shared_ptr<FunctionDeclarationExpression>& expression) -> void {
+					repr += expression->Repr(indent + 1) + "\n";
+				}
+			);
+      repr += "}";
+      repr.insert(0, indent, '\t');
+      repr.insert(repr.size() - 1, indent, '\t');
+      return repr;
+    }
+    NodeType StructImplementationExpression::Type() {
+      return NodeType::STRUCT_IMPL;
+    }
+    DatatypeStr StructImplementationExpression::GetDatatype() {
+      return "VOID";
+    }
   }
 }

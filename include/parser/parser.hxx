@@ -302,6 +302,14 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
+    std::expected<
+      std::shared_ptr<Expression>,
+      std::string
+    > parse_struct_implementation_expression(
+      std::vector<struct lexer::Token>& tokens,
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+    );
+
 		std::expected<
 			std::shared_ptr<Expression>,
 			std::string
