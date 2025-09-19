@@ -170,7 +170,7 @@ namespace dim {
 			"STRUCT_DECL",
 			"STRUCT",
 			"STRUCT_ACCESS",
-      "STURCT_IMPL",
+      "STRUCT_IMPL",
 		};
 
 		typedef struct {
