@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #define __GEN__SUB_NUMBER_CLASS(_ClassName, _ValueType) \
@@ -94,6 +95,7 @@ namespace dim {
 		class StructDeclarationExpression;
 		class StructExpression;
 		class StructMemberAccessExpression;
+    class StructImplementationExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -130,9 +132,10 @@ namespace dim {
 			STRUCT_DECL,
 			STRUCT,
 			STRUCT_ACCESS,
+      STRUCT_IMPL,
 		};
 
-		const std::array<std::string_view, 42> NodeTypeToStr = {
+		const std::array<std::string_view, 43> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -167,6 +170,7 @@ namespace dim {
 			"STRUCT_DECL",
 			"STRUCT",
 			"STRUCT_ACCESS",
+      "STURCT_IMPL",
 		};
 
 		typedef struct {
@@ -841,5 +845,32 @@ namespace dim {
 			std::shared_ptr<IdentifierExpression> m_structIdentifier;
 			std::shared_ptr<IdentifierExpression> m_memberIdentifier;
 		};
-	}
+
+    class StructImplementationExpression : public Expression {
+    public:
+      StructImplementationExpression(
+        std::shared_ptr<IdentifierExpression> structIdentifier,
+        std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
+      );
+
+      std::shared_ptr<IdentifierExpression> GetStruct();
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> GetMemberFunctions();
+      std::expected<
+        std::shared_ptr<FunctionDeclarationExpression>,
+        std::string
+      > GetMemberFunction(
+        const std::string& name
+      );
+
+      std::string Repr(
+        size_t indent = 0
+      ) override;
+      NodeType Type() override;
+      DatatypeStr GetDatatype() override;
+
+    private:
+      std::shared_ptr<IdentifierExpression> m_structIdentifier;
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> m_memberFunctions;
+    };
+  }
 }

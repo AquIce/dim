@@ -51,11 +51,10 @@ namespace dim {
 			IMPL,
 
 			DISCARD,
-			THIS,
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 32> TokenTypeStr = {
+		const std::array<std::string_view, 31> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -86,7 +85,6 @@ namespace dim {
 			"STRUCT",
 			"IMPL",
 			"DISCARD",
-			"THIS",
 			"IDENTIFIER",
 		};
 
@@ -224,15 +222,11 @@ namespace dim {
 			std::string& src
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexThis(
-			std::string& src
-		) noexcept;
-
 		std::expected<struct Token, std::string> LexIdentifier(
 			std::string& src
 		) noexcept;
 
-		const std::array<const LexFunction, 30> LexFunctionsList = {
+		const std::array<const LexFunction, 29> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
@@ -258,7 +252,6 @@ namespace dim {
 			&LexDecl,
 			&LexStruct,
 			&LexImpl,
-			&LexThis,
 			&LexType,
 			&LexFn,
 			&LexReturn,
