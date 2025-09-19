@@ -807,6 +807,23 @@ namespace dim {
 		}
 
 
+    std::expected<std::shared_ptr<Value>, std::string> EvaluateStructImplementationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+      auto structImplementationExpression = std::dynamic_pointer_cast<parser::StructImplementationExpression>(expression);
+      for(const auto& memberFunction : structImplementationExpression->GetMemberFunctions()) {
+        functionRegisterManager.CustomRegister(
+         structImplementationExpression->GetStruct()->GetName(),
+	  			FunctionRegisterValue{
+	  				.function = memberFunction
+	  			}
+	  		);
+      }
+			return std::make_shared<NullValue>();
+		}
+
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
