@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utils/utils.hxx>
+
 #include <algorithm>
 #include <array>
 #include <expected>
@@ -29,6 +31,18 @@ namespace dim {
 			return lhs.name == rhs.name;
 		}
 
+    typedef struct {
+      std::shared_ptr<DatatypeStr> returnType;
+      std::vector<DatatypeStr> parameterTypes;
+      std::string name;
+    } CustomDatatypeMemberFunction;
+
+    inline bool operator==(
+			const CustomDatatypeMemberFunction& lhs,
+			const CustomDatatypeMemberFunction& rhs
+		) {
+			return lhs.name == rhs.name;
+		}
 	}
 }
 
@@ -55,6 +69,17 @@ namespace std {
 	> {
 		std::size_t operator()(
 			const dim::parser::CustomDatatypeMember& p
+		) const {
+			return std::hash<std::string_view>()(p.name);
+		}
+	};
+
+  template<>
+	struct hash<
+		dim::parser::CustomDatatypeMemberFunction
+	> {
+		std::size_t operator()(
+			const dim::parser::CustomDatatypeMemberFunction& p
 		) const {
 			return std::hash<std::string_view>()(p.name);
 		}
@@ -1607,6 +1632,20 @@ namespace dim {
 			> GetMember(
 				const std::string& name
 			);
+
+      std::unordered_set<CustomDatatypeMemberFunction> GetMemberFunctions();
+      std::expected<
+        CustomDatatypeMemberFunction,
+        std::string
+      > GetMemberFunction(
+        const std::string& name
+      );
+      std::expected<
+        Success,
+        std::string
+      > AddMemberFunction(
+        CustomDatatypeMemberFunction memberFunction
+      );
 			
 			bool isNative() override;
 
@@ -1620,6 +1659,7 @@ namespace dim {
 
 		private:
 			std::unordered_set<CustomDatatypeMember> m_members;
+      std::unordered_set<CustomDatatypeMemberFunction> m_memberFunctions;
 		};
 	}
 }

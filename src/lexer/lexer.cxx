@@ -702,20 +702,6 @@ namespace dim {
 			return std::unexpected("No impl token found.");
 		}
 
-		std::expected<struct Token, std::string> LexThis(
-			std::string& src
-		) noexcept {
-
-			if(src.rfind("this", 0) == 0) {
-				return MakeToken(
-					TokenType::THIS,
-					utils::shift(src, 4)
-				);
-			}
-
-			return std::unexpected("No this token found.");
-		}
-
 		std::expected<struct Token, std::string> LexIdentifier(
 			std::string& src
 		) noexcept {
