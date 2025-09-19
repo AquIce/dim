@@ -98,6 +98,34 @@ namespace dim {
 				const std::string name
 			);
 
+      std::expected<
+        Success,
+        std::string
+      > CustomAdd(
+        const std::string& structName
+      );
+
+      std::expected<
+				Success,
+				std::string
+			> CustomRegister(
+        const std::string& structName,
+				FunctionRegisterValue value
+			);
+
+			bool CustomExists(
+        const std::string& structName,
+				const std::string name
+			);
+
+			std::expected<
+				FunctionRegisterValue,
+				std::string
+			> CustomGet(
+        const std::string& structName,
+				const std::string name
+			);
+
 			std::string Repr();
 
 		private:
@@ -105,6 +133,14 @@ namespace dim {
 				std::string,
 				FunctionRegisterValue
 			> m_register;
+
+      std::unordered_map<
+        std::string,
+        std::unordered_map<
+          std::string,
+          FunctionRegisterValue
+        >
+      > m_customRegister;
 		};
 	}
 }
