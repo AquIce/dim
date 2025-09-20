@@ -187,12 +187,12 @@ namespace dim {
 			std::vector<InputType> vec,
 			std::function<OutputType (const InputType&)> func
 		) {
-		    std::vector<OutputType> output;
-		    output.reserve(vec.size());
-		    for(const InputType& element : vec) {
-		        output.push_back(func(element));
-		    }
-		    return output;
+		  std::vector<OutputType> output;
+		  output.reserve(vec.size());
+		  for(const InputType& element : vec) {
+		    output.push_back(func(element));
+		  }
+		  return output;
 		}
 		
 		template <typename T>

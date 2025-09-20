@@ -289,12 +289,73 @@ namespace dim {
 			)
 			auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
 			
-      LOG("test");
+      if(tokens.front().type == lexer::TokenType::PARENTHESIS && tokens.front().value == "(") {
+        (void)eat(tokens);
+
+        CustomDatatypeMemberFunction memberFunction;
+        {
+          std::expected<CustomDatatypeMemberFunction, std::string> result = customDatatypeClass->GetMemberFunction(
+  			  	memberIdentifier->GetName()
+  			  );
+
+	  		  if(!result) {
+	  			  return std::unexpected(
+              std::string("Invalid member function '") + memberIdentifier->GetName()
+              + "' for struct '" + structClass->GetName() + "'"
+            );
+	  		  }
+          memberFunction = result.value();
+        }
+
+        std::vector<std::shared_ptr<Expression>> arguments = {};
+			  while(
+				  tokens.size() > 0
+				  && (
+					  tokens.front().type != lexer::TokenType::PARENTHESIS
+					  || tokens.front().value != ")"
+				  )
+			  ) {
+				  if(arguments.size() > 0) {
+					  __TRY_TOKEN_FUNC_WRETERR(
+						  expect,
+						  tokens,
+						  lexer::MakeToken(lexer::TokenType::COMMA)
+					  )
+				  }
+
+  				// TODO: Add datatypes check
+
+  				std::shared_ptr<Expression> argument;
+  				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+  					parse_expression,
+  					tokens,
+  					identifierRegister,
+  					argument
+  				)
+  				arguments.push_back(argument);
+	  		}
+
+  			if(tokens.size() == 0) {
+  				return std::unexpected("Unexpected end of file in function declaration expression.");
+  			}
+  			(void)eat(tokens);
+
+	  		return std::make_shared<StructMemberFunctionAccessExpression>(
+	  			std::make_shared<IdentifierExpression>(
+	  				identifierRegister,
+	  				structInstanceName
+	  			),
+	  			memberIdentifier,
+          arguments,
+          memberFunction.returnType
+	  		);
+      }
+
 			std::expected<CustomDatatypeMember, std::string> result = customDatatypeClass->GetMember(
 				memberIdentifier->GetName()
 			);
+      
 			if(!result) {
-        LOG("should err");
 				return std::unexpected(
           std::string("Invalid member '") + memberIdentifier->GetName()
           + "' for struct '" + structClass->GetName() + "'"
@@ -1900,9 +1961,21 @@ namespace dim {
   				thisIdentifierRegister,
   				memberFunctionExpression
   			)
-  			memberFunctions.insert(
-          std::dynamic_pointer_cast<FunctionDeclarationExpression>(memberFunctionExpression)
-        );
+        auto memberFunction = std::dynamic_pointer_cast<FunctionDeclarationExpression>(memberFunctionExpression);
+  			memberFunctions.insert(memberFunction);
+        customDatatypeClass->AddMemberFunction(CustomDatatypeMemberFunction{
+          .name = memberFunction->GetIdentifier()->GetName(),
+          .returnType = memberFunction->GetDatatype(),
+          .argumentsTypes = utils::map<
+            std::shared_ptr<DeclarationExpression>,
+            DatatypeStr
+          >(
+            memberFunction->GetArguments(),
+            [](const std::shared_ptr<DeclarationExpression>& argument) {
+              return argument->GetDatatype();
+            }
+          )
+        });
   		}
   		if(tokens.size() == 0) {
   			return std::unexpected("Unexpected end of file in struct implementation.");

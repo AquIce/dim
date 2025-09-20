@@ -32,9 +32,9 @@ namespace dim {
 		}
 
     typedef struct {
-      std::shared_ptr<DatatypeStr> returnType;
-      std::vector<DatatypeStr> parameterTypes;
       std::string name;
+      DatatypeStr returnType;
+      std::vector<DatatypeStr> argumentsTypes;
     } CustomDatatypeMemberFunction;
 
     inline bool operator==(
