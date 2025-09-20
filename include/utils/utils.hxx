@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <expected>
 #include <functional>
 #include <iostream>
 #include <optional>
@@ -54,6 +55,22 @@ using f64 = std::float64_t;
 	resvalue = result.value(); \
 }
 
+#define __TRY_EXPECTED_FUNC_WRETERR__NEW(func, _Value, ...) \
+{ \
+	Result<_Value> result = func(__VA_ARGS__); \
+	if(!result) { \
+		return std::unexpected(result.error()); \
+	} \
+}
+#define __TRY_EXPECTED_FUNC_WRETERR_WSAVE__NEW(func, _Value, resvalue, ...) \
+{ \
+	Result<_Value> result = func(__VA_ARGS__); \
+	if(!result) { \
+		return std::unexpected(result.error()); \
+	} \
+	resvalue = result.value(); \
+}
+
 #define __GEN__STOIU_FN_BODY(name, _Datatype) \
 inline _Datatype name(const std::string& input) { \
 	_Datatype value; \
@@ -64,6 +81,24 @@ inline _Datatype name(const std::string& input) { \
 typedef struct {} Success;
 
 namespace dim {
+	namespace utils {
+		struct Context {
+			size_t line;
+			size_t column;
+		};
+
+		struct Error {
+			std::string message;
+			struct Context ctx;
+		};
+	}
+
+	template <typename _Result = Success>
+	using Result = std::expected<
+		_Result,
+		struct dim::utils::Error
+	>;
+
 	namespace utils {
 
 		[[nodiscard]] char shift(
@@ -187,12 +222,12 @@ namespace dim {
 			std::vector<InputType> vec,
 			std::function<OutputType (const InputType&)> func
 		) {
-		  std::vector<OutputType> output;
-		  output.reserve(vec.size());
-		  for(const InputType& element : vec) {
-		    output.push_back(func(element));
-		  }
-		  return output;
+			std::vector<OutputType> output;
+			output.reserve(vec.size());
+			for(const InputType& element : vec) {
+				output.push_back(func(element));
+			}
+			return output;
 		}
 		
 		template <typename T>
