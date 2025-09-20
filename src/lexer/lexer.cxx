@@ -68,6 +68,46 @@ namespace dim {
 			}
 		}
 
+		std::expected<std::string, std::string> LexTracker::peek(
+			size_t length
+		) {
+			try {
+				const std::string& lineStr = src.at(ctx.line);
+
+				if(ctx.column + length > lineStr.size()) {
+					return std::unexpected("Peek exceeds line length.");
+				}
+
+				return lineStr.substr(ctx.column, length);
+			} catch(...) {
+				return std::unexpected("Peek failed: line index out of bounds.");
+			}
+		}
+
+		std::expected<std::string, std::string> LexTracker::shift(
+			size_t length
+		) {
+			try {
+				const std::string& lineStr = src.at(ctx.line);
+
+				if(ctx.column + length > lineStr.size()) {
+					return std::unexpected("Shift exceeds end of line.");
+				}
+
+				std::string result = lineStr.substr(ctx.column, length);
+				ctx.column += length;
+
+				if(ctx.column == lineStr.size()) {
+					ctx.line++;
+					ctx.column = 0;
+				}
+
+				return result;
+			} catch(...) {
+				return std::unexpected("Shift failed: line index out of bounds.");
+			}
+		}
+
 		std::expected<char, std::string> to_escaped_char(
 			const std::string& chr
 		) noexcept {
@@ -96,112 +136,172 @@ namespace dim {
 				return std::unexpected("Invalid input: " + chr);
 		}
 
-		std::expected<struct Token, std::string> LexEOL(
-			std::string& src
+		Result<struct Token> LexEOL(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.front() == ';') {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == ";") {
 				return MakeToken(
 					TokenType::EOL,
-					std::string(1, utils::shift(src))
+					tracker.shift()
 				);
 			}
 
-			return std::unexpected("Invalid EOL " + src.front());
+			return std::unexpected("No EOL token found.");
 		}
 
-		std::expected<struct Token, std::string> LexNull(
-			std::string& src
+		Result<struct Token> LexNull(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("null", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "null") {
 				return MakeToken(
 					TokenType::NUL,
-					utils::shift(src, 4)
+					tracker.shift(4)
 				);
 			}
 
 			return std::unexpected("No null token found");
 		}
 
-		std::expected<struct Token, std::string> LexNumber(
-			std::string& src
-		) noexcept {
-			std::string number = "";
-			bool isDecimal = false;
+		Result<struct Token> LexNumber(
+		LexTracker& tracker
+) noexcept {
+		std::string number = "";
+		bool isDecimal = false;
 
-			if(src.front() == '.') {
-				return std::unexpected(". at the start of number token.");
-			}
-
-			while(src.length() > 0) {
-				char first = src.front();
-
-				if(first == '.') {
-					if(isDecimal) {
-						src = std::string(".") + src;
-						number.pop_back();
-						break;
-					}
-					isDecimal = true;
-					number += utils::shift(src);
-					continue;
-				}
-
-				if(std::isdigit(first)) {
-					number += utils::shift(src);
-        } else {
-          break;
-				}
-			}
-			if(number.length() == 0 || (number.length() == 1 && number == ".")) {
-				return std::unexpected("Invalid number literal \"" + number + "\"");
-			}
-			return MakeToken(
-				TokenType::NUMBER,
-				number
-			);
+		std::expected<std::string, std::string> peekRes = tracker.peek();
+		if(!peekRes) {
+			return std::unexpected(peekRes.error());
+		}
+		if(peekRes.value().at(0) == '.') {
+			return std::unexpected(". at the start of number token.");
 		}
 
-		std::expected<struct Token, std::string> LexBoolean(
-			std::string& src
+		while(true) {
+			std::expected<std::string, std::string> peekRes = tracker.peek();
+			if(!peekRes) {
+					break;
+			}
+			char first = peekRes.value().at(0);
+
+			if(first == '.') {
+				if(isDecimal) {
+					number.pop_back();
+					break;
+				}
+				isDecimal = true;
+				std::expected<Success, std::string> shiftRes = tracker.shift();
+				if(!shiftRes) {
+					return std::unexpected(shiftRes.error());
+				}
+				number += shiftRes.value();
+				continue;
+			}
+
+			if(std::isdigit(static_cast<unsigned char>(first))) {
+				std::expected<Success, std::string> shiftRes = tracker.shift();
+				if(!shiftRes) {
+					return std::unexpected(shiftRes.error());
+				}
+				number += shiftRes.value();
+			} else {
+				break;
+			}
+		}
+
+		if(number.length() == 0 || (number.length() == 1 && number == ".")) {
+				return std::unexpected("Invalid number literal \"" + number + "\"");
+		}
+		return MakeToken(
+				TokenType::NUMBER,
+				number
+		);
+}
+
+
+		Result<struct Token> LexBoolean(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("true", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "true") {
 				return MakeToken(
 					TokenType::BOOLEAN,
-					utils::shift(src, 4)
+					tracker.shift(4)
 				);
 			}
-			if(src.rfind("false", 0) == 0) {
+
+			result = tracker.peek(5);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "true") {
 				return MakeToken(
 					TokenType::BOOLEAN,
-					utils::shift(src, 5)
+					tracker.shift(5)
 				);
 			}
 
 			return std::unexpected("No boolean token found");
 		}
 
-		std::expected<struct Token, std::string> LexChar(
-			std::string& src
+		Result<struct Token> LexChar(
+			LexTracker& tracker
 		) noexcept {
-			if(src.at(0) != '\'') {
+			std::expected<std::string, std::string> peekRes = tracker.peek();
+			if(!peekRes) {
+				return std::unexpected(peekRes.error());
+			}
+			if(peekRes.value().at(0) != '\'') {
 				return std::unexpected("No char token found");
 			}
-			(void)utils::shift(src);
+			std::expected<Success, std::string> shiftRes = tracker.shift();
+			if(!shiftRes) {
+				return std::unexpected(shiftRes.error());
+			}
 
 			std::string chr = "";
-			if(src.front() != '\\') {
-				chr = std::string(1, utils::shift(src));
+			peekRes = tracker.peek();
+			if(!peekRes) {
+				return std::unexpected(peekRes.error());
+			}
+			if(peekRes.value().at(0) != '\\') {
+				shiftRes = tracker.shift();
+				if(!shiftRes) {
+					return std::unexpected(shiftRes.error());
+				}
+				chr = shiftRes.value();
 			} else {
-				chr = utils::shift(src, 2);
+				shiftRes = tracker.shift(2);
+				if(!shiftRes) {
+					return std::unexpected(shiftRes.error());
+				}
+				chr = shiftRes.value();
 			}
 
-			if(src.front() != '\'') {
+			peekRes = tracker.peek();
+			if(!peekRes) {
+				return std::unexpected(peekRes.error());
+			}
+			if(peekRes.value().at(0) != '\'') {
 				return std::unexpected("Invalid character found.");
 			}
-			(void)utils::shift(src);
+			shiftRes = tracker.shift();
+			if(!shiftRes) {
+				return std::unexpected(shiftRes.error());
+			}
 
 			std::expected<char, std::string> result = to_escaped_char(chr);
 			if(!result) {
@@ -214,495 +314,624 @@ namespace dim {
 			);
 		}
 
-		std::expected<struct Token, std::string> LexString(
-			std::string& src
-		) noexcept {
 
-			if(src.at(0) != '"') {
+		Result<struct Token> LexString(
+			LexTracker& tracker
+		) noexcept {
+			std::expected<std::string, std::string> peekRes = tracker.peek();
+			if(!peekRes) {
+				return std::unexpected(peekRes.error());
+			}
+			if(peekRes.value().at(0) != '"') {
 				return std::unexpected("No string token found");
 			}
-			(void)utils::shift(src);
+			std::expected<Success, std::string> shiftRes = tracker.shift();
+			if(!shiftRes) {
+				return std::unexpected(shiftRes.error());
+			}
 
 			std::string str = "";
 
-			while(src.length() > 0) {
-				char first = utils::shift(src);
+			while(true) {
+				peekRes = tracker.peek();
+				if(!peekRes) {
+					return std::unexpected("Unexpected end of file.");
+				}
+				char first = peekRes.value().at(0);
 
-        if(first == '"') {
-          break;
-        }
+				if(first == '"') {
+					shiftRes = tracker.shift();
+					if(!shiftRes) {
+						return std::unexpected(shiftRes.error());
+					}
+					break;
+				}
 
-        if(first == '\\') {
-          std::expected<char, std::string> result = to_escaped_char(
-              std::string(1, first) + src.front()
-          );
-          if(!result) {
-            return std::unexpected(result.error());
-          }
-          str += std::string(1, result.value());
-          (void)utils::shift(src);
-          continue;
-        }
+				if(first == '\\') {
+					// peek 2 chars for escape sequence
+					peekRes = tracker.peek(2);
+					if(!peekRes) {
+						return std::unexpected(peekRes.error());
+					}
 
-				str += first;
+					std::expected<char, std::string> result = to_escaped_char(peekRes.value());
+					if(!result) {
+						return std::unexpected(result.error());
+					}
+					str += std::string(1, result.value());
+
+					shiftRes = tracker.shift(2);
+					if(!shiftRes) {
+						return std::unexpected(shiftRes.error());
+					}
+					continue;
+				}
+
+				shiftRes = tracker.shift();
+				if(!shiftRes) {
+					return std::unexpected(shiftRes.error());
+				}
+				str += shiftRes.value();
 			}
 
-			if(src.size() == 0) {
-				return std::unexpected("Unexpected end of file.");
-			}
-			
 			return MakeToken(
 				TokenType::STRING,
 				str
 			);
 		}
 
-		std::expected<struct Token, std::string> LexBinaryOperator(
-			std::string& src
+
+		Result<struct Token> LexBinaryOperator(
+			LexTracker& tracker
 		) noexcept {
-			
+
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
 			if(
-				src.rfind(">=", 0) == 0
-				|| src.rfind("<=", 0) == 0
-				|| src.rfind("&&", 0) == 0
-				|| src.rfind("||", 0) == 0
-				|| src.rfind("==", 0) == 0
-				|| src.rfind("!=", 0) == 0
+				result.value() == "+"
+				|| result.value() == "-"
+				|| result.value() == "*"
+				|| result.value() == "/"
+				|| result.value() == ">"
+				|| result.value() == "<"
+				|| result.value() == "&"
+				|| result.value() == "|"
+				|| result.value() == "^"
 			) {
 				return MakeToken(
 					TokenType::BINARY_OPERATOR,
-					utils::shift(src, 2)
+					tracker.shift()
 				);
 			}
-
-			switch(src.front()) {
-				case '+':
-				case '-':
-				case '*':
-				case '/':
-				case '>':
-				case '<':
-				case '&':
-				case '|':
-				case '^':
-					return MakeToken(
-						TokenType::BINARY_OPERATOR,
-						std::string(1, utils::shift(src))
-					);
-				default:
-					return std::unexpected("Invalid operator " + src.front());
-			}
-		}
-
-		std::expected<struct Token, std::string> LexUnaryOperator(
-			std::string& src
-		) noexcept {
-			if(src.front() == '!') {
-				return MakeToken(
-					TokenType::UNARY_OPERATOR,
-					std::string(1, utils::shift(src))
-				);
-			}
-			if(src.front() == '~') {
-				return MakeToken(
-					TokenType::UNARY_OPERATOR,
-					std::string(1, utils::shift(src))
-				);
+			
+			result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
 			}
 			if(
-				src.rfind("++", 0) == 0
-				|| src.rfind("--", 0) == 0
+				result.value() == ">="
+				|| result.value() == "<="
+				|| result.value() == "&&"
+				|| result.value() == "||"
+				|| result.value() == "=="
+				|| result.value() == "!="
 			) {
 				return MakeToken(
+					TokenType::BINARY_OPERATOR,
+					tracker.shift(2)
+				);
+			}
+			
+			return std::unexpected("No binary operator token found.");
+		}
+
+		Result<struct Token> LexUnaryOperator(
+			LexTracker& tracker
+		) noexcept {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "!" || result.value() == "~") {
+				return MakeToken(
 					TokenType::UNARY_OPERATOR,
-					utils::shift(src, 2)
+					tracker.shift()
+				);
+			}
+
+			result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "++" || result.value() == "--") {
+				return MakeToken(
+					TokenType::UNARY_OPERATOR,
+					tracker.shift(2)
 				);
 			}
 
 			return std::unexpected("No unary operator token found.");
 		}
 
-		std::expected<struct Token, std::string> LexParenthesis(
-			std::string& src
+		Result<struct Token> LexParenthesis(
+			LexTracker& tracker
 		) noexcept {
 
-			switch(src.front()) {
-				case '(':
-				case ')':
-					return MakeToken(
-						TokenType::PARENTHESIS,
-						std::string(1, utils::shift(src))
-					);
-				default:
-					return std::unexpected("Invalid parenthesis " + src.front());
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
 			}
+			if(result.value() == "(" || result.value() == ")") {
+				return MakeToken(
+					TokenType::PARENTHESIS,
+					tracker.shift()
+				);
+			}
+			return std::unexpected("No parenthesis token found.");
 		}
 
-		std::expected<struct Token, std::string> LexBrace(
-			std::string& src
+		Result<struct Token> LexBrace(
+			LexTracker& tracker
 		) noexcept {
 
-			switch(src.front()) {
-				case '{':
-				case '}':
-					return MakeToken(
-						TokenType::BRACE,
-						std::string(1, utils::shift(src))
-					);
-				default:
-					return std::unexpected("Invalid brace " + src.front());
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
 			}
+			if(result.value() == "{" || result.value() == "}") {
+				return MakeToken(
+					TokenType::BRACE,
+					tracker.shift()
+				);
+			}
+			return std::unexpected("No brace token found.");
 		}
 
-		std::expected<struct Token, std::string> LexDot(
-			std::string& src
+		Result<struct Token> LexDot(
+			LexTracker& tracker
 		) noexcept {
-			if(src.front() == '.') {
+			
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == ".") {
 				return MakeToken(
 					TokenType::DOT,
-					std::string(1, utils::shift(src))
+					tracker.shift()
 				);
 			}
 			return std::unexpected("No dot token found.");
 		}
 
-		std::expected<struct Token, std::string> LexComma(
-			std::string& src
+		Result<struct Token> LexComma(
+			LexTracker& tracker
 		) noexcept {
-			if(src.front() == ',') {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == ",") {
 				return MakeToken(
 					TokenType::COMMA,
-					std::string(1, utils::shift(src))
+					tracker.shift()
 				);
 			}
 			return std::unexpected("No comma token found.");
 		}
 
-		std::expected<struct Token, std::string> LexColon(
-			std::string& src
+		Result<struct Token> LexColon(
+			LexTracker& tracker
 		) noexcept {
-			if(src.front() == ':') {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == ":") {
 				return MakeToken(
 					TokenType::COLON,
-					std::string(1, utils::shift(src))
+					tracker.shift()
 				);
 			}
 			return std::unexpected("No colon token found.");
 		}
 
-		std::expected<struct Token, std::string> LexEquals(
-			std::string& src
+		Result<struct Token> LexEquals(
+			LexTracker& tracker
 		) noexcept {
-			if(src.front() == '=') {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "=") {
 				return MakeToken(
 					TokenType::EQUALS,
-					std::string(1, utils::shift(src))
+					tracker.shift()
 				);
 			}
 			return std::unexpected("No equals token found.");
 		}
 
-		std::expected<struct Token, std::string> LexArrow(
-			std::string& src
+		Result<struct Token> LexArrow(
+			LexTracker& tracker
 		) noexcept {
-			if(src.rfind("->", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "->") {
 				return MakeToken(
 					TokenType::ARROW,
-					utils::shift(src, 2)
+					tracker.shift(2)
 				);
 			}
 			return std::unexpected("No arrow token found.");
 		}
 
-		std::expected<struct Token, std::string> LexAt(
-			std::string& src
+		Result<struct Token> LexAt(
+			LexTracker& tracker
 		) noexcept {
-			if(src.front() == '@') {
+			std::expected<std::string, std::string> result = tracker.peek();
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "@") {
 				return MakeToken(
 					TokenType::AT,
-					utils::shift(src, 1)
+					tracker.shift()
 				);
 			}
 			return std::unexpected("No at token found.");
 		}
 
-		std::expected<struct Token, std::string> LexDoubleDot(
-			std::string& src
+		Result<struct Token> LexDoubleDot(
+			LexTracker& tracker
 		) noexcept {
-			if(src.rfind("..", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "..") {
 				return MakeToken(
 					TokenType::DOUBLE_DOT,
-					utils::shift(src, 2)
+					tracker.shift(2)
 				);
 			}
 			return std::unexpected("No double dot token found.");
 		}
 
-		std::expected<struct Token, std::string> LexIfElse(
-			std::string& src
+		Result<struct Token> LexIfElse(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("elseif", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "if") {
 				return MakeToken(
 					TokenType::IFELSE,
-					utils::shift(src, 6)
+					tracker.shift(2)
 				);
 			}
-			if(src.rfind("if", 0) == 0) {
+			result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "else") {
 				return MakeToken(
 					TokenType::IFELSE,
-					utils::shift(src, 2)
+					tracker.shift(4)
 				);
 			}
-			if(src.rfind("else", 0) == 0) {
+			result = tracker.peek(6);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "elseif") {
 				return MakeToken(
 					TokenType::IFELSE,
-					utils::shift(src, 4)
+					tracker.shift(6)
 				);
 			}
 
 			return std::unexpected("No if-else token found.");
 		}
 
-		std::expected<struct Token, std::string> LexMatch(
-			std::string& src
+		Result<struct Token> LexMatch(
+			LexTracker& tracker
 		) noexcept {
-			if(src.rfind("match", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(5);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "match") {
 				return MakeToken(
 					TokenType::MATCH,
-					utils::shift(src, 5)
+					tracker.shift(5)
 				);
 			}
 			return std::unexpected("No match token found.");
 		}
 
-		std::expected<struct Token, std::string> LexLoop(
-			std::string& src
+		Result<struct Token> LexLoop(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("loop", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "loop") {
 				return MakeToken(
 					TokenType::LOOP,
-					utils::shift(src, 4)
+					tracker.shift(4)
 				);
 			}
 
 			return std::unexpected("No loop token found.");
 		}
 
-		std::expected<struct Token, std::string> LexBreak(
-			std::string& src
+		Result<struct Token> LexBreak(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("break", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(5);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "break") {
 				return MakeToken(
 					TokenType::BREAK,
-					utils::shift(src, 5)
+					tracker.shift(5)
 				);
 			}
 
 			return std::unexpected("No break token found.");
 		}
 
-		std::expected<struct Token, std::string> LexOr(
-			std::string& src
+		Result<struct Token> LexOr(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("or", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "or") {
 				return MakeToken(
 					TokenType::OR,
-					utils::shift(src, 2)
+					tracker.shift(2)
 				);
 			}
 
 			return std::unexpected("No or token found.");
 		}
 
-		std::expected<struct Token, std::string> LexDecl(
-			std::string& src
+		Result<struct Token> LexDecl(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("var", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(3);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "var") {
 				return MakeToken(
 					TokenType::DECL,
-					utils::shift(src, 3)
+					tracker.shift(3)
 				);
 			}
-			if(src.rfind("const", 0) == 0) {
+			result = tracker.peek(5);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "const") {
 				return MakeToken(
 					TokenType::DECL,
-					utils::shift(src, 5)
+					tracker.shift(5)
 				);
 			}
 
 			return std::unexpected("No var/const token found.");
 		}
 
-		std::expected<struct Token, std::string> LexType(
-			std::string& src
+		Result<struct Token> LexType(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("i8", 0) == 0) {
-				(void)utils::shift(src, 2);
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "i8") {
+				(void)tracker.shift(2);
 				return MakeToken(
-					TokenType::TYPE,
+					TokenType::DOT,
 					"I8"
 				);
 			}
-			if(src.rfind("u8", 0) == 0) {
-				(void)utils::shift(src, 2);
+			if(result.value() == "u8") {
+				(void)tracker.shift(2);
 				return MakeToken(
-					TokenType::TYPE,
+					TokenType::DOT,
 					"U8"
 				);
 			}
-			if(src.rfind("i16", 0) == 0) {
-				(void)utils::shift(src, 3);
+
+			result = tracker.peek(3);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "i16") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"I16"
 				);
 			}
-			if(src.rfind("i32", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "i32") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"I32"
 				);
 			}
-			if(src.rfind("i64", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "i64") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"I64"
 				);
 			}
-			if(src.rfind("u16", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "u16") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"U16"
 				);
 			}
-			if(src.rfind("u32", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "u32") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"U32"
 				);
 			}
-			if(src.rfind("u64", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "u64") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"U64"
 				);
 			}
-			if(src.rfind("f32", 0) == 0) {
-			(void)utils::shift(src, 3);
+			if(result.value() == "f32") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"F32"
 				);
 			}
-			if(src.rfind("f64", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "f64") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"F64"
 				);
 			}
-			if(src.rfind("str", 0) == 0) {
-				(void)utils::shift(src, 3);
+			if(result.value() == "str") {
+				(void)tracker.shift(3);
 				return MakeToken(
 					TokenType::TYPE,
 					"STRING"
 				);
 			}
-			if(src.rfind("void", 0) == 0) {
-				(void)utils::shift(src, 4);
+
+			result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "void") {
+				(void)tracker.shift(4);
 				return MakeToken(
 					TokenType::TYPE,
 					"VOID"
 				);
 			}
-			if(src.rfind("char", 0) == 0) {
-				(void)utils::shift(src, 4);
+			if(result.value() == "char") {
+				(void)tracker.shift(4);
 				return MakeToken(
 					TokenType::TYPE,
 					"CHAR"
 				);
 			}
-			if(src.rfind("bool", 0) == 0) {
-				(void)utils::shift(src, 4);
+			if(result.value() == "bool") {
+				(void)tracker.shift(4);
 				return MakeToken(
 					TokenType::TYPE,
 					"BOOL"
 				);
 			}
 
-
 			return std::unexpected("No type token found.");
 		}
 
-		std::expected<struct Token, std::string> LexFn(
-			std::string& src
+		Result<struct Token> LexFn(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("fn", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(2);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "fn") {
 				return MakeToken(
 					TokenType::FN,
-					utils::shift(src, 2)
+					tracker.shift(2)
 				);
 			}
 
 			return std::unexpected("No fn token found.");
 		}
 
-		std::expected<struct Token, std::string> LexReturn(
-			std::string& src
+		Result<struct Token> LexReturn(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("return", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(6);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "return") {
 				return MakeToken(
 					TokenType::RETURN,
-					utils::shift(src, 6)
+					tracker.shift(6)
 				);
 			}
 
 			return std::unexpected("No return token found.");
 		}
 
-		std::expected<struct Token, std::string> LexStruct(
-			std::string& src
+		Result<struct Token> LexStruct(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("struct", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(6);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "struct") {
 				return MakeToken(
 					TokenType::STRUCT,
-					utils::shift(src, 6)
+					tracker.shift(6)
 				);
 			}
 
 			return std::unexpected("No struct token found.");
 		}
 
-		std::expected<struct Token, std::string> LexImpl(
-			std::string& src
+		Result<struct Token> LexImpl(
+			LexTracker& tracker
 		) noexcept {
 
-			if(src.rfind("impl", 0) == 0) {
+			std::expected<std::string, std::string> result = tracker.peek(4);
+			if(!result) {
+				return std::unexpected(result.error());
+			}
+			if(result.value() == "impl") {
 				return MakeToken(
 					TokenType::IMPL,
-					utils::shift(src, 4)
+					tracker.shift(4)
 				);
 			}
 
 			return std::unexpected("No impl token found.");
 		}
 
-		std::expected<struct Token, std::string> LexIdentifier(
-			std::string& src
+		Result<struct Token> LexIdentifier(
+			LexTracker& tracker
 		) noexcept {
 			std::string identifier = "";
 
@@ -736,7 +965,7 @@ namespace dim {
 		}
 
 		void StripWhitespaces(
-			std::string& src
+			LexTracker& tracker
 		) noexcept {
 			while(src.size() > 0 && std::isspace(src.front())) {
 				(void)utils::shift(src);
@@ -744,7 +973,7 @@ namespace dim {
 		}
 
 		std::expected<Success, std::string> StripComments(
-			std::string& src
+			LexTracker& tracker
 		) noexcept {
 			if(src.rfind("/*", 0) == 0) {
 				// To avoid /*/
@@ -769,7 +998,7 @@ namespace dim {
 
 		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
-			std::string& src
+			LexTracker& tracker
 		) noexcept {
 			while(src.size() > 0) {
 				
@@ -796,7 +1025,7 @@ namespace dim {
 				std::string error = "";
 				for(const auto& lexFunction : LexFunctionsList) {
 					
-					std::expected<struct Token, std::string> result = lexFunction(src);
+					Result<struct Token> result = lexFunction(src);
 					if(!result) {
 						error = result.error();
 						continue;
