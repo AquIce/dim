@@ -180,6 +180,9 @@ namespace dim {
       const std::string& structName,
 			const std::string name
 		) {
+      if(m_customRegister.find(structName) == m_customRegister.end()) {
+        return false;
+      }
 			return m_customRegister.at(structName).find(name) != m_customRegister.at(structName).end();
 		}
 
@@ -191,7 +194,10 @@ namespace dim {
 			const std::string name
 		) {
 			if(!this->CustomExists(structName, name)) {
-				return std::unexpected("Trying to get non existing value for struct " + structName);
+				return std::unexpected(
+          std::string("Trying to get non existing value '") + name
+          + "' for struct " + structName
+        );
 			}
 			return m_customRegister.at(structName).at(name);
 		}

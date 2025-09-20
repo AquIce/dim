@@ -659,7 +659,6 @@ namespace dim {
 			std::vector<std::shared_ptr<parser::Expression>> argumentsExpressions = functionCallExpression->GetArguments();
 
 			std::shared_ptr<parser::FunctionDeclarationExpression> functionDeclarationExpression;
-
 			{
 				std::expected<
 					FunctionRegisterValue,
@@ -824,25 +823,128 @@ namespace dim {
 		}
 
 
+    std::expected<std::shared_ptr<Value>, std::string> EvaluateStructMemberFunctionAccessExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+      auto structMemberFunctionAccessExpression = std::dynamic_pointer_cast<parser::StructMemberFunctionAccessExpression>(expression);
+
+      auto thisRegisterManager = std::make_shared<RegisterManager>(registerManager);
+
+      std::shared_ptr<Value> structValue;
+      __TRY_VALUE_FUNC_WRETERR_WSAVE(
+        EvaluateExpression,
+        structMemberFunctionAccessExpression->GetStruct(),
+        thisRegisterManager,
+        structValue
+      )
+
+      registerManager->Register(
+        "this",
+        RegisterValue{
+          .value = structValue
+        }
+      );
+
+      std::vector<std::shared_ptr<parser::Expression>> argumentsExpressions = structMemberFunctionAccessExpression->GetArguments();
+
+			std::shared_ptr<parser::FunctionDeclarationExpression> functionDeclarationExpression;
+      {
+				std::expected<
+					FunctionRegisterValue,
+					std::string
+				> result = functionRegisterManager.CustomGet(
+          structMemberFunctionAccessExpression->GetStruct()->GetDatatype(),
+          structMemberFunctionAccessExpression->GetMemberFunction()->GetName()
+        );
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				functionDeclarationExpression = result.value().function;
+			}
+
+			std::vector<std::shared_ptr<parser::DeclarationExpression>> argumentsDeclarationExpressions = functionDeclarationExpression->GetArguments();
+
+			// TODO: Move argument number check to parser
+			if(argumentsExpressions.size() != argumentsDeclarationExpressions.size()) {
+				return std::unexpected(
+					std::string("Invalid number of arguments for function '")
+					+ structMemberFunctionAccessExpression->GetStruct()->GetName() + "."
+          + structMemberFunctionAccessExpression->GetMemberFunction()->GetName()
+          + "', expected " + std::to_string(argumentsDeclarationExpressions.size())
+					+ " got " + std::to_string(argumentsExpressions.size())
+				);
+			}
+
+			for(size_t i = 0; i < argumentsExpressions.size(); i++) {
+
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = EvaluateExpression(
+					argumentsExpressions.at(i),
+					thisRegisterManager
+				);
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				
+				thisRegisterManager->Register(
+					argumentsDeclarationExpressions.at(i)->GetIdentifier()->GetName(),
+					RegisterValue{
+						.value = result.value()
+					}
+				);
+			}
+
+			std::shared_ptr<Value> scopeValue;
+			{
+				std::expected<
+					std::shared_ptr<Value>,
+					std::string
+				> result = EvaluateScopeExpression(
+					functionDeclarationExpression->GetScope(),
+					thisRegisterManager
+				);
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				scopeValue = result.value();
+			}
+			
+			struct ValueFlagWVal flagWValue = scopeValue->GetFlag();
+			
+			if(
+				flagWValue.flag == ValueFlag::RETURN
+			) {
+				scopeValue->SetFlag({
+					.flag = ValueFlag::NONE
+				});
+			}
+
+			return scopeValue;
+		}
+
+
 		std::expected<std::shared_ptr<Value>, std::string> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
 		) {
 			std::shared_ptr<Value> value;
 
-			try {
+			//try {
 				__TRY_VALUE_FUNC_WRETERR_WSAVE(
 					EvaluateFunctionsMap.at(expression->Type()),
 					expression,
 					registerManager,
 					value
 				)
-			} catch(...) {
+			/*} catch(...) {
 				return std::unexpected(
-					std::string("Invalid expression type :")
+					std::string("Invalid expression type: ")
 					+ std::string(parser::NodeTypeToStr.at(int(expression->Type())))
 				);
-			}
+			}*/
 
 			return value;
 		}
