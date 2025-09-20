@@ -237,7 +237,6 @@ namespace dim {
               std::string(1, first) + src.front()
           );
           if(!result) {
-            LOG(result.error());
             return std::unexpected(result.error());
           }
           str += std::string(1, result.value());
