@@ -133,9 +133,10 @@ namespace dim {
 			STRUCT,
 			STRUCT_ACCESS,
       STRUCT_IMPL,
+      STRUCT_ACCESS_FN,
 		};
 
-		const std::array<std::string_view, 43> NodeTypeToStr = {
+		const std::array<std::string_view, 44> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
@@ -171,6 +172,7 @@ namespace dim {
 			"STRUCT",
 			"STRUCT_ACCESS",
       "STRUCT_IMPL",
+      "STRUCT_ACCESS_FN",
 		};
 
 		typedef struct {
@@ -872,5 +874,31 @@ namespace dim {
       std::shared_ptr<IdentifierExpression> m_structIdentifier;
       std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> m_memberFunctions;
     };
+
+    class StructMemberFunctionAccessExpression : public Expression {
+		public:
+			StructMemberFunctionAccessExpression(
+				std::shared_ptr<IdentifierExpression> structIdentifier,
+				std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
+        std::vector<std::shared_ptr<Expression>> arguments,
+				DatatypeStr returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetStruct();
+			std::shared_ptr<IdentifierExpression> GetMemberFunction();
+      std::vector<std::shared_ptr<Expression>> GetArguments();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+  	private:
+			std::shared_ptr<IdentifierExpression> m_structIdentifier;
+			std::shared_ptr<IdentifierExpression> m_memberFunctionIdentifier;
+      std::vector<std::shared_ptr<Expression>> m_arguments;
+      DatatypeStr m_returnDatatype;
+		};
   }
 }

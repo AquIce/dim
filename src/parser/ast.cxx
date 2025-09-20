@@ -1361,5 +1361,50 @@ namespace dim {
     DatatypeStr StructImplementationExpression::GetDatatype() {
       return "VOID";
     }
+
+
+
+    StructMemberFunctionAccessExpression::StructMemberFunctionAccessExpression(
+      std::shared_ptr<IdentifierExpression> structIdentifier,
+      std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
+      std::vector<std::shared_ptr<Expression>> arguments,
+      DatatypeStr returnDatatype
+    ) :
+      Expression(),
+      m_structIdentifier(structIdentifier),
+      m_memberFunctionIdentifier(memberFunctionIdentifier),
+      m_arguments(arguments),
+      m_returnDatatype(returnDatatype)
+    {}
+
+    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetStruct() {
+      return m_structIdentifier;
+    }
+    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetMemberFunction() {
+      return m_memberFunctionIdentifier;
+    }
+    std::vector<std::shared_ptr<Expression>> StructMemberFunctionAccessExpression::GetArguments() {
+      return m_arguments;
+    }
+    
+    std::string StructMemberFunctionAccessExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = m_structIdentifier->GetName() + "." + m_memberFunctionIdentifier->GetName();
+			repr += "(\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
+			}
+			repr += "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+    }
+    NodeType StructMemberFunctionAccessExpression::Type() {
+      return NodeType::STRUCT_ACCESS_FN;
+    }
+    DatatypeStr StructMemberFunctionAccessExpression::GetDatatype() {
+      return m_returnDatatype;
+    }
   }
 }

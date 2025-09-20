@@ -4,9 +4,15 @@ struct {
 } User;
 
 impl User {
-	fn greet() -> str {
-		return "Hello, " + this.name;
+	fn greet(predicate: str) -> str {
+		return predicate + this.name;
 	}
 };
 
-main {};
+main {
+  var steve := User {
+      .name = "Steve",
+      .age = 21,
+  };
+  steve.greet("Hello, ");
+};
