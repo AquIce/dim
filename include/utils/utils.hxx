@@ -87,17 +87,17 @@ namespace dim {
 			size_t column;
 		};
 
-    enum ErrorType {
-      FATAL = 0,
-      ERROR,
-      WARNING,
-      RETERR
-    };
+		enum ErrorType {
+			FATAL = 0,
+			ERROR,
+			WARNING,
+			RETERR
+		};
 
 		struct Error {
 			std::string message;
 			struct Context ctx;
-      ErrorType type;
+			ErrorType type;
 		};
 	}
 
