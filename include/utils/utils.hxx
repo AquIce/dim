@@ -87,16 +87,24 @@ namespace dim {
 			size_t column;
 		};
 
+    enum ErrorType {
+      FATAL = 0,
+      ERROR,
+      WARNING,
+      RETERR
+    };
+
 		struct Error {
 			std::string message;
 			struct Context ctx;
+      ErrorType type;
 		};
 	}
 
 	template <typename _Result = Success>
 	using Result = std::expected<
 		_Result,
-		struct dim::utils::Error
+		struct utils::Error
 	>;
 
 	namespace utils {

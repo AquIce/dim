@@ -142,7 +142,11 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+				return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
 			}
 			if(result.value() == ";") {
 				return MakeToken(
@@ -151,7 +155,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No EOL token found.");
+			return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No EOL token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexNull(
@@ -160,7 +168,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(4);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "null") {
 				return MakeToken(
@@ -169,63 +182,74 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No null token found");
+			return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No null token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexNumber(
-		LexTracker& tracker
-) noexcept {
-		std::string number = "";
-		bool isDecimal = false;
+		  LexTracker& tracker
+    ) noexcept {
+		  std::string number = "";
+  		bool isDecimal = false;
 
-		std::expected<std::string, std::string> peekRes = tracker.peek();
-		if(!peekRes) {
-			return std::unexpected(peekRes.error());
-		}
-		if(peekRes.value().at(0) == '.') {
-			return std::unexpected(". at the start of number token.");
-		}
+      size_t line = tracker.ctx.line;
+  		std::expected<std::string, std::string> peekRes = tracker.peek();
+  		if(!peekRes) {
+  			return std::unexpected(peekRes.error());
+  		}
+  		if(peekRes.value().at(0) == '.') {
+  			return std::unexpected(". at the start of number token.");
+  		}
 
-		while(true) {
-			std::expected<std::string, std::string> peekRes = tracker.peek();
-			if(!peekRes) {
-					break;
-			}
-			char first = peekRes.value().at(0);
+  		while(true) {
+  			std::expected<std::string, std::string> peekRes = tracker.peek();
+  			if(!peekRes) {
+  				break;
+  			}
+        if(tracker.ctx.line != line) {
+          return std::unexpected(Error{
+            .ctx = tracker.ctx,
+            .error = "Unexpected EOL in number token."
+          });
+        }
+  			char first = peekRes.value().at(0);
 
-			if(first == '.') {
-				if(isDecimal) {
+	  		if(first == '.') {
+	  			if(isDecimal) {
 					number.pop_back();
-					break;
-				}
-				isDecimal = true;
-				std::expected<Success, std::string> shiftRes = tracker.shift();
-				if(!shiftRes) {
-					return std::unexpected(shiftRes.error());
-				}
-				number += shiftRes.value();
-				continue;
-			}
+  					break;
+  				}
+  				isDecimal = true;
+  				std::expected<Success, std::string> shiftRes = tracker.shift();
+  				if(!shiftRes) {
+  					return std::unexpected(shiftRes.error());
+	  			}
+  				number += shiftRes.value();
+  				continue;
+		  	}
 
-			if(std::isdigit(static_cast<unsigned char>(first))) {
-				std::expected<Success, std::string> shiftRes = tracker.shift();
-				if(!shiftRes) {
-					return std::unexpected(shiftRes.error());
-				}
-				number += shiftRes.value();
-			} else {
-				break;
-			}
-		}
+  			if(std::isdigit(static_cast<unsigned char>(first))) {
+  				std::expected<Success, std::string> shiftRes = tracker.shift();
+  				if(!shiftRes) {
+  					return std::unexpected(shiftRes.error());
+  				}
+  				number += shiftRes.value();
+  			} else {
+  				break;
+  			}
+  		}
 
-		if(number.length() == 0 || (number.length() == 1 && number == ".")) {
-				return std::unexpected("Invalid number literal \"" + number + "\"");
-		}
-		return MakeToken(
-				TokenType::NUMBER,
+  		if(number.length() == 0 || (number.length() == 1 && number == ".")) {
+  			return std::unexpected("Invalid number literal \"" + number + "\"");
+  		}
+    	return MakeToken(
+  			TokenType::NUMBER,
 				number
-		);
-}
+  		);
+    }
 
 
 		Result<struct Token> LexBoolean(
@@ -234,7 +258,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(4);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "true") {
 				return MakeToken(
@@ -254,7 +283,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No boolean token found");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No boolean token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexChar(
@@ -387,7 +420,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(
 				result.value() == "+"
@@ -408,7 +446,12 @@ namespace dim {
 			
 			result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+			  return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+	return std::unexpected(result.error());
 			}
 			if(
 				result.value() == ">="
@@ -424,7 +467,11 @@ namespace dim {
 				);
 			}
 			
-			return std::unexpected("No binary operator token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No binary operator token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexUnaryOperator(
@@ -432,7 +479,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "!" || result.value() == "~") {
 				return MakeToken(
@@ -443,7 +495,12 @@ namespace dim {
 
 			result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "++" || result.value() == "--") {
 				return MakeToken(
@@ -452,7 +509,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No unary operator token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No unary operator token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexParenthesis(
@@ -461,7 +522,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "(" || result.value() == ")") {
 				return MakeToken(
@@ -469,7 +535,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No parenthesis token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No parenthesis token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexBrace(
@@ -478,7 +548,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "{" || result.value() == "}") {
 				return MakeToken(
@@ -486,7 +561,12 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No brace token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No null token found.",
+        .type = utils::ErrorType::RETERR,
+      });
+		return std::unexpected("No brace token found.");
 		}
 
 		Result<struct Token> LexDot(
@@ -495,7 +575,12 @@ namespace dim {
 			
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == ".") {
 				return MakeToken(
@@ -503,7 +588,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No dot token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No dot token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexComma(
@@ -511,7 +600,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == ",") {
 				return MakeToken(
@@ -519,7 +613,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No comma token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No comma token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexColon(
@@ -527,7 +625,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == ":") {
 				return MakeToken(
@@ -535,7 +638,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No colon token found.");
+			return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No colon token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexEquals(
@@ -543,7 +650,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "=") {
 				return MakeToken(
@@ -551,7 +663,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No equals token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No equals token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexArrow(
@@ -559,7 +675,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "->") {
 				return MakeToken(
@@ -567,7 +688,11 @@ namespace dim {
 					tracker.shift(2)
 				);
 			}
-			return std::unexpected("No arrow token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No arrow token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexAt(
@@ -575,7 +700,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek();
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "@") {
 				return MakeToken(
@@ -583,7 +713,11 @@ namespace dim {
 					tracker.shift()
 				);
 			}
-			return std::unexpected("No at token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No at token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexDoubleDot(
@@ -591,7 +725,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "..") {
 				return MakeToken(
@@ -599,7 +738,11 @@ namespace dim {
 					tracker.shift(2)
 				);
 			}
-			return std::unexpected("No double dot token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No double dot token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexIfElse(
@@ -608,7 +751,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "if") {
 				return MakeToken(
@@ -618,7 +766,12 @@ namespace dim {
 			}
 			result = tracker.peek(4);
 			if(!result) {
-				return std::unexpected(result.error());
+				return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+return std::unexpected(result.error());
 			}
 			if(result.value() == "else") {
 				return MakeToken(
@@ -628,7 +781,12 @@ namespace dim {
 			}
 			result = tracker.peek(6);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "elseif") {
 				return MakeToken(
@@ -637,7 +795,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No if-else token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No if-else token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexMatch(
@@ -645,7 +807,12 @@ namespace dim {
 		) noexcept {
 			std::expected<std::string, std::string> result = tracker.peek(5);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "match") {
 				return MakeToken(
@@ -653,7 +820,11 @@ namespace dim {
 					tracker.shift(5)
 				);
 			}
-			return std::unexpected("No match token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No match token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexLoop(
@@ -662,7 +833,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(4);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "loop") {
 				return MakeToken(
@@ -671,7 +847,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No loop token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No loop token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexBreak(
@@ -680,7 +860,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(5);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "break") {
 				return MakeToken(
@@ -689,7 +874,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No break token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No break token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexOr(
@@ -698,7 +887,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(2);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "or") {
 				return MakeToken(
@@ -707,7 +901,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No or token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No or token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexDecl(
@@ -716,7 +914,12 @@ namespace dim {
 
 			std::expected<std::string, std::string> result = tracker.peek(3);
 			if(!result) {
-				return std::unexpected(result.error());
+	      return std::unexpected(Error{
+          .ctx = tracker.ctx,
+          .error = result.error(),
+          .type = utils::ErrorType::RETERR,
+        });
+			return std::unexpected(result.error());
 			}
 			if(result.value() == "var") {
 				return MakeToken(
@@ -735,7 +938,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No var/const token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No const var/const token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexType(
@@ -855,7 +1062,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No type token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No type token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexFn(
@@ -873,7 +1084,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No fn token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No fn token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexReturn(
@@ -891,7 +1106,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No return token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No return token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexStruct(
@@ -909,7 +1128,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No struct token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No struct token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexImpl(
@@ -927,7 +1150,11 @@ namespace dim {
 				);
 			}
 
-			return std::unexpected("No impl token found.");
+	    return std::unexpected(utils::Error{
+        .ctx = tracker.ctx,
+        .error = "No impl token found.",
+        .type = utils::ErrorType::RETERR,
+      });
 		}
 
 		Result<struct Token> LexIdentifier(
