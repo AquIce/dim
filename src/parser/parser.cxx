@@ -41,7 +41,8 @@ namespace dim {
 					std::string("Invalid token type: got ")
 					+ std::string(lexer::TokenTypeStr.at(int(tk.type))) + " expected "
 					+ std::string(lexer::TokenTypeStr.at(int(expected.type)))
-					+ " (" + tk.value + ")"
+					+ " (" + tk.value + ") at " + std::to_string(tk.ctx.line) + ":"
+          + std::to_string(tk.ctx.column)
 				);
 			}
 
@@ -49,7 +50,8 @@ namespace dim {
 				tokens.insert(tokens.begin(), tk);
 				return std::unexpected(
 					std::string("Invalid token value: got ")
-					+ tk.value + " expected " + expected.value
+					+ tk.value + " expected " + expected.value + std::to_string(tk.ctx.line) + ":"
+          + std::to_string(tk.ctx.column)
 				);
 			}
 

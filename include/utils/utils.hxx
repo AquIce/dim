@@ -88,17 +88,26 @@ namespace dim {
 		};
 
 		enum ErrorType {
-			FATAL = 0,
+      NONE = 0,
+			FATAL,
 			ERROR,
 			WARNING,
 			RETERR
 		};
 
+    std::string ErrorTypeRepr(
+      ErrorType type
+    );
+
 		struct Error {
-			std::string message;
 			struct Context ctx;
+			std::string message;
 			ErrorType type;
 		};
+
+    std::string ErrorRepr(
+      struct Error& err
+    );
 	}
 
 	template <typename _Result = Success>

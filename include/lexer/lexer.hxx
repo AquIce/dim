@@ -91,6 +91,7 @@ namespace dim {
 		struct Token {
 			TokenType type;
 			std::string value;
+      struct utils::Context ctx;
 		};
 
 		class LexTracker {
@@ -100,12 +101,17 @@ namespace dim {
 			std::vector<struct Token> tokens;
 
 		public:
+      LexTracker(
+        const std::vector<std::string> src
+      );
+
 			std::expected<std::string, std::string> shift(
 				size_t length = 1
 			);
 			std::expected<std::string, std::string> peek(
 				size_t length = 1
 			);
+      std::expected<char, utils::Error> lex_char();
 		};
 
 		typedef std::function<
@@ -114,7 +120,8 @@ namespace dim {
 		
 		struct Token MakeToken(
 			const TokenType type = TokenType::NONE,
-			const std::string value = ""
+			const std::string value = "",
+      const struct utils::Context ctx = { .line = 0, .column = 0 }
 		) noexcept;
 
 		std::string TokenRepr(
@@ -277,13 +284,13 @@ namespace dim {
 			LexTracker& tracker
 		) noexcept;
 
-		std::expected<Success, std::string> StripComments(
+		Result<> StripComments(
 			LexTracker& tracker
 		) noexcept;
 		
-		Result<> Lex(
+    std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
-			std::string& src
+			const std::vector<std::string>& src
 		) noexcept;
 	}
 }
