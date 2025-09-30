@@ -3,6 +3,34 @@
 namespace dim {
 	namespace utils {
 
+    std::string ErrorTypeRepr(
+      ErrorType type
+    ) {
+      switch(type) {
+        case ErrorType::NONE:
+          return "NONE";
+        case ErrorType::FATAL:
+          return "FATAL";
+        case ErrorType::ERROR:
+          return "ERROR";
+        case ErrorType::WARNING:
+          return "WARNING";
+        case ErrorType::RETERR:
+          return "RETERR";
+        default:
+          return "UNKNOWN";
+      }
+    }
+
+    std::string ErrorRepr(
+      struct Error& err
+    ) {
+      return std::string("[") + ErrorTypeRepr(err.type)
+        + "]" + std::to_string(err.ctx.line)
+        + ":" + std::to_string(err.ctx.column)
+        + " > " + err.message;
+    }
+
 		[[nodiscard]] char shift(
 			std::string& str
 		) {

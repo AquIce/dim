@@ -4,8 +4,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
-std::string GetSource(
+const std::vector<std::string> GetSource(
 	const std::string filename
 );
 
@@ -14,13 +16,10 @@ int main(int argc, char** argv) {
 
 	std::vector<struct dim::lexer::Token> tokens = {};
 
-	std::string src;
+	std::vector<std::string> src;
 
 	{
 		src = GetSource("main.dim");
-
-		std::cout << "> SOURCE\n";
-		std::cout << src << "\n";
 	}
 
 	{
@@ -81,15 +80,15 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-std::string GetSource(
+const std::vector<std::string> GetSource(
 	const std::string filename
 ) {
 	auto file = std::ifstream(filename);
 	std::string line;
-	std::string source = "";
+  std::vector<std::string> source = {};
 
 	while(std::getline(file, line)) {
-		source += line + '\n';
+		source.push_back(line);
 	}
 
 	return source;
