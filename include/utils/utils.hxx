@@ -92,7 +92,8 @@ namespace dim {
 			FATAL,
 			ERROR,
 			WARNING,
-			RETERR
+			RETERR,
+			DEV_UNREACHABLE,
 		};
 
     std::string ErrorTypeRepr(
