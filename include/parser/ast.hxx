@@ -16,6 +16,7 @@
 class _ClassName : public NumberExpression { \
 public: \
 	_ClassName( \
+    struct utils::Context ctx, \
 		_ValueType value \
 	); \
 	\
@@ -31,9 +32,10 @@ private: \
 
 #define __GEN__SUB_NUMBER_CLASS_IMPL(_ClassName, _ValueType, ENUM_MEMBER) \
 _ClassName::_ClassName( \
+  struct utils::Context ctx, \
 	_ValueType value \
 ) : \
-	NumberExpression(std::to_string(value)), \
+	NumberExpression(ctx, std::to_string(value)), \
 	m_value(value) \
 {} \
 \
@@ -217,12 +219,18 @@ namespace dim {
 			virtual NodeType Type();
 			virtual DatatypeStr GetDatatype();
 
-			Expression() = default;
+			Expression(
+        struct utils::Context ctx
+      );
+
+    public:
+      struct utils::Context ctx;
 		};
 
 		class NestedExpression : public Expression {
 		public:
 			NestedExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression
 			);
 
@@ -240,7 +248,9 @@ namespace dim {
 
     class AssignableExpression : public Expression {
     public:
-      AssignableExpression();
+      AssignableExpression(
+        struct utils::Context ctx
+      );
 
       std::string Repr(
 				const size_t indent = 0
@@ -259,6 +269,7 @@ namespace dim {
 		class IdentifierExpression : public AssignableExpression {
 		public:
 			IdentifierExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 				std::string name,
 				bool isConst = true,
@@ -302,6 +313,7 @@ namespace dim {
 		class ScopeExpression : public Expression {
 		public:
 			ScopeExpression(
+        struct utils::Context ctx,
 				std::vector<std::shared_ptr<Expression>> expressions = {},
 				std::shared_ptr<IdentifierExpression> name = nullptr
 			);
@@ -329,7 +341,9 @@ namespace dim {
 
 		class NullExpression : public Expression {
 		public:
-			NullExpression();
+			NullExpression(
+        struct utils::Context ctx
+      );
 
 			std::string Repr(
 				const size_t indent = 0
@@ -341,6 +355,7 @@ namespace dim {
 		class NumberExpression : public Expression {
 		public:
 			NumberExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -376,6 +391,7 @@ namespace dim {
 		class BooleanExpression : public Expression {
 		public:
 			BooleanExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -394,6 +410,7 @@ namespace dim {
 		class CharExpression : public Expression {
 		public:
 			CharExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -412,6 +429,7 @@ namespace dim {
 		class StringExpression : public Expression {
 		public:
 			StringExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -430,6 +448,7 @@ namespace dim {
 		class UnaryExpression : public Expression {
 		public:
 			UnaryExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> term,
 				std::string operatorSymbol
 			);
@@ -453,6 +472,7 @@ namespace dim {
 		class BinaryExpression : public Expression {
 		public:
 			BinaryExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> left,
 				std::string operatorSymbol,
 				std::shared_ptr<Expression> right
@@ -479,6 +499,7 @@ namespace dim {
 		class IfElseExpression : public Expression {
 		public:
 			IfElseExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition
 			);
@@ -500,6 +521,7 @@ namespace dim {
 		class IfElseStructure : public Expression {
 		public:
 			IfElseStructure(
+        struct utils::Context ctx,
 				std::vector<std::shared_ptr<IfElseExpression>> expressions
 			);
 
@@ -518,6 +540,7 @@ namespace dim {
 		class MatchExpression : public Expression {
 		public:
 			MatchExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition
 			);
@@ -539,6 +562,7 @@ namespace dim {
 		class MatchStructure : public NestedExpression {
 		public:
 			MatchStructure(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression,
 				std::vector<std::shared_ptr<MatchExpression>> expressions
 			);
@@ -558,6 +582,7 @@ namespace dim {
 		class LoopExpression : public Expression {
 		public:
 			LoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope
 			);
 
@@ -576,6 +601,7 @@ namespace dim {
 		class WhileLoopExpression : public LoopExpression {
 		public:
 			WhileLoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition,
 				std::shared_ptr<OrExpression> orExpression
@@ -598,6 +624,7 @@ namespace dim {
 		class ForLoopExpression : public WhileLoopExpression {
 		public:
 			ForLoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> initialExpression,
 				std::shared_ptr<Expression> condition,
@@ -622,6 +649,7 @@ namespace dim {
 		class BreakExpression : public NestedExpression {
 		public:
 			BreakExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression,
 				std::shared_ptr<IdentifierExpression> scopeName = nullptr
 			);
@@ -644,6 +672,7 @@ namespace dim {
 		class ReturnExpression : public NestedExpression {
 		public:
 			ReturnExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression = nullptr
 			);
 
@@ -657,6 +686,7 @@ namespace dim {
 		class OrExpression : public NestedExpression {
 		public:
 			OrExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression
 			);
 
@@ -669,7 +699,9 @@ namespace dim {
 
 		class DiscardExpression : public AssignableExpression {
 		public:
-			DiscardExpression();
+			DiscardExpression(
+        struct utils::Context ctx
+      );
 
 			std::string Repr(
 				const size_t indent = 0
@@ -688,6 +720,7 @@ namespace dim {
 		class AssignationExpression : public NestedExpression {
 		public:
 			AssignationExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<AssignableExpression> destination,
 				std::shared_ptr<Expression> expression
 			);
@@ -707,6 +740,7 @@ namespace dim {
 		class DeclarationExpression : public Expression {
 		public:
 			DeclarationExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> identifier,
 				std::shared_ptr<Expression> expression,
 				DatatypeStr datatype,
@@ -728,6 +762,7 @@ namespace dim {
 		class FunctionDeclarationExpression : public Expression {
 		public:
 			FunctionDeclarationExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> identifier,
 				std::vector<std::shared_ptr<DeclarationExpression>> arguments,
 				std::shared_ptr<ScopeExpression> scope,
@@ -757,6 +792,7 @@ namespace dim {
 		class FunctionCallExpression : public Expression {
 		public:
 			FunctionCallExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> identifier,
 				std::vector<std::shared_ptr<Expression>> arguments,
 				DatatypeStr returnDatatype
@@ -780,6 +816,7 @@ namespace dim {
 		class StructDeclarationExpression : public Expression {
 		public:
 			StructDeclarationExpression(
+        struct utils::Context ctx,
 				std::vector<std::shared_ptr<IdentifierExpression>> members,
 				std::shared_ptr<IdentifierExpression> name
 			);
@@ -801,6 +838,7 @@ namespace dim {
 		class StructExpression : public Expression {
 		public:
 			StructExpression(
+        struct utils::Context ctx,
 				std::vector<std::shared_ptr<IdentifierExpression>> members,
 				std::shared_ptr<IdentifierExpression> name
 			);
@@ -822,6 +860,7 @@ namespace dim {
 		class StructMemberAccessExpression : public AssignableExpression {
 		public:
 			StructMemberAccessExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> structIdentifier,
 				std::shared_ptr<IdentifierExpression> memberIdentifier,
 				DatatypeStr datatype
@@ -851,6 +890,7 @@ namespace dim {
     class StructImplementationExpression : public Expression {
     public:
       StructImplementationExpression(
+        struct utils::Context ctx,
         std::shared_ptr<IdentifierExpression> structIdentifier,
         std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
       );
@@ -878,6 +918,7 @@ namespace dim {
     class StructMemberFunctionAccessExpression : public Expression {
 		public:
 			StructMemberFunctionAccessExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> structIdentifier,
 				std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
         std::vector<std::shared_ptr<Expression>> arguments,

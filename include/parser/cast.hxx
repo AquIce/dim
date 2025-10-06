@@ -43,7 +43,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(value); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		value \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \
@@ -82,7 +85,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(value); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		value \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \
@@ -115,7 +121,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(static_cast<_FType>(value)); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		static_cast<_FType>(value) \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \

@@ -163,6 +163,7 @@ namespace dim {
 						return expressionRef;
 					}
 					return std::make_shared<F128Expression>(
+						utils::Context{ .line = 0, .column = 0 },
 						utils::stof128(numberExpression->GetValue())
 					);
 				} catch(...) {
