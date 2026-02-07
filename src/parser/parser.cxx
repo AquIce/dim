@@ -51,9 +51,11 @@ namespace dim {
 				tokens.insert(tokens.begin(), tk);
 				return std::unexpected(utils::Error{
 					.ctx = utils::Context{ .line = 0, .column = 0 },
-					.message = std::string("Invalid token value: got ")
-						+ tk.value + " expected " + expected.value + std::to_string(tk.ctx.line) + ":"
-	          + std::to_string(tk.ctx.column),
+					.message =
+						std::string("Invalid token value: got ")
+						+ tk.value + " expected " + expected.value
+						+ std::to_string(tk.ctx.line) + ":"
+						+ std::to_string(tk.ctx.column),
 					.type = utils::ErrorType::ERROR,
 				});
 			}
@@ -80,6 +82,7 @@ namespace dim {
 			) {
 				return tk.value;
 			}
+			
 			return std::unexpected(utils::Error{
 				.ctx = tk.ctx,
 				.message = "Expected type, found " + lexer::TokenRepr(
@@ -94,11 +97,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 
 			struct utils::Context ctx = tokens.front().ctx;
@@ -137,11 +140,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::DISCARD) {
 				return parse_identifier_expression(tokens, identifierRegister);
@@ -157,11 +160,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::NUL) {
 				return parse_discard_expression(tokens, identifierRegister);
@@ -177,11 +180,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::BOOLEAN) {
 				return parse_null_expression(tokens, identifierRegister);
@@ -199,11 +202,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::CHAR) {
 				return parse_boolean_expression(tokens, identifierRegister);
@@ -221,11 +224,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::STRING) {
 				return parse_char_expression(tokens, identifierRegister);
@@ -243,34 +246,36 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::NUMBER) {
 				return parse_string_expression(tokens, identifierRegister);
 			}
 
-      struct utils::Context autoCastCtx = tokens.front().ctx;
-      std::expected<
-        std::shared_ptr<Expression>,
-        std::string
-      > result = auto_cast(
+			struct utils::Context autoCastCtx = tokens.front().ctx;
+			
+			std::expected<
+				std::shared_ptr<Expression>,
+				std::string
+			> result = auto_cast(
 				std::make_shared<NumberExpression>(
 					autoCastCtx,
 					eat(tokens).value().value
 				)
 			);
-      if(!result) {
-        return std::unexpected(utils::Error{
-          .ctx = autoCastCtx,
-          .message = result.error(),
-          .type = utils::ErrorType::ERROR,
-        });
-      }
-      return result.value();
+
+			if(!result) {
+				return std::unexpected(utils::Error{
+					.ctx = autoCastCtx,
+					.message = result.error(),
+					.type = utils::ErrorType::ERROR,
+				});
+			}
+			return result.value();
 		}
 
 		Result<std::shared_ptr<Expression>> parse_struct_member_access_expression(
@@ -278,11 +283,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(
 				tokens.front().type != lexer::TokenType::IDENTIFIER
@@ -294,7 +299,8 @@ namespace dim {
 
 			std::string typeName;
 			struct utils::Context structCtx = tokens.front().ctx;
-      std::string structInstanceName = tokens.front().value;
+			std::string structInstanceName = tokens.front().value;
+			
 			{
 				std::expected<
 					IdentifierData,
@@ -324,14 +330,14 @@ namespace dim {
 
 			if(structClass->isNative()) {
 				return std::unexpected(utils::Error{
-          .ctx = tokens.front().ctx,
-          .message = "Invalid type '" + structClass->GetName() + "' is a native datatype.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = tokens.front().ctx,
+					.message = "Invalid type '" + structClass->GetName() + "' is a native datatype.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			auto customDatatypeClass = std::dynamic_pointer_cast<CustomDatatypeClass>(structClass);
 
-      struct utils::Context memberIdentifierCtx = tokens.front().ctx;
+			struct utils::Context memberIdentifierCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> memberIdentifierExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_identifier_expression,
@@ -341,76 +347,107 @@ namespace dim {
 			)
 			auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
 			
-      if(tokens.front().type == lexer::TokenType::PARENTHESIS && tokens.front().value == "(") {
-        (void)eat(tokens);
+			if(tokens.front().type == lexer::TokenType::PARENTHESIS && tokens.front().value == "(") {
+				(void)eat(tokens);
 
-        CustomDatatypeMemberFunction memberFunction;
-        {
-          std::expected<CustomDatatypeMemberFunction, std::string> result = customDatatypeClass->GetMemberFunction(
-  			  	memberIdentifier->GetName()
-  			  );
-
-	  		  if(!result) {
-	  			  return std::unexpected(utils::Error{
-              .ctx = memberIdentifierCtx,
-              .message = std::string("Invalid member function '") + memberIdentifier->GetName()
-                + "' for struct '" + structClass->GetName() + "'",
-              .type = utils::ErrorType::ERROR,
-            });
-	  		  }
-          memberFunction = result.value();
-        }
-
-        std::vector<std::shared_ptr<Expression>> arguments = {};
-			  while(
-				  tokens.size() > 0
-				  && (
-					  tokens.front().type != lexer::TokenType::PARENTHESIS
-					  || tokens.front().value != ")"
-				  )
-			  ) {
-				  if(arguments.size() > 0) {
-					  __TRY_TOKEN_FUNC_WRETERR(
-						  expect,
-						  tokens,
-						  lexer::MakeToken(lexer::TokenType::COMMA)
-					  )
-				  }
-
-  				// TODO: Add datatypes check
-
-  				std::shared_ptr<Expression> argument;
-  				__TRY_EXPR_FUNC_WRETERR_WSAVE(
-  					parse_expression,
-  					tokens,
-  					identifierRegister,
-  					argument
-  				)
-  				arguments.push_back(argument);
-	  		}
-
-  			if(tokens.size() == 0) {
-	        return std::unexpected(utils::Error{
-	          .ctx = utils::Context{ .line = 0, .column = 0 },
-	          .message = "Unexpected end of file in function declaration.",
-	          .type = utils::ErrorType::RETERR,
-	        });
-  			}
 				struct utils::Context ctx = tokens.front().ctx;
-  			(void)eat(tokens);
+				CustomDatatypeMemberFunction memberFunction;
+				{
+					std::expected<CustomDatatypeMemberFunction, std::string> result = customDatatypeClass->GetMemberFunction(
+						memberIdentifier->GetName()
+					);
 
-	  		return std::make_shared<StructMemberFunctionAccessExpression>(
-	  			memberIdentifierCtx,
-	  			std::make_shared<IdentifierExpression>(
-	  				structCtx,
-	  				identifierRegister,
-	  				structInstanceName
-	  			),
-	  			memberIdentifier,
-          arguments,
-          memberFunction.returnType
-	  		);
-      }
+					if(!result) {
+						return std::unexpected(utils::Error{
+							.ctx = memberIdentifierCtx,
+							.message =
+								std::string("Invalid member function '")
+								+ memberIdentifier->GetName() + "' for struct '"
+								+ structClass->GetName() + "'",
+							.type = utils::ErrorType::ERROR,
+						});
+					}
+					memberFunction = result.value();
+				}
+
+				std::vector<std::shared_ptr<Expression>> arguments = {};
+				size_t index = 0;
+				while(
+					tokens.size() > 0
+					&& (
+						tokens.front().type != lexer::TokenType::PARENTHESIS
+						|| tokens.front().value != ")"
+					)
+				) {
+					if(index >= memberFunction.argumentsTypes.size()) {
+						return std::unexpected(utils::Error{
+							.ctx = ctx,
+							.message =
+								std::string("Too many arguments (" + std::to_string(index)
+								+ ") provided to function ") + memberFunction.name,
+							.type = utils::ErrorType::RETERR,
+						});
+					}
+					if(arguments.size() > 0) {
+						__TRY_TOKEN_FUNC_WRETERR(
+							expect,
+							tokens,
+							lexer::MakeToken(lexer::TokenType::COMMA)
+						)
+					}
+
+					std::shared_ptr<Expression> argument;
+					__TRY_EXPR_FUNC_WRETERR_WSAVE(
+						parse_expression,
+						tokens,
+						identifierRegister,
+						argument
+					)
+					ctx = argument->ctx;
+
+					// TODO: Add arguments names to memberFunction
+			
+					if(!parser::isConvertible(argument->GetDatatype(), memberFunction.argumentsTypes.at(index))) {
+						return std::unexpected(utils::Error{
+							.ctx = ctx,
+							.message =
+								std::string("Invalid argument datatype ")
+								+ argument->GetDatatype()
+								+ " (expected " + memberFunction.argumentsTypes.at(index)
+								+ ") on argument `" + "[TODO] "+ "` when calling function `"
+								+ customDatatypeClass->GetName() + "."
+								+ memberFunction.name + "`",
+							.type = utils::ErrorType::RETERR,
+						});
+					}
+					index++;
+
+					arguments.push_back(argument);
+				}
+
+				if(tokens.size() == 0) {
+					return std::unexpected(utils::Error{
+						.ctx = utils::Context{ .line = 0, .column = 0 },
+						.message = "Unexpected end of file in function declaration.",
+						.type = utils::ErrorType::RETERR,
+					});
+				}
+				
+				ctx = tokens.front().ctx;
+				(void)eat(tokens);
+
+				return std::make_shared<StructMemberFunctionAccessExpression>(
+					memberIdentifierCtx,
+					std::make_shared<IdentifierExpression>(
+						structCtx,
+						identifierRegister,
+						structInstanceName
+					),
+					memberIdentifier,
+					arguments,
+					memberFunction.returnType
+				);
+			}
 
 			std::expected<CustomDatatypeMember, std::string> result = customDatatypeClass->GetMember(
 				memberIdentifier->GetName()
@@ -418,12 +455,14 @@ namespace dim {
 
 			if(!result) {
 				return std::unexpected(utils::Error{
-          .ctx = memberIdentifierCtx,
-          .message = std::string("Invalid member '") + memberIdentifier->GetName()
-            + "' for struct '" + structClass->GetName() + "'",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = memberIdentifierCtx,
+					.message =
+						std::string("Invalid member '") + memberIdentifier->GetName()
+						+ "' for struct '" + structClass->GetName() + "'",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
+			
 			return std::make_shared<StructMemberAccessExpression>(
 				memberIdentifierCtx,
 				std::make_shared<IdentifierExpression>(
@@ -441,12 +480,13 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
+
 			std::string potentialIdentifierName = tokens.front().value;
 			std::vector<std::shared_ptr<FunctionDeclarationExpression>>::iterator funcIter = std::find_if(
 				functions.begin(),
@@ -469,7 +509,11 @@ namespace dim {
 				lexer::MakeToken(lexer::TokenType::PARENTHESIS, "(")
 			)
 
+			std::vector<std::shared_ptr<DeclarationExpression>> wantedArgs = (*funcIter)->GetArguments();
 			std::vector<std::shared_ptr<Expression>> arguments = {};
+			size_t index = 0;
+			struct utils::Context ctx = (*funcIter)->ctx;
+
 			while(
 				tokens.size() > 0
 				&& (
@@ -477,6 +521,14 @@ namespace dim {
 					|| tokens.front().value != ")"
 				)
 			) {
+				if(index >= wantedArgs.size()) {
+					return std::unexpected(utils::Error{
+						.ctx = ctx,
+						.message = std::string("Too many arguments (" + std::to_string(index) + ") provided to function ") + (*funcIter)->GetIdentifier()->GetName(),
+						.type = utils::ErrorType::RETERR,
+					});
+				}
+
 				if(arguments.size() > 0) {
 					__TRY_TOKEN_FUNC_WRETERR(
 						expect,
@@ -485,8 +537,6 @@ namespace dim {
 					)
 				}
 
-				// TODO: Add datatypes check
-
 				std::shared_ptr<Expression> argument;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_expression,
@@ -494,17 +544,33 @@ namespace dim {
 					identifierRegister,
 					argument
 				)
+				ctx = argument->ctx;
+
+				if(!parser::isConvertible(argument->GetDatatype(), wantedArgs.at(index)->GetDatatype())) {
+					return std::unexpected(utils::Error{
+						.ctx = ctx,
+						.message =
+							std::string("Invalid argument datatype ")
+							+ argument->GetDatatype()
+							+ " (expected " + (*funcIter)->GetIdentifier()->GetName()
+							+ ") on argument `" + wantedArgs.at(index)->GetIdentifier()->GetName() + "` when calling function `"
+							+ (*funcIter)->GetIdentifier()->GetName() + "`",
+						.type = utils::ErrorType::RETERR,
+					});
+				}
+				index++;
+
 				arguments.push_back(argument);
 			}
 
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in function declaration.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in function declaration.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
-			struct utils::Context ctx = tokens.front().ctx;
+			ctx = tokens.front().ctx;
 			(void)eat(tokens);
 
 			return std::make_shared<FunctionCallExpression>(
@@ -520,17 +586,17 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::IDENTIFIER) {
 				return parse_fn_call_expression(tokens, identifierRegister);
 			}
 
-      struct utils::Context structClassCtx = tokens.front().ctx;
+			struct utils::Context structClassCtx = tokens.front().ctx;
 			std::shared_ptr<DatatypeClass> structClass;
 			{
 				std::expected<
@@ -546,10 +612,10 @@ namespace dim {
 
 			if(structClass->isNative()) {
 				return std::unexpected(utils::Error{
-          .ctx = structClassCtx,
-          .message = "Invalid type '" + structClass->GetName() + "' is a native datatype.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = structClassCtx,
+					.message = "Invalid type '" + structClass->GetName() + "' is a native datatype.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			auto customDatatypeClass = std::dynamic_pointer_cast<CustomDatatypeClass>(structClass);
 
@@ -590,10 +656,10 @@ namespace dim {
 					> result = customDatatypeClass->GetMember(memberIdentifier->GetName());
 					if(!result) {
 						return std::unexpected(utils::Error{
-              .ctx = tokens.front().ctx,
-              .message = result.error(),
-              .type = utils::ErrorType::ERROR,
-            });
+							.ctx = tokens.front().ctx,
+							.message = result.error(),
+							.type = utils::ErrorType::ERROR,
+						});
 					}
 					structMemberType = result.value().type->GetName();
 				}
@@ -620,11 +686,12 @@ namespace dim {
 
 					if(!result) {
 						return std::unexpected(utils::Error{
-              .ctx = tokens.front().ctx,
-							.message = "Expected member '" + memberIdentifier->GetName()
-							  + "' of type : " + structMemberType + ", got : " + argument->GetDatatype(),
-              .type = utils::ErrorType::ERROR,
-            });
+							.ctx = tokens.front().ctx,
+							.message =
+								std::string("Expected member '") + memberIdentifier->GetName()
+								+ "' of type : " + structMemberType + ", got : " + argument->GetDatatype(),
+							.type = utils::ErrorType::ERROR,
+						});
 					}
 
 					argument = result.value();
@@ -643,11 +710,11 @@ namespace dim {
 			}
 		
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in struct declaration.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in struct declaration.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			(void)eat(tokens);
 
@@ -667,11 +734,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::BREAK) {
 				return parse_struct_expression(tokens, identifierRegister);
@@ -719,11 +786,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::RETURN) {
 				return parse_break_expression(tokens, identifierRegister);
@@ -731,9 +798,9 @@ namespace dim {
 			struct utils::Context ctx = tokens.front().ctx;
 			(void)eat(tokens);
 
-      if(tokens.front().type == lexer::TokenType::EOL) {
+			if(tokens.front().type == lexer::TokenType::EOL) {
 				return std::make_shared<ReturnExpression>(ctx);
-      }
+			}
 
 			Result<std::shared_ptr<Expression>> result = parse_expression(
 				tokens,
@@ -741,7 +808,7 @@ namespace dim {
 			);
 
 			if(!result) {
-        return std::unexpected(result.error());
+				return std::unexpected(result.error());
 			}
 
 			return std::make_shared<ReturnExpression>(
@@ -755,18 +822,18 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::OR) {
 				return std::unexpected(utils::Error{
-          .ctx = tokens.front().ctx,
-          .message = "No or expression found.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = tokens.front().ctx,
+					.message = "No or expression found.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			struct utils::Context ctx = tokens.front().ctx;
 			(void)eat(tokens);
@@ -790,11 +857,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(
 				tokens.front().type != lexer::TokenType::PARENTHESIS
@@ -834,10 +901,10 @@ namespace dim {
 		) {
 			if(tokens.size() == 0) {
 				return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(
 				tokens.front().type != lexer::TokenType::UNARY_OPERATOR
@@ -850,7 +917,7 @@ namespace dim {
 			}
 			std::string operatorSymbol = eat(tokens).value().value;
 
-      struct utils::Context termCtx = tokens.front().ctx;
+			struct utils::Context termCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> term;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_unary_expression,
@@ -874,10 +941,10 @@ namespace dim {
 					&& term->Type() != NodeType::F128
 				) {
 					return std::unexpected(utils::Error{
-            .ctx = termCtx,
-            .message = "Trying to apply - operator to non-number expression.",
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = termCtx,
+						.message = "Trying to apply - operator to non-number expression.",
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 				std::string value = std::dynamic_pointer_cast<NumberExpression>(term)->GetValue();
 				std::dynamic_pointer_cast<NumberExpression>(term)->SetValue(
@@ -898,12 +965,13 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
+
 			struct utils::Context leftCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -932,7 +1000,7 @@ namespace dim {
 			) {
 				std::string operatorSymbol = eat(tokens).value().value;
 
-        struct utils::Context rightCtx = tokens.front().ctx;
+				struct utils::Context rightCtx = tokens.front().ctx;
 				std::shared_ptr<Expression> right;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_logical_expression,
@@ -942,16 +1010,21 @@ namespace dim {
 				)
 
 				if(
-           left->GetDatatype() != "INFER"
-           && right->GetDatatype() != "INFER"
-           && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
-        ) {
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(
+						left->GetDatatype(),
+						operatorSymbol,
+						right->GetDatatype()
+					)
+				) {
 					return std::unexpected(utils::Error{
-            .ctx = rightCtx,
-						.message = std::string("Got non-matching operands types : ")
-						  + left->Repr() + " and " + right->Repr(),
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operands types : ")
+							+ left->Repr() + " and " + right->Repr(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 
 				left = std::make_shared<BinaryExpression>(
@@ -972,11 +1045,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+				.ctx = utils::Context{ .line = 0, .column = 0 },
+				.message = "Unexpected end of file.",
+				.type = utils::ErrorType::RETERR,
+				});
 			}
 			struct utils::Context leftCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> left;
@@ -994,7 +1067,7 @@ namespace dim {
 			) {
 				std::string operatorSymbol = eat(tokens).value().value;
 
-        struct utils::Context rightCtx = tokens.front().ctx;
+				struct utils::Context rightCtx = tokens.front().ctx;
 				std::shared_ptr<Expression> right;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_multiplicative_expression,
@@ -1003,17 +1076,18 @@ namespace dim {
 					right
 				)
 
-        if(
-          left->GetDatatype() != "INFER"
-          && right->GetDatatype() != "INFER"
-          && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
-        ) {
+				if(
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
+				) {
 					return std::unexpected(utils::Error{
-            .ctx = rightCtx,
-						.message = std::string("Got non-matching operand types : ")
-						  + left->GetDatatype() + " and " + right->GetDatatype(),
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operand types : ")
+							+ left->GetDatatype() + " and " + right->GetDatatype(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 
 				left = std::make_shared<BinaryExpression>(
@@ -1032,11 +1106,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			struct utils::Context leftCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> left;
@@ -1054,7 +1128,7 @@ namespace dim {
 			) {
 				std::string operatorSymbol = eat(tokens).value().value;
 
-        struct utils::Context rightCtx = tokens.front().ctx;
+				struct utils::Context rightCtx = tokens.front().ctx;
 				std::shared_ptr<Expression> right;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_multiplicative_expression,
@@ -1063,17 +1137,18 @@ namespace dim {
 					right
 				)
 
-        if(
-          left->GetDatatype() != "INFER"
-          && right->GetDatatype() != "INFER"
-          && !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
-        ) {
+				if(
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(left->GetDatatype(), operatorSymbol, right->GetDatatype())
+				) {
 					return std::unexpected(utils::Error{
-            .ctx = rightCtx,
-						.message = std::string("Got non-matching operand types : ")
-						  + left->GetDatatype() + " and " + right->GetDatatype(),
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operand types : ")
+							+ left->GetDatatype() + " and " + right->GetDatatype(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 
 				left = std::make_shared<BinaryExpression>(
@@ -1100,11 +1175,11 @@ namespace dim {
 			const bool allow_if
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in if-else structure.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in if-else structure.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 
 			struct lexer::Token keyword;
@@ -1114,10 +1189,10 @@ namespace dim {
 				&& !allow_if && tokens.front().value == "if"
 			) {
 				return std::unexpected(utils::Error{
-          .ctx = tokens.front().ctx,
-          .message = "Start of a new if-else structure",
-          .type = utils::ErrorType::RETERR,
-        });
+					.ctx = tokens.front().ctx,
+					.message = "Start of a new if-else structure",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 
 			struct utils::Context ctx = tokens.front().ctx;
@@ -1175,7 +1250,7 @@ namespace dim {
 		) {
 			auto innerRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
 
-      struct utils::Context ifElseExpressionCtx = tokens.front().ctx;
+			struct utils::Context ifElseExpressionCtx = tokens.front().ctx;
 			Result<std::shared_ptr<Expression>> result = parse_ifelse_expression(tokens, innerRegister);
 
 			if(!result) {
@@ -1201,10 +1276,10 @@ namespace dim {
 
 			if(!try_n_cast(expressionsUp)) {
 				return std::unexpected(utils::Error{
-          .ctx = ifElseExpressionCtx,
-          .message = "Different type if-else structure.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = ifElseExpressionCtx,
+					.message = "Different type if-else structure.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			return std::make_shared<IfElseStructure>(
@@ -1221,21 +1296,21 @@ namespace dim {
 			std::shared_ptr<Expression> condition = nullptr;
 
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in match structure.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in match structure.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 
 			struct utils::Context ctx = tokens.front().ctx;
 			if(tokens.front().type == lexer::TokenType::DISCARD) {
 				if(!allow_default) {
 					return std::unexpected(utils::Error{
-            .ctx = tokens.front().ctx,
-            .message = "Got two default cases in match structure.",
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = tokens.front().ctx,
+						.message = "Got two default cases in match structure.",
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 				(void)eat(tokens);
 			} else if(
@@ -1290,11 +1365,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::MATCH) {
 				return parse_ifelse_structure(tokens, identifierRegister);
@@ -1323,19 +1398,19 @@ namespace dim {
 
 			std::vector<std::shared_ptr<MatchExpression>> expressions = {};
 			bool got_default_case = false;
-      struct utils::Context matchExpressionCtx;
+			struct utils::Context matchExpressionCtx;
 
 			while(
 				tokens.size() > 0
 				&& tokens.front().type != lexer::TokenType::BRACE
 				&& tokens.front().value != "}"
 			) {
-        matchExpressionCtx = tokens.front().ctx;
+				matchExpressionCtx = tokens.front().ctx;
 				Result<std::shared_ptr<Expression>> result = parse_match_expression(
-          tokens,
-          innerRegister,
-          !got_default_case
-        );
+					tokens,
+					innerRegister,
+					!got_default_case
+				);
 
 				if(!result) {
 					return std::unexpected(result.error());
@@ -1359,10 +1434,10 @@ namespace dim {
 
 			if(!try_n_cast(expressionsUp)) {
 				return std::unexpected(utils::Error{
-          .ctx = matchExpressionCtx,
-          .message = "Different type match structure.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = matchExpressionCtx,
+					.message = "Different type match structure.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			return std::make_shared<MatchStructure>(
@@ -1377,11 +1452,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::LOOP) {
 				return parse_match_structure(tokens, identifierRegister);
@@ -1432,16 +1507,18 @@ namespace dim {
 					)
 				}
 				else if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::AT) {
-          struct utils::Context initialCtx = tokens.front().ctx;
+					struct utils::Context initialCtx = tokens.front().ctx;
 					if(initialExpression->Type() != NodeType::IDENTIFIER) {
 						return std::unexpected(utils::Error{
-              .ctx = initialCtx,
-              .message = "Expected identifier in @ loop",
-              .type = utils::ErrorType::ERROR,
-            });
+							.ctx = initialCtx,
+							.message = "Expected identifier in @ loop",
+							.type = utils::ErrorType::ERROR,
+						});
 					}
 					(void)eat(tokens);
-          utils::Context startCtx = tokens.front().ctx;
+
+					struct utils::Context startCtx = tokens.front().ctx;
+
 					std::shared_ptr<Expression> startExpression;
 					if(tokens.size() > 1 && tokens.front().type != lexer::TokenType::DOUBLE_DOT) {
 						__TRY_EXPR_FUNC_WRETERR_WSAVE(
@@ -1456,10 +1533,10 @@ namespace dim {
 							|| startExpression->GetDatatype() == "STRING"
 						) {
 							return std::unexpected(utils::Error{
-                .ctx = startCtx,
-                .message = "Expected number value for @ loop's start expression.",
-                .type = utils::ErrorType::ERROR,
-              });
+								.ctx = startCtx,
+								.message = "Expected number value for @ loop's start expression.",
+								.type = utils::ErrorType::ERROR,
+							});
 						}
 					} else {
 						startExpression = std::make_shared<I8Expression>(startCtx, 0);
@@ -1469,7 +1546,8 @@ namespace dim {
 						tokens,
 						lexer::MakeToken(lexer::TokenType::DOUBLE_DOT)
 					)
-          struct utils::Context endCtx = tokens.front().ctx;
+
+					struct utils::Context endCtx = tokens.front().ctx;
 					std::shared_ptr<Expression> endExpression;
 					__TRY_EXPR_FUNC_WRETERR_WSAVE(
 						parse_expression,
@@ -1483,14 +1561,15 @@ namespace dim {
 						|| endExpression->GetDatatype() == "STRING"
 					) {
 						return std::unexpected(utils::Error{
-              .ctx = endCtx,
-              .message = "Expected number value for @ loop's end expression.",
-              .type = utils::ErrorType::ERROR,
-            });
+							.ctx = endCtx,
+							.message = "Expected number value for @ loop's end expression.",
+							.type = utils::ErrorType::ERROR,
+						});
 					}
 					std::string identifierName = std::dynamic_pointer_cast<IdentifierExpression>(
 						initialExpression
 					)->GetName();
+
 					initialExpression = std::make_shared<DeclarationExpression>(
 						initialCtx,
 						std::dynamic_pointer_cast<IdentifierExpression>(initialExpression),
@@ -1499,21 +1578,21 @@ namespace dim {
 						false
 					);
 
-          if(innerRegister->Get(identifierName)) {
-    				return std::unexpected(utils::Error{
-              .ctx = initialCtx,
-              .message = "Variable name '" + identifierName + "' already exists",
-              .type = utils::ErrorType::ERROR,
-            });
-    			}
+					if(innerRegister->Get(identifierName)) {
+						return std::unexpected(utils::Error{
+							.ctx = initialCtx,
+							.message = "Variable name '" + identifierName + "' already exists",
+							.type = utils::ErrorType::ERROR,
+						});
+					}
 
-	    		innerRegister->Register(
-	    			IdentifierData{
-	    				identifierName,
-	    				false,
-	    				endExpression->GetDatatype()
-            }
-	    		);
+					innerRegister->Register(
+						IdentifierData{
+							identifierName,
+							false,
+							endExpression->GetDatatype()
+						}
+					);
 
 					auto identifierExpression = std::make_shared<IdentifierExpression>(
 						initialCtx,
@@ -1528,7 +1607,7 @@ namespace dim {
 							initialCtx,
 							identifierExpression,
 							"+",
-              std::make_shared<I8Expression>(initialCtx, 1)
+							std::make_shared<I8Expression>(initialCtx, 1)
 						)
 					);
 					condition = std::make_shared<BinaryExpression>(
@@ -1558,7 +1637,7 @@ namespace dim {
 			std::shared_ptr<OrExpression> orExpression;
 
 			if(initialExpression != nullptr) {
-        struct utils::Context orCtx = tokens.front().ctx;
+				struct utils::Context orCtx = tokens.front().ctx;
 				__TRY_EXPECTED_FUNC_WRETERR_WSAVE__NEW(
 					parse_or_expression,
 					std::shared_ptr<OrExpression>,
@@ -1574,11 +1653,12 @@ namespace dim {
 					}))
 				) {
 					return std::unexpected(utils::Error{
-            .ctx = orCtx,
-						.message = std::string("Got non-matching operand types : ")
-						  + orExpression->GetDatatype() + " and " + scope->GetDatatype(),
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = orCtx,
+						.message =
+							std::string("Got non-matching operand types : ")
+							+ orExpression->GetDatatype() + " and " + scope->GetDatatype(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 			} else {
 				return std::make_shared<LoopExpression>(ctx, scope);
@@ -1608,27 +1688,26 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
+			if(tokens.front().type != lexer::TokenType::IDENTIFIER) {
+				return parse_loop_expression(tokens, identifierRegister);
+			}
+
+			size_t memberOffset = 0;
 			if(
-				tokens.front().type != lexer::TokenType::IDENTIFIER
-      ) {
-        return parse_loop_expression(tokens, identifierRegister);
-      }
-      size_t memberOffset = 0;
-      if(
-        tokens.at(1).type == lexer::TokenType::DOT
-        && tokens.at(2).type == lexer::TokenType::IDENTIFIER
-      ) {
-        memberOffset = 2;
-      }
-      if(tokens.size() <= 2 + memberOffset) {
-        return parse_loop_expression(tokens, identifierRegister);
-      }
+				tokens.at(1).type == lexer::TokenType::DOT
+				&& tokens.at(2).type == lexer::TokenType::IDENTIFIER
+			) {
+				memberOffset = 2;
+			}
+			if(tokens.size() <= 2 + memberOffset) {
+				return parse_loop_expression(tokens, identifierRegister);
+			}
 			if(
 			  tokens.at(1 + memberOffset).type != lexer::TokenType::EQUALS
 				&& (
@@ -1644,31 +1723,34 @@ namespace dim {
 			}
 
 			std::shared_ptr<AssignableExpression> assignable;
-      std::string name;
-      struct utils::Context assignableCtx = tokens.front().ctx;
-      if(memberOffset == 0) {
-        assignable = std::dynamic_pointer_cast<IdentifierExpression>(
-          parse_identifier_expression(
-		  		  tokens,
-		  		  identifierRegister
-		  	  ).value()
-        );
-        name = std::dynamic_pointer_cast<IdentifierExpression>(assignable)->GetName();
-      } else {
-        std::shared_ptr<Expression> structMemberAccessExpression;
-        __TRY_EXPR_FUNC_WRETERR_WSAVE(
+			std::string name;
+			struct utils::Context assignableCtx = tokens.front().ctx;
+			if(memberOffset == 0) {
+				assignable = std::dynamic_pointer_cast<IdentifierExpression>(
+					parse_identifier_expression(
+						tokens,
+						identifierRegister
+					).value()
+				);
+				name = std::dynamic_pointer_cast<IdentifierExpression>(assignable)->GetName();
+			} else {
+				std::shared_ptr<Expression> structMemberAccessExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
 					parse_struct_member_access_expression,
 					tokens,
 					identifierRegister,
 					structMemberAccessExpression
 				)
-        assignable = std::dynamic_pointer_cast<StructMemberAccessExpression>(
-          structMemberAccessExpression
-        );
-        name = std::dynamic_pointer_cast<StructMemberAccessExpression>(assignable)->GetStruct()->GetName();
-      }
+				assignable = std::dynamic_pointer_cast<StructMemberAccessExpression>(
+					structMemberAccessExpression
+				);
+				name = std::dynamic_pointer_cast<StructMemberAccessExpression>(
+					assignable
+				)->GetStruct()->GetName();
+			}
 
-			std::string unaryOperator = (tokens.size() > 0 && tokens.front().type == lexer::TokenType::UNARY_OPERATOR)
+			std::string unaryOperator =
+				(tokens.size() > 0 && tokens.front().type == lexer::TokenType::UNARY_OPERATOR)
 				? std::string(1, eat(tokens).value().value.at(1))
 				: "";
 
@@ -1696,10 +1778,10 @@ namespace dim {
 
 			if(!identifierRegister->Get(name)) {
 				return std::unexpected(utils::Error{
-          .ctx = assignableCtx,
-          .message = "Variable name '" + name + "' does not exist yet",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = assignableCtx,
+					.message = "Variable name '" + name + "' does not exist yet",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			if(unaryOperator != "") {
@@ -1720,22 +1802,22 @@ namespace dim {
 				);
 			}
 
-      {
-        std::expected<
-          Success,
-          std::string
-        > result = assignable->TryAssign(
-          identifierRegister,
-          expression
-        );
-        if(!result) {
-          return std::unexpected(utils::Error{
-            .ctx = assignableCtx,
-            .message = result.error(),
-            .type = utils::ErrorType::ERROR,
-          });
-        }
-      }
+			{
+				std::expected<
+					Success,
+					std::string
+				> result = assignable->TryAssign(
+					identifierRegister,
+					expression
+				);
+				if(!result) {
+					return std::unexpected(utils::Error{
+						.ctx = assignableCtx,
+						.message = result.error(),
+						.type = utils::ErrorType::ERROR,
+					});
+				}
+			}
 
 			return std::make_shared<AssignationExpression>(
 				assignableCtx,
@@ -1749,11 +1831,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::DECL) {
 				return parse_assignation_expression(tokens, identifierRegister);
@@ -1763,7 +1845,7 @@ namespace dim {
 
 			bool isConst = eat(tokens).value().value == "const";
 
-      struct utils::Context identifierCtx = tokens.front().ctx;
+			struct utils::Context identifierCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> identifierExpression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_identifier_expression,
@@ -1772,13 +1854,13 @@ namespace dim {
 				identifierExpression
 			)
 
-      if(std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName() == "this") {
-        return std::unexpected(utils::Error{
-          .ctx = identifierCtx,
-          .message = "Trying to declare 'this' keyword as variable name.",
-          .type = utils::ErrorType::ERROR,
-        });
-      }
+			if(std::dynamic_pointer_cast<IdentifierExpression>(identifierExpression)->GetName() == "this") {
+				return std::unexpected(utils::Error{
+					.ctx = identifierCtx,
+					.message = "Trying to declare 'this' keyword as variable name.",
+					.type = utils::ErrorType::ERROR,
+				});
+			}
 
 			__TRY_TOKEN_FUNC_WRETERR(
 				expect,
@@ -1805,7 +1887,7 @@ namespace dim {
 				lexer::MakeToken(lexer::TokenType::EQUALS)
 			)
 
-      struct utils::Context exprCtx = tokens.front().ctx;
+			struct utils::Context exprCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> expression;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
 				parse_expression,
@@ -1826,11 +1908,12 @@ namespace dim {
 
 				if(!result) {
 					return std::unexpected(utils::Error{
-            .ctx = exprCtx,
-						.message = std::string("Expected type ")
-						  + datatype + ", got " + gotDatatype,
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = exprCtx,
+						.message =
+							std::string("Expected type ")
+							+ datatype + ", got " + gotDatatype,
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 
 				expression = result.value();
@@ -1842,10 +1925,10 @@ namespace dim {
 
 			if(identifierRegister->Get(identifier->GetName())) {
 				return std::unexpected(utils::Error{
-          .ctx = identifierCtx,
-          .message = "Variable name '" + identifier->GetName() + "' already exists",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = identifierCtx,
+					.message = "Variable name '" + identifier->GetName() + "' already exists",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			identifierRegister->Register(
@@ -1870,11 +1953,11 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(tokens.front().type != lexer::TokenType::FN) {
 				return parse_declaration_expression(tokens, identifierRegister);
@@ -1955,11 +2038,11 @@ namespace dim {
 			}
 
 			if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in function declaration.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in function declaration.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			(void)eat(tokens);
 
@@ -2001,156 +2084,156 @@ namespace dim {
 			return functions.back();
 		}
 
-    Result<std::shared_ptr<Expression>> parse_struct_declaration_expression(
-      std::vector<struct lexer::Token>& tokens,
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister
-    ) {
-  		if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
-  		}
-  		if(tokens.front().type != lexer::TokenType::STRUCT) {
-  			return parse_fn_declaration_expression(tokens, identifierRegister);
-  		}
-  		struct utils::Context ctx = tokens.front().ctx;
-	  	(void)eat(tokens);
+		Result<std::shared_ptr<Expression>> parse_struct_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			if(tokens.front().type != lexer::TokenType::STRUCT) {
+				return parse_fn_declaration_expression(tokens, identifierRegister);
+			}
+			struct utils::Context ctx = tokens.front().ctx;
+			(void)eat(tokens);
 
-  		__TRY_TOKEN_FUNC_WRETERR(
-  			expect,
-  			tokens,
-  			lexer::MakeToken(
-  				lexer::TokenType::BRACE,
-  				"{"
-  			)
-  		)
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::BRACE,
+					"{"
+				)
+			)
 
-  		std::vector<std::shared_ptr<IdentifierExpression>> memberExpressions = {};
+			std::vector<std::shared_ptr<IdentifierExpression>> memberExpressions = {};
 
-  		while(tokens.size() > 0) {
-  			if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
-  				break;
-  			}
-  			std::shared_ptr<Expression> memberIdentifierExpression;
-  			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-  				parse_identifier_expression,
-  				tokens,
-  				identifierRegister,
-  				memberIdentifierExpression
-  			)
-  			auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
+			while(tokens.size() > 0) {
+				if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
+					break;
+				}
+				std::shared_ptr<Expression> memberIdentifierExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_identifier_expression,
+					tokens,
+					identifierRegister,
+					memberIdentifierExpression
+				)
+				auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
 
-  			__TRY_TOKEN_FUNC_WRETERR(
-  				expect,
-  				tokens,
-  				lexer::MakeToken(lexer::TokenType::COLON)
-  			)
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::COLON)
+				)
 
-        struct utils::Context argumentDatatypeCtx = tokens.front().ctx;
-  			DatatypeStr argumentDatatype = "";
-  			__TRY_EXPECTED_FUNC_WRETERR_WSAVE__NEW(
-  				expect_type,
-  				std::string,
-  				argumentDatatype,
-  				tokens
-  			)
+				struct utils::Context argumentDatatypeCtx = tokens.front().ctx;
+				DatatypeStr argumentDatatype = "";
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE__NEW(
+					expect_type,
+					std::string,
+					argumentDatatype,
+					tokens
+				)
 
-  			if(!GetDatatypeClass(argumentDatatype)) {
-  				return std::unexpected(utils::Error{
-            .ctx = argumentDatatypeCtx,
-            .message = "Invalid datatype in struct declaration : " + argumentDatatype,
-            .type = utils::ErrorType::ERROR,
-          });
-  			}
+				if(!GetDatatypeClass(argumentDatatype)) {
+					return std::unexpected(utils::Error{
+						.ctx = argumentDatatypeCtx,
+						.message = "Invalid datatype in struct declaration : " + argumentDatatype,
+						.type = utils::ErrorType::ERROR,
+					});
+				}
 
-  			memberIdentifier->SetDatatype(argumentDatatype);
-  			memberExpressions.push_back(memberIdentifier);
+				memberIdentifier->SetDatatype(argumentDatatype);
+				memberExpressions.push_back(memberIdentifier);
 
-  			__TRY_TOKEN_FUNC_WRETERR(
-  				expect,
-  				tokens,
-  				lexer::MakeToken(lexer::TokenType::EOL)
-  			)
-  		}
-  		if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in struct declaration.",
-          .type = utils::ErrorType::RETERR,
-        });
-  		}
-  		(void)eat(tokens);
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::EOL)
+				)
+			}
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in struct declaration.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			(void)eat(tokens);
 
-  		std::shared_ptr<Expression> structIdentifierExpression;
-  		__TRY_EXPR_FUNC_WRETERR_WSAVE(
-  			parse_identifier_expression,
-  			tokens,
-  			identifierRegister,
-  			structIdentifierExpression
-  		)
-	  	auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
+			std::shared_ptr<Expression> structIdentifierExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_identifier_expression,
+				tokens,
+				identifierRegister,
+				structIdentifierExpression
+			)
+			auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
 
-  		datatypes.push_back(
-  			std::make_shared<CustomDatatypeClass>(
-  				structIdentifier->GetName(),
-  				dim::utils::to_unordered_set<CustomDatatypeMember>(
-  					dim::utils::map<std::shared_ptr<IdentifierExpression>, CustomDatatypeMember>(
-  						memberExpressions,
-  						[](const std::shared_ptr<IdentifierExpression>& member) {
-  							return CustomDatatypeMember{
-  								.type = GetDatatypeClass(member->GetDatatype()).value(),
-  								.name = member->GetName()
-  							};
-  						}
-  	    		)
-      		)
-      	)
-		  );
+			datatypes.push_back(
+				std::make_shared<CustomDatatypeClass>(
+					structIdentifier->GetName(),
+					dim::utils::to_unordered_set<CustomDatatypeMember>(
+						dim::utils::map<std::shared_ptr<IdentifierExpression>, CustomDatatypeMember>(
+							memberExpressions,
+							[](const std::shared_ptr<IdentifierExpression>& member) {
+								return CustomDatatypeMember{
+									.type = GetDatatypeClass(member->GetDatatype()).value(),
+									.name = member->GetName()
+								};
+							}
+						)
+					)
+				)
+			);
 
-  		return std::make_shared<StructDeclarationExpression>(
-  			ctx,
-  			memberExpressions,
-  			structIdentifier
-  		);
-    }
+			return std::make_shared<StructDeclarationExpression>(
+				ctx,
+				memberExpressions,
+				structIdentifier
+			);
+		}
 
-    Result<std::shared_ptr<Expression>> parse_struct_implementation_expression(
-      std::vector<struct lexer::Token>& tokens,
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister
-    ) {
-      if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
-      }
-      if(tokens.front().type != lexer::TokenType::IMPL) {
-        return parse_struct_declaration_expression(tokens, identifierRegister);
-      }
-      struct utils::Context ctx = tokens.front().ctx;
-      (void)eat(tokens);
+		Result<std::shared_ptr<Expression>> parse_struct_implementation_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			if(tokens.front().type != lexer::TokenType::IMPL) {
+				return parse_struct_declaration_expression(tokens, identifierRegister);
+			}
+			struct utils::Context ctx = tokens.front().ctx;
+			(void)eat(tokens);
 
-      struct utils::Context structIdentifierCtx = tokens.front().ctx;
-      std::shared_ptr<Expression> structIdentifierExpression;
-  		__TRY_EXPR_FUNC_WRETERR_WSAVE(
-  			parse_identifier_expression,
-  			tokens,
-  			identifierRegister,
-  			structIdentifierExpression
-  		)
-      auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
+			struct utils::Context structIdentifierCtx = tokens.front().ctx;
+			std::shared_ptr<Expression> structIdentifierExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_identifier_expression,
+				tokens,
+				identifierRegister,
+				structIdentifierExpression
+			)
+			auto structIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression);
 
-      __TRY_TOKEN_FUNC_WRETERR(
-  			expect,
-  			tokens,
-  			lexer::MakeToken(
-  				lexer::TokenType::BRACE,
-  				"{"
-  			)
-  		)
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::BRACE,
+					"{"
+				)
+			)
 
 			std::shared_ptr<DatatypeClass> structClass;
 			{
@@ -2159,88 +2242,93 @@ namespace dim {
 					std::string
 				> result = GetDatatypeClass(structIdentifier->GetName());
 				if(!result) {
-          return std::unexpected(utils::Error{
-            .ctx = structIdentifierCtx,
-            .message = "Invalid typename '" + structIdentifier->GetName() + "' in impl block.",
-            .type = utils::ErrorType::ERROR,
-          });
+					return std::unexpected(utils::Error{
+						.ctx = structIdentifierCtx,
+						.message = "Invalid typename '" + structIdentifier->GetName() + "' in impl block.",
+						.type = utils::ErrorType::ERROR,
+					});
 				}
-				
+					
 				structClass = result.value();
 			}
 
-      if(structClass->isNative()) {
-         return std::unexpected(utils::Error{
-           .ctx = structIdentifierCtx,
-           .message = "Invalid type '" + structClass->GetName() + "' is a native datatype in impl block.",
-           .type = utils::ErrorType::ERROR,
-         });
+			if(structClass->isNative()) {
+				return std::unexpected(utils::Error{
+					.ctx = structIdentifierCtx,
+					.message = "Invalid type '" + structClass->GetName() + "' is a native datatype in impl block.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			auto customDatatypeClass = std::dynamic_pointer_cast<CustomDatatypeClass>(structClass);
 
-      auto thisIdentifierRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
-      thisIdentifierRegister->Register(IdentifierData{
-        .name = "this",
-        .isConst = false,
-        .datatype = structIdentifier->GetName()
-      });
+			auto thisIdentifierRegister = std::make_shared<ScopeIdentifierRegister>(identifierRegister);
+			thisIdentifierRegister->Register(IdentifierData{
+				.name = "this",
+				.isConst = false,
+				.datatype = structIdentifier->GetName()
+			});
 
-      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions;
+			std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions;
 
-      while(tokens.size() > 0) {
-  			if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
-  				break;
-  			}
-  			std::shared_ptr<Expression> memberFunctionExpression;
-  			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-  				parse_fn_declaration_expression,
-  				tokens,
-  				thisIdentifierRegister,
-  				memberFunctionExpression
-  			)
-        auto memberFunction = std::dynamic_pointer_cast<FunctionDeclarationExpression>(memberFunctionExpression);
-  			memberFunctions.insert(memberFunction);
-        customDatatypeClass->AddMemberFunction(CustomDatatypeMemberFunction{
-          .name = memberFunction->GetIdentifier()->GetName(),
-          .returnType = memberFunction->GetDatatype(),
-          .argumentsTypes = utils::map<
-            std::shared_ptr<DeclarationExpression>,
-            DatatypeStr
-          >(
-            memberFunction->GetArguments(),
-            [](const std::shared_ptr<DeclarationExpression>& argument) {
-              return argument->GetDatatype();
-            }
-          )
-        });
-  		}
-  		if(tokens.size() == 0) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file in struct implementation.",
-          .type = utils::ErrorType::RETERR,
-        });
-  		}
-  		(void)eat(tokens);
+			while(tokens.size() > 0) {
+				if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
+					break;
+				}
+				std::shared_ptr<Expression> memberFunctionExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_fn_declaration_expression,
+					tokens,
+					thisIdentifierRegister,
+					memberFunctionExpression
+				)
+				auto memberFunction = std::dynamic_pointer_cast<FunctionDeclarationExpression>(
+					memberFunctionExpression
+				);
+				memberFunctions.insert(memberFunction);
+				customDatatypeClass->AddMemberFunction(CustomDatatypeMemberFunction{
+					.name = memberFunction->GetIdentifier()->GetName(),
+					.returnType = memberFunction->GetDatatype(),
+					.argumentsTypes =
+						utils::map<
+							std::shared_ptr<DeclarationExpression>,
+							DatatypeStr
+						>(
+							memberFunction->GetArguments(),
+							[](const std::shared_ptr<DeclarationExpression>& argument) {
+								return argument->GetDatatype();
+							}
+						),
+				});
+			}
 
-      return std::make_shared<StructImplementationExpression>(
-      	ctx,
-        std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression),
-        memberFunctions
-      );
-    }
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in struct implementation.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			(void)eat(tokens);
+
+			return std::make_shared<StructImplementationExpression>(
+				ctx,
+				std::dynamic_pointer_cast<IdentifierExpression>(structIdentifierExpression),
+				memberFunctions
+			);
+		}
 
 		Result<std::shared_ptr<Expression>> parse_scope_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
 			if(tokens.size() <= 1) {
-        return std::unexpected(utils::Error{
-          .ctx = utils::Context{ .line = 0, .column = 0 },
-          .message = "Unexpected end of file.",
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
 			}
+
 			if(
 				(
 					tokens.front().type != lexer::TokenType::BRACE
@@ -2255,6 +2343,7 @@ namespace dim {
 			) {
 				return parse_struct_implementation_expression(tokens, identifierRegister);
 			}
+
 			struct utils::Context ctx = tokens.front().ctx;
 
 			std::shared_ptr<Expression> scopeName = nullptr;
@@ -2359,13 +2448,13 @@ namespace dim {
 				);
 
 				if(result.value()->Type() != NodeType::FN) {
-          Result<struct lexer::Token> semicolon;
-          if(!(semicolon = expect(tokens, lexer::MakeToken(lexer::TokenType::EOL)))) {
-            return std::unexpected(
-              "Missing semicolon at " + std::to_string(semicolon.error().ctx.line)
-              + ":" + std::to_string(semicolon.error().ctx.column)
-            );
-          }
+					Result<struct lexer::Token> semicolon;
+					if(!(semicolon = expect(tokens, lexer::MakeToken(lexer::TokenType::EOL)))) {
+						return std::unexpected(
+							"Missing semicolon at " + std::to_string(semicolon.error().ctx.line)
+							+ ":" + std::to_string(semicolon.error().ctx.column)
+						);
+					}
 				}
 			}
 

@@ -7,12 +7,21 @@ impl User {
 	fn greet(predicate: str) -> str {
 		return predicate + this.name;
 	}
+	fn test(a: i32, b: i32) -> i32 {
+		return a + b;
+	}
 };
 
+fn test(a: i32, b: i32) -> i32 {
+	return a + b;
+}
+
 main {
-  var steve := User {
-      .name = "Steve",
-      .age = 21,
-  };
-  steve.greet("Hello, ");
+	var steve := User {
+		.name = "Steve",
+		.age = 21,
+	};
+	steve.greet("Hello, ");
+	test(1, "a");
+	steve.test(1, "a");
 };
