@@ -1986,10 +1986,20 @@ namespace dim {
 				)
 			)
 
+			bool skipArguments =
+				tokens.size() > 0
+				&& tokens.front().type == lexer::TokenType::TYPE
+				&& tokens.front().value == "VOID";
+
+			if(skipArguments) {
+				(void)eat(tokens);
+			}
+
 			std::vector<std::shared_ptr<DeclarationExpression>> arguments = {};
 
 			while(
-				tokens.size() > 0
+				!skipArguments
+				&& tokens.size() > 0
 				&& (
 					tokens.front().type != lexer::TokenType::PARENTHESIS
 					|| tokens.front().value != ")"
@@ -2059,6 +2069,14 @@ namespace dim {
 				returnDatatype,
 				tokens
 			)
+
+			if(arguments.size() == 0 && !skipArguments) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Missing `void` keyword on function with no arguments (`" + identifier->GetName() + "`)",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
 
 			functions.push_back(
 				std::make_shared<FunctionDeclarationExpression>(
