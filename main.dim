@@ -7,13 +7,10 @@ impl User {
 	fn greet(predicate: str) -> str {
 		return predicate + this.name;
 	}
-	fn test(a: i32, b: i32) -> i32 {
-		return a + b;
-	}
 };
 
-fn test(a: i32, b: i32) -> i32 {
-	return a + b;
+fn test() -> i32 {
+	return 0;
 }
 
 main {
@@ -22,6 +19,5 @@ main {
 		.age = 21,
 	};
 	steve.greet("Hello, ");
-	test(1, "a");
-	steve.test(1, "a");
+	test();
 };
