@@ -47,6 +47,7 @@ namespace dim {
 			TYPE,
 			FN,
 			RETURN,
+			INTERFACE,
 			STRUCT,
 			IMPL,
 
@@ -54,7 +55,7 @@ namespace dim {
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 31> TokenTypeStr = {
+		const std::array<std::string_view, 32> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
@@ -82,6 +83,7 @@ namespace dim {
 			"TYPE",
 			"FN",
 			"RETURN",
+			"INTERFACE",
 			"STRUCT",
 			"IMPL",
 			"DISCARD",
@@ -91,7 +93,7 @@ namespace dim {
 		struct Token {
 			TokenType type;
 			std::string value;
-      struct utils::Context ctx;
+			struct utils::Context ctx;
 		};
 
 		class LexTracker {
@@ -101,9 +103,9 @@ namespace dim {
 			std::vector<struct Token> tokens;
 
 		public:
-      LexTracker(
-        const std::vector<std::string> src
-      );
+			LexTracker(
+				const std::vector<std::string> src
+			);
 
 			std::expected<std::string, std::string> shift(
 				size_t length = 1
@@ -111,7 +113,7 @@ namespace dim {
 			std::expected<std::string, std::string> peek(
 				size_t length = 1
 			);
-      std::expected<char, utils::Error> lex_char();
+			std::expected<char, utils::Error> lex_char();
 		};
 
 		typedef std::function<
@@ -121,7 +123,7 @@ namespace dim {
 		struct Token MakeToken(
 			const TokenType type = TokenType::NONE,
 			const std::string value = "",
-      const struct utils::Context ctx = { .line = 0, .column = 0 }
+			const struct utils::Context ctx = { .line = 0, .column = 0 }
 		) noexcept;
 
 		std::string TokenRepr(
@@ -236,6 +238,10 @@ namespace dim {
 			LexTracker& tracker
 		) noexcept;
 
+		Result<struct Token> LexInterface(
+			LexTracker& tracker
+		) noexcept;
+
 		Result<struct Token> LexStruct(
 			LexTracker& tracker
 		) noexcept;
@@ -248,7 +254,7 @@ namespace dim {
 			LexTracker& tracker
 		) noexcept;
 
-		const std::array<const LexFunction, 29> LexFunctionsList = {
+		const std::array<const LexFunction, 30> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
@@ -272,6 +278,7 @@ namespace dim {
 			&LexBreak,
 			&LexOr,
 			&LexDecl,
+			&LexInterface,
 			&LexStruct,
 			&LexImpl,
 			&LexType,
@@ -288,7 +295,7 @@ namespace dim {
 			LexTracker& tracker
 		) noexcept;
 		
-    std::expected<Success, std::string> Lex(
+		std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
 			const std::vector<std::string>& src
 		) noexcept;

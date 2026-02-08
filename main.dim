@@ -1,19 +1,8 @@
-struct {
-	age: i32;
-	name: str;
-} User;
-
-impl User {
-	fn greet(predicate: str) -> str {
-		return predicate + this.name;
-	}
+interface Animal {
+	fn noise(void) -> str;
+	name: string;
 };
 
 main {
-	var steve := User {
-		.name = "Steve",
-		.age = 21,
-	};
-	steve.greet("Hello, ");
-	var test := false || true == false || false && true;
+	"Test";	
 };
