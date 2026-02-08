@@ -9,15 +9,11 @@ impl User {
 	}
 };
 
-fn test() -> i32 {
-	return 0;
-}
-
 main {
 	var steve := User {
 		.name = "Steve",
 		.age = 21,
 	};
 	steve.greet("Hello, ");
-	test();
+	var test := false || true == false || false && true;
 };

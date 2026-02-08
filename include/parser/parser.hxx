@@ -139,7 +139,22 @@ namespace dim {
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
 
-		Result<std::shared_ptr<Expression>> parse_logical_expression(
+		Result<std::shared_ptr<Expression>> parse_and_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		Result<std::shared_ptr<Expression>> parse_or_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		Result<std::shared_ptr<Expression>> parse_comparison_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		Result<std::shared_ptr<Expression>> parse_equality_logical_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);

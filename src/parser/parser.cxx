@@ -960,7 +960,8 @@ namespace dim {
 			);
 		}
 
-		Result<std::shared_ptr<Expression>> parse_logical_expression(
+	
+		Result<std::shared_ptr<Expression>> parse_and_logical_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		) {
@@ -985,16 +986,8 @@ namespace dim {
 				tokens.size() != 0 &&
 				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
 				(
-					tokens.front().value == "<"
-					|| tokens.front().value == ">"
-					|| tokens.front().value == "<="
-					|| tokens.front().value == ">="
-					|| tokens.front().value == "&&"
-					|| tokens.front().value == "||"
-					|| tokens.front().value == "=="
-					|| tokens.front().value == "!="
+					tokens.front().value == "&&"
 					|| tokens.front().value == "&"
-					|| tokens.front().value == "|"
 					|| tokens.front().value == "^"
 				)
 			) {
@@ -1003,7 +996,7 @@ namespace dim {
 				struct utils::Context rightCtx = tokens.front().ctx;
 				std::shared_ptr<Expression> right;
 				__TRY_EXPR_FUNC_WRETERR_WSAVE(
-					parse_logical_expression,
+					parse_and_logical_expression,
 					tokens,
 					identifierRegister,
 					right
@@ -1038,7 +1031,214 @@ namespace dim {
 			return left;
 		}
 
+		Result<std::shared_ptr<Expression>> parse_or_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
 
+			struct utils::Context leftCtx = tokens.front().ctx;
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_and_logical_expression,
+				tokens,
+				identifierRegister,
+				left
+			)
+
+			while(
+				tokens.size() != 0 &&
+				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
+				(
+					tokens.front().value == "||"
+					|| tokens.front().value == "|"
+				)
+			) {
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				struct utils::Context rightCtx = tokens.front().ctx;
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_or_logical_expression,
+					tokens,
+					identifierRegister,
+					right
+				)
+
+				if(
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(
+						left->GetDatatype(),
+						operatorSymbol,
+						right->GetDatatype()
+					)
+				) {
+					return std::unexpected(utils::Error{
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operands types : ")
+							+ left->Repr() + " and " + right->Repr(),
+						.type = utils::ErrorType::ERROR,
+					});
+				}
+
+				left = std::make_shared<BinaryExpression>(
+					leftCtx,
+					left,
+					operatorSymbol,
+					right
+				);
+			}
+
+			return left;
+		}
+
+		Result<std::shared_ptr<Expression>> parse_comparison_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+
+			struct utils::Context leftCtx = tokens.front().ctx;
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_or_logical_expression,
+				tokens,
+				identifierRegister,
+				left
+			)
+
+			while(
+				tokens.size() != 0 &&
+				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
+				(
+					tokens.front().value == "<"
+					|| tokens.front().value == ">"
+					|| tokens.front().value == "<="
+					|| tokens.front().value == ">="
+				)
+			) {
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				struct utils::Context rightCtx = tokens.front().ctx;
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_comparison_logical_expression,
+					tokens,
+					identifierRegister,
+					right
+				)
+
+				if(
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(
+						left->GetDatatype(),
+						operatorSymbol,
+						right->GetDatatype()
+					)
+				) {
+					return std::unexpected(utils::Error{
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operands types : ")
+							+ left->Repr() + " and " + right->Repr(),
+						.type = utils::ErrorType::ERROR,
+					});
+				}
+
+				left = std::make_shared<BinaryExpression>(
+					leftCtx,
+					left,
+					operatorSymbol,
+					right
+				);
+			}
+
+			return left;
+		}
+
+		Result<std::shared_ptr<Expression>> parse_equality_logical_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+
+			struct utils::Context leftCtx = tokens.front().ctx;
+			std::shared_ptr<Expression> left;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_comparison_logical_expression,
+				tokens,
+				identifierRegister,
+				left
+			)
+
+			while(
+				tokens.size() != 0 &&
+				tokens.front().type == lexer::TokenType::BINARY_OPERATOR &&
+				(
+					tokens.front().value == "=="
+					|| tokens.front().value == "!="
+				)
+			) {
+				std::string operatorSymbol = eat(tokens).value().value;
+
+				struct utils::Context rightCtx = tokens.front().ctx;
+				std::shared_ptr<Expression> right;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_equality_logical_expression,
+					tokens,
+					identifierRegister,
+					right
+				)
+
+				if(
+					left->GetDatatype() != "INFER"
+					&& right->GetDatatype() != "INFER"
+					&& !GetBinaryOutputDatatype(
+						left->GetDatatype(),
+						operatorSymbol,
+						right->GetDatatype()
+					)
+				) {
+					return std::unexpected(utils::Error{
+						.ctx = rightCtx,
+						.message =
+							std::string("Got non-matching operands types : ")
+							+ left->Repr() + " and " + right->Repr(),
+						.type = utils::ErrorType::ERROR,
+					});
+				}
+
+				left = std::make_shared<BinaryExpression>(
+					leftCtx,
+					left,
+					operatorSymbol,
+					right
+				);
+			}
+
+			return left;
+		}
 
 		Result<std::shared_ptr<Expression>> parse_multiplicative_expression(
 			std::vector<struct lexer::Token>& tokens,
@@ -1054,7 +1254,7 @@ namespace dim {
 			struct utils::Context leftCtx = tokens.front().ctx;
 			std::shared_ptr<Expression> left;
 			__TRY_EXPR_FUNC_WRETERR_WSAVE(
-				parse_logical_expression,
+				parse_equality_logical_expression,
 				tokens,
 				identifierRegister,
 				left
