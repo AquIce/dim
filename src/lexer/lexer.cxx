@@ -342,7 +342,7 @@ namespace dim {
 					.type = utils::ErrorType::RETERR,
 				});
 			}
-			if(result.value() == "true") {
+			if(result.value() == "false") {
 				return MakeToken(
 					TokenType::BOOLEAN,
 					tracker.shift(5).value(),
@@ -447,13 +447,36 @@ namespace dim {
 			LexTracker& tracker
 		) noexcept {
 
-			std::expected<std::string, std::string> result = tracker.peek();
+			std::expected<std::string, std::string> result =tracker.peek(2);
 			if(!result) {
-	      return std::unexpected(utils::Error{
-          .ctx = tracker.ctx,
-          .message = result.error(),
-          .type = utils::ErrorType::RETERR,
-        });
+				return std::unexpected(utils::Error{
+					.ctx = tracker.ctx,
+					.message = result.error(),
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			if(
+				result.value() == ">="
+				|| result.value() == "<="
+				|| result.value() == "&&"
+				|| result.value() == "||"
+				|| result.value() == "=="
+				|| result.value() == "!="
+			) {
+				return MakeToken(
+					TokenType::BINARY_OPERATOR,
+					tracker.shift(2).value(),
+					tracker.ctx
+				);
+			}
+			
+			result = tracker.peek();
+			if(!result) {
+				return std::unexpected(utils::Error{
+					.ctx = tracker.ctx,
+					.message = result.error(),
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 			if(
 				result.value() == "+"
@@ -469,38 +492,15 @@ namespace dim {
 				return MakeToken(
 					TokenType::BINARY_OPERATOR,
 					tracker.shift().value(),
-          tracker.ctx
+					tracker.ctx
 				);
 			}
 			
-			result = tracker.peek(2);
-			if(!result) {
-			  return std::unexpected(utils::Error{
-          .ctx = tracker.ctx,
-          .message = result.error(),
-          .type = utils::ErrorType::RETERR,
-        });
-			}
-			if(
-				result.value() == ">="
-				|| result.value() == "<="
-				|| result.value() == "&&"
-				|| result.value() == "||"
-				|| result.value() == "=="
-				|| result.value() == "!="
-			) {
-				return MakeToken(
-					TokenType::BINARY_OPERATOR,
-					tracker.shift(2).value(),
-          tracker.ctx
-				);
-			}
-			
-	    return std::unexpected(utils::Error{
-        .ctx = tracker.ctx,
-        .message = "No binary operator token found.",
-        .type = utils::ErrorType::RETERR,
-      });
+			return std::unexpected(utils::Error{
+				.ctx = tracker.ctx,
+				.message = "No binary operator token found.",
+				.type = utils::ErrorType::RETERR,
+			});
 		}
 
 		Result<struct Token> LexUnaryOperator(
