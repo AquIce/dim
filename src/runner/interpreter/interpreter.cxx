@@ -1004,19 +1004,21 @@ namespace dim {
 		) {
 			std::shared_ptr<Value> value;
 
-			//try {
+			try {
 				__TRY_VALUE_FUNC_WRETERR_WSAVE(
 					EvaluateFunctionsMap.at(expression->Type()),
 					expression,
 					registerManager,
 					value
 				)
-			/*} catch(...) {
-				return std::unexpected(
-					std::string("Invalid expression type: ")
-					+ std::string(parser::NodeTypeToStr.at(int(expression->Type())))
-				);
-			}*/
+			} catch(...) {
+				return std::unexpected(utils::Error{
+					.ctx = expression->ctx,
+					.message = std::string("Invalid expression type: ")
+						+ std::string(parser::NodeTypeToStr.at(int(expression->Type()))),
+					.type = utils::ErrorType::ERROR,
+				});
+			}
 
 			return value;
 		}
