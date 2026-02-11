@@ -69,10 +69,10 @@ namespace dim {
 
 			if(!result) {
 				return std::unexpected(utils::Error{
-          .ctx = identifierExpression->ctx,
-          .message = result.error(),
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = identifierExpression->ctx,
+					.message = result.error(),
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			return result.value().value;
@@ -85,10 +85,10 @@ namespace dim {
 			std::shared_ptr<Value> discardValue = registerManager->GetDiscard();
 			if(!discardValue) {
 				return std::unexpected(utils::Error{
-          .ctx = expression->ctx,
-          .message = "No discard value defined.",
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = expression->ctx,
+					.message = "No discard value defined.",
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			return discardValue;
 		}
@@ -229,10 +229,10 @@ namespace dim {
 			}
 			
 			return std::unexpected(utils::Error{
-        .ctx = expression->ctx,
-        .message = "Invalid unary operator.",
-        .type = utils::ErrorType::ERROR,
-      });
+				.ctx = expression->ctx,
+				.message = "Invalid unary operator.",
+				.type = utils::ErrorType::ERROR,
+			});
 		}
 		
 		Result<std::shared_ptr<Value>> EvaluateBinaryExpression(
@@ -275,10 +275,10 @@ namespace dim {
 			__GEN__BINARY_OPERATOR_TYPE_CASE(lhs->Type(), StringValue, "STRING")
 
 			return std::unexpected(utils::Error{
-        .ctx = expression->ctx,
-        .message = "Invalid lhs type",
-        .type = utils::ErrorType::ERROR,
-      });
+				.ctx = expression->ctx,
+				.message = "Invalid lhs type",
+				.type = utils::ErrorType::ERROR,
+			});
 		}
 
 		Result<std::shared_ptr<Value>> EvaluateIfElseStructure(
@@ -319,10 +319,10 @@ namespace dim {
 			}
 
 			return std::unexpected(utils::Error{
-        .ctx = expression->ctx,
-        .message = "Missing 'else' clause in if-else structure.",
-        .type = utils::ErrorType::ERROR,
-      });
+				.ctx = expression->ctx,
+				.message = "Missing 'else' clause in if-else structure.",
+				.type = utils::ErrorType::ERROR,
+			});
 		}
 
 		Result<std::shared_ptr<Value>> EvaluateMatchStructure(
@@ -386,10 +386,10 @@ namespace dim {
 			}
 
 			return std::unexpected(utils::Error{
-        .ctx = expression->ctx,
-        .message = "Missing default clause in match structure.",
-        .type = utils::ErrorType::ERROR,
-      });
+				.ctx = expression->ctx,
+				.message = "Missing default clause in match structure.",
+				.type = utils::ErrorType::ERROR,
+			});
 		}
 
 		Result<std::shared_ptr<Value>> EvaluateLoopExpression(
@@ -594,10 +594,10 @@ namespace dim {
 
 					if(!result) {
 						return std::unexpected(utils::Error{
-              .ctx = expression->ctx,
-              .message = result.error(),
-              .type = utils::ErrorType::ERROR,
-            });
+							.ctx = expression->ctx,
+							.message = result.error(),
+							.type = utils::ErrorType::ERROR,
+						});
 					}
 
 					return identifierValue;
@@ -615,11 +615,11 @@ namespace dim {
 						> result = registerManager->Get(structMemberAccessExpression->GetStruct()->GetName());
 
 						if(!result) {
-              return std::unexpected(utils::Error{
-                .ctx = expression->ctx,
-                .message = result.error(),
-                .type = utils::ErrorType::ERROR,
-              });
+							return std::unexpected(utils::Error{
+								.ctx = expression->ctx,
+								.message = result.error(),
+								.type = utils::ErrorType::ERROR,
+							});
 						}
 						structValue = std::dynamic_pointer_cast<StructValue>(result.value().value);
 					}
@@ -642,11 +642,11 @@ namespace dim {
 						);
 
 						if(!result) {
-              return std::unexpected(utils::Error{
-                .ctx = expression->ctx,
-                .message = result.error(),
-                .type = utils::ErrorType::ERROR,
-              });
+							return std::unexpected(utils::Error{
+								.ctx = expression->ctx,
+								.message = result.error(),
+								.type = utils::ErrorType::ERROR,
+							});
 						}
 					}
 
@@ -654,10 +654,10 @@ namespace dim {
 				}
 				default:
 					return std::unexpected(utils::Error{
-            .ctx = expression->ctx,
-            .message = "Invalid expression type as assignable.",
-            .type = utils::ErrorType::ERROR,
-          });
+						.ctx = expression->ctx,
+						.message = "Invalid expression type as assignable.",
+						.type = utils::ErrorType::ERROR,
+					});
 			}
 		}
 
@@ -684,10 +684,10 @@ namespace dim {
 
 			if(!result) {
 				return std::unexpected(utils::Error{
-          .ctx = expression->ctx,
-          .message = result.error(),
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = expression->ctx,
+					.message = result.error(),
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 
 			return identifierValue;
@@ -724,27 +724,16 @@ namespace dim {
 					std::string
 				> result = functionRegisterManager.Get(functionName);
 				if(!result) {
-				  return std::unexpected(utils::Error{
-            .ctx = expression->ctx,
-            .message = result.error(),
-            .type = utils::ErrorType::ERROR,
-          });
+					return std::unexpected(utils::Error{
+						.ctx = expression->ctx,
+						.message = result.error(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 				functionDeclarationExpression = result.value().function;
 			}
 
 			std::vector<std::shared_ptr<parser::DeclarationExpression>> argumentsDeclarationExpressions = functionDeclarationExpression->GetArguments();
-
-			// TODO: Move argument number check to parser
-			if(argumentsExpressions.size() != argumentsDeclarationExpressions.size()) {
-				return std::unexpected(utils::Error{
-          .ctx = expression->ctx,
-          .message = std::string("Invalid number of arguments for function '")
-					  + functionName + "', expected " + std::to_string(argumentsDeclarationExpressions.size())
-					  + " got " + std::to_string(argumentsExpressions.size()),
-          .type = utils::ErrorType::ERROR,
-        });
-			}
 
 			for(size_t i = 0; i < argumentsExpressions.size(); i++) {
 
@@ -787,6 +776,14 @@ namespace dim {
 			}
 
 			return scopeValue;
+		}
+
+		Result<std::shared_ptr<Value>> EvaluateInterfaceDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		) {
+			auto interfaceDeclarationExpression = std::dynamic_pointer_cast<parser::InterfaceDeclarationExpression>(expression);
+			return std::make_shared<NullValue>();
 		}
 
 		Result<std::shared_ptr<Value>> EvaluateStructDeclarationExpression(
@@ -835,22 +832,22 @@ namespace dim {
 				> result = registerManager->Get(structMemberAccessExpression->GetStruct()->GetName());
 
 				if(!result) {
-				  return std::unexpected(utils::Error{
-            .ctx = expression->ctx,
-            .message = result.error(),
-            .type = utils::ErrorType::ERROR,
-          });
+					return std::unexpected(utils::Error{
+						.ctx = expression->ctx,
+						.message = result.error(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 				structValue = result.value();
 			}
 
 			if(std::dynamic_pointer_cast<StructValue>(structValue.value) == nullptr) {
 				return std::unexpected(utils::Error{
-          .ctx = expression->ctx,
-          .message = "Invalid non struct value for "
-            + structMemberAccessExpression->GetStruct()->GetName(),
-          .type = utils::ErrorType::ERROR,
-        });
+					.ctx = expression->ctx,
+					.message = "Invalid non struct value for "
+						+ structMemberAccessExpression->GetStruct()->GetName(),
+					.type = utils::ErrorType::ERROR,
+				});
 			}
 			
 			std::shared_ptr<Value> value;
@@ -864,11 +861,11 @@ namespace dim {
 				)->GetValue(structMemberAccessExpression->GetMember()->GetName());
 
 				if(!result) {
-				  return std::unexpected(utils::Error{
-            .ctx = expression->ctx,
-            .message = result.error(),
-            .type = utils::ErrorType::ERROR,
-          });
+					return std::unexpected(utils::Error{
+						.ctx = expression->ctx,
+						.message = result.error(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 
 				value = result.value();
@@ -878,81 +875,68 @@ namespace dim {
 		}
 
 
-    Result<std::shared_ptr<Value>> EvaluateStructImplementationExpression(
+		Result<std::shared_ptr<Value>> EvaluateStructImplementationExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
 		) {
-      auto structImplementationExpression = std::dynamic_pointer_cast<parser::StructImplementationExpression>(expression);
-      for(const auto& memberFunction : structImplementationExpression->GetMemberFunctions()) {
-        functionRegisterManager.CustomRegister(
-         structImplementationExpression->GetStruct()->GetName(),
-	  			FunctionRegisterValue{
-	  				.function = memberFunction
-	  			}
-	  		);
-      }
+			auto structImplementationExpression = std::dynamic_pointer_cast<parser::StructImplementationExpression>(expression);
+			for(const auto& memberFunction : structImplementationExpression->GetMemberFunctions()) {
+				functionRegisterManager.CustomRegister(
+					structImplementationExpression->GetStruct()->GetName(),
+					FunctionRegisterValue{
+						.function = memberFunction
+					}
+				);
+			}
 			return std::make_shared<NullValue>();
 		}
 
 
-    Result<std::shared_ptr<Value>> EvaluateStructMemberFunctionAccessExpression(
+		Result<std::shared_ptr<Value>> EvaluateStructMemberFunctionAccessExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
 		) {
-      auto structMemberFunctionAccessExpression = std::dynamic_pointer_cast<parser::StructMemberFunctionAccessExpression>(expression);
+			auto structMemberFunctionAccessExpression = std::dynamic_pointer_cast<parser::StructMemberFunctionAccessExpression>(expression);
 
-      auto thisRegisterManager = std::make_shared<RegisterManager>(registerManager);
+			auto thisRegisterManager = std::make_shared<RegisterManager>(registerManager);
 
-      std::shared_ptr<Value> structValue;
-      __TRY_VALUE_FUNC_WRETERR_WSAVE(
-        EvaluateExpression,
-        structMemberFunctionAccessExpression->GetStruct(),
-        thisRegisterManager,
-        structValue
-      )
+			std::shared_ptr<Value> structValue;
+			__TRY_VALUE_FUNC_WRETERR_WSAVE(
+				EvaluateExpression,
+				structMemberFunctionAccessExpression->GetStruct(),
+				thisRegisterManager,
+				structValue
+			)
 
-      registerManager->Register(
-        "this",
-        RegisterValue{
-          .value = structValue
-        }
-      );
+			registerManager->Register(
+				"this",
+				RegisterValue{
+					.value = structValue
+				}
+			);
 
-      std::vector<std::shared_ptr<parser::Expression>> argumentsExpressions = structMemberFunctionAccessExpression->GetArguments();
+			std::vector<std::shared_ptr<parser::Expression>> argumentsExpressions = structMemberFunctionAccessExpression->GetArguments();
 
 			std::shared_ptr<parser::FunctionDeclarationExpression> functionDeclarationExpression;
-      {
+			{
 				std::expected<
 					FunctionRegisterValue,
 					std::string
 				> result = functionRegisterManager.CustomGet(
-          structMemberFunctionAccessExpression->GetStruct()->GetDatatype(),
-          structMemberFunctionAccessExpression->GetMemberFunction()->GetName()
-        );
+					structMemberFunctionAccessExpression->GetStruct()->GetDatatype(),
+					structMemberFunctionAccessExpression->GetMemberFunction()->GetName()
+				);
 				if(!result) {
-				  return std::unexpected(utils::Error{
-            .ctx = expression->ctx,
-            .message = result.error(),
-            .type = utils::ErrorType::ERROR,
-          });
+					return std::unexpected(utils::Error{
+						.ctx = expression->ctx,
+						.message = result.error(),
+						.type = utils::ErrorType::ERROR,
+					});
 				}
 				functionDeclarationExpression = result.value().function;
 			}
 
 			std::vector<std::shared_ptr<parser::DeclarationExpression>> argumentsDeclarationExpressions = functionDeclarationExpression->GetArguments();
-
-			// TODO: Move argument number check to parser
-			if(argumentsExpressions.size() != argumentsDeclarationExpressions.size()) {
-				return std::unexpected(utils::Error{
-          .ctx = expression->ctx,
-          .message = std::string("Invalid number of arguments for function '")
-				    + structMemberFunctionAccessExpression->GetStruct()->GetName() + "."
-            + structMemberFunctionAccessExpression->GetMemberFunction()->GetName()
-            + "', expected " + std::to_string(argumentsDeclarationExpressions.size())
-					  + " got " + std::to_string(argumentsExpressions.size()),
-          .type = utils::ErrorType::ERROR,
-        });
-			}
 
 			for(size_t i = 0; i < argumentsExpressions.size(); i++) {
 

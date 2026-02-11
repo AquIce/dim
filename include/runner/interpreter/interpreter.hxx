@@ -62,10 +62,10 @@ if(lookupType == currentType) { \
 		return Resultify(*lhsCast ^ rhs, expression); \
 	} else { \
 		return std::unexpected(utils::Error{ \
-      .ctx = expression->ctx, \
+			.ctx = expression->ctx, \
 			.message = std::string("Invalid operator ") \
-			  + binaryOperator, \
-      .type = utils::ErrorType::ERROR, \
+				+ binaryOperator, \
+			.type = utils::ErrorType::ERROR, \
     }); \
 	} \
 }
@@ -265,6 +265,11 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
+		Result<std::shared_ptr<Value>> EvaluateInterfaceDeclarationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
+
 		Result<std::shared_ptr<Value>> EvaluateStructExpression(
 			std::shared_ptr<parser::Expression> expression,
 			std::shared_ptr<RegisterManager> registerManager
@@ -275,15 +280,15 @@ namespace dim {
 			std::shared_ptr<RegisterManager> registerManager
 		);
 
-    Result<std::shared_ptr<Value>> EvaluateStructImplementationExpression(
-      std::shared_ptr<parser::Expression> expression,
-      std::shared_ptr<RegisterManager> registerManager
-    );
+		Result<std::shared_ptr<Value>> EvaluateStructImplementationExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
 
-    Result<std::shared_ptr<Value>> EvaluateStructMemberFunctionAccessExpression(
-      std::shared_ptr<parser::Expression> expression,
-      std::shared_ptr<RegisterManager> registerManager
-    );
+		Result<std::shared_ptr<Value>> EvaluateStructMemberFunctionAccessExpression(
+			std::shared_ptr<parser::Expression> expression,
+			std::shared_ptr<RegisterManager> registerManager
+		);
 
 		Result<std::shared_ptr<Value>> EvaluateExpression(
 			std::shared_ptr<parser::Expression> expression,
@@ -298,43 +303,44 @@ namespace dim {
 		);
 
 		const std::unordered_map<parser::NodeType, const EvaluateFunction> EvaluateFunctionsMap = {
-			{ parser::NodeType::SCOPE,						&EvaluateScopeExpression },
-			{ parser::NodeType::IDENTIFIER,				&EvaluateIdentifierExpression },
-			{ parser::NodeType::DISCARD,					&EvaluateDiscardExpression },
-			{ parser::NodeType::NUL,							&EvaluateNullExpression },
-			{ parser::NodeType::BOOLEAN,					&EvaluateBooleanExpression },
-			{ parser::NodeType::I8,								&EvaluateI8Expression },
-			{ parser::NodeType::I16,							&EvaluateI16Expression },
-			{ parser::NodeType::I32,							&EvaluateI32Expression },
-			{ parser::NodeType::I64,							&EvaluateI64Expression },
-			{ parser::NodeType::U8,								&EvaluateU8Expression },
-			{ parser::NodeType::U16,							&EvaluateU16Expression },
-			{ parser::NodeType::U32,							&EvaluateU32Expression },
-			{ parser::NodeType::U64,							&EvaluateU64Expression },
-			{ parser::NodeType::F32,							&EvaluateF32Expression },
-			{ parser::NodeType::F64,							&EvaluateF64Expression },
-			{ parser::NodeType::F128,							&EvaluateF128Expression },
-			{ parser::NodeType::CHAR,			        &EvaluateCharExpression },
-			{ parser::NodeType::STRING,			      &EvaluateStringExpression },
-			{ parser::NodeType::BREAK,			      &EvaluateBreakExpression },
-			{ parser::NodeType::RETURN,			      &EvaluateReturnExpression },
-			{ parser::NodeType::OR,				        &EvaluateOrExpression },
-			{ parser::NodeType::UNARY,			      &EvaluateUnaryExpression },
-			{ parser::NodeType::BINARY,			      &EvaluateBinaryExpression },
-			{ parser::NodeType::IFELSE_STRUCT,	  &EvaluateIfElseStructure },
-			{ parser::NodeType::MATCH_STRUCT,	    &EvaluateMatchStructure },
-			{ parser::NodeType::LOOP,			        &EvaluateLoopExpression },
-			{ parser::NodeType::WHILE,			      &EvaluateWhileLoopExpression },
-			{ parser::NodeType::FOR,			        &EvaluateForLoopExpression },
-			{ parser::NodeType::ASSIGN,			      &EvaluateAssignationExpression },
-			{ parser::NodeType::DECL,			        &EvaluateDeclarationExpression },
-			{ parser::NodeType::FN,				        &EvaluateFunctionDeclarationExpression },
-			{ parser::NodeType::FN_CALL,		      &EvaluateFunctionCallExpression },
-			{ parser::NodeType::STRUCT_DECL,	    &EvaluateStructDeclarationExpression },
-			{ parser::NodeType::STRUCT,			      &EvaluateStructExpression },
-			{ parser::NodeType::STRUCT_ACCESS,	  &EvaluateStructMemberAccessExpression },
-			{ parser::NodeType::STRUCT_IMPL,	    &EvaluateStructImplementationExpression },
-			{ parser::NodeType::STRUCT_ACCESS_FN,	&EvaluateStructMemberFunctionAccessExpression },
+			{ parser::NodeType::SCOPE,				&EvaluateScopeExpression						},
+			{ parser::NodeType::IDENTIFIER,			&EvaluateIdentifierExpression					},
+			{ parser::NodeType::DISCARD,			&EvaluateDiscardExpression						},
+			{ parser::NodeType::NUL,				&EvaluateNullExpression							},
+			{ parser::NodeType::BOOLEAN,			&EvaluateBooleanExpression						},
+			{ parser::NodeType::I8,					&EvaluateI8Expression							},
+			{ parser::NodeType::I16,				&EvaluateI16Expression							},
+			{ parser::NodeType::I32,				&EvaluateI32Expression							},
+			{ parser::NodeType::I64,				&EvaluateI64Expression							},
+			{ parser::NodeType::U8,					&EvaluateU8Expression							},
+			{ parser::NodeType::U16,				&EvaluateU16Expression							},
+			{ parser::NodeType::U32,				&EvaluateU32Expression							},
+			{ parser::NodeType::U64,				&EvaluateU64Expression							},
+			{ parser::NodeType::F32,				&EvaluateF32Expression							},
+			{ parser::NodeType::F64,				&EvaluateF64Expression							},
+			{ parser::NodeType::F128,				&EvaluateF128Expression							},
+			{ parser::NodeType::CHAR,			    &EvaluateCharExpression							},
+			{ parser::NodeType::STRING,			    &EvaluateStringExpression						},
+			{ parser::NodeType::BREAK,			    &EvaluateBreakExpression						},
+			{ parser::NodeType::RETURN,			    &EvaluateReturnExpression						},
+			{ parser::NodeType::OR,				    &EvaluateOrExpression							},
+			{ parser::NodeType::UNARY,			    &EvaluateUnaryExpression						},
+			{ parser::NodeType::BINARY,			    &EvaluateBinaryExpression						},
+			{ parser::NodeType::IFELSE_STRUCT,		&EvaluateIfElseStructure						},
+			{ parser::NodeType::MATCH_STRUCT,	    &EvaluateMatchStructure							},
+			{ parser::NodeType::LOOP,			    &EvaluateLoopExpression							},
+			{ parser::NodeType::WHILE,			    &EvaluateWhileLoopExpression					},
+			{ parser::NodeType::FOR,			    &EvaluateForLoopExpression						},
+			{ parser::NodeType::ASSIGN,			    &EvaluateAssignationExpression					},
+			{ parser::NodeType::DECL,			    &EvaluateDeclarationExpression					},
+			{ parser::NodeType::FN,				    &EvaluateFunctionDeclarationExpression			},
+			{ parser::NodeType::FN_CALL,		    &EvaluateFunctionCallExpression					},
+			{ parser::NodeType::INTERFACE,			&EvaluateInterfaceDeclarationExpression			},
+			{ parser::NodeType::STRUCT_DECL,	    &EvaluateStructDeclarationExpression			},
+			{ parser::NodeType::STRUCT,			    &EvaluateStructExpression						},
+			{ parser::NodeType::STRUCT_ACCESS,		&EvaluateStructMemberAccessExpression			},
+			{ parser::NodeType::STRUCT_IMPL,	    &EvaluateStructImplementationExpression			},
+			{ parser::NodeType::STRUCT_ACCESS_FN,	&EvaluateStructMemberFunctionAccessExpression	},
 		};
 	}
 }
