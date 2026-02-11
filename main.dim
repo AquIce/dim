@@ -1,7 +1,8 @@
-interface Animal {
+interface {
 	fn noise(void) -> str;
-	name: string;
-};
+	fn jump(void) -> void;
+	name: str;
+} Animal;
 
 main {
 	"Test";	

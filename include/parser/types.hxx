@@ -31,13 +31,13 @@ namespace dim {
 			return lhs.name == rhs.name;
 		}
 
-    typedef struct {
-      std::string name;
-      DatatypeStr returnType;
-      std::vector<DatatypeStr> argumentsTypes;
-    } CustomDatatypeMemberFunction;
+		typedef struct {
+			std::string name;
+			DatatypeStr returnType;
+			std::vector<DatatypeStr> argumentsTypes;
+		} CustomDatatypeMemberFunction;
 
-    inline bool operator==(
+		inline bool operator==(
 			const CustomDatatypeMemberFunction& lhs,
 			const CustomDatatypeMemberFunction& rhs
 		) {
@@ -74,7 +74,7 @@ namespace std {
 		}
 	};
 
-  template<>
+	template<>
 	struct hash<
 		dim::parser::CustomDatatypeMemberFunction
 	> {
@@ -92,11 +92,11 @@ namespace dim {
 		extern std::vector<std::shared_ptr<DatatypeClass>> datatypes;
 
 		std::expected<
-	      std::shared_ptr<DatatypeClass>,
-	      std::string
-	  > GetDatatypeClass(
-	    const std::string& name
-	  );
+			std::shared_ptr<DatatypeClass>,
+			std::string
+		> GetDatatypeClass(
+			const std::string& name
+		);
 
 		const auto ConversionTable = std::unordered_map<DatatypeStr, uint16_t>({
 			{ "INFER",    0b1111111111111111 },
@@ -1633,19 +1633,19 @@ namespace dim {
 				const std::string& name
 			);
 
-      std::unordered_set<CustomDatatypeMemberFunction> GetMemberFunctions();
-      std::expected<
-        CustomDatatypeMemberFunction,
-        std::string
-      > GetMemberFunction(
-        const std::string& name
-      );
-      std::expected<
-        Success,
-        std::string
-      > AddMemberFunction(
-        CustomDatatypeMemberFunction memberFunction
-      );
+			std::unordered_set<CustomDatatypeMemberFunction> GetMemberFunctions();
+			std::expected<
+				CustomDatatypeMemberFunction,
+				std::string
+			> GetMemberFunction(
+				const std::string& name
+			);
+			std::expected<
+				Success,
+				std::string
+			> AddMemberFunction(
+				CustomDatatypeMemberFunction memberFunction
+			);
 			
 			bool isNative() override;
 
@@ -1659,7 +1659,7 @@ namespace dim {
 
 		private:
 			std::unordered_set<CustomDatatypeMember> m_members;
-      std::unordered_set<CustomDatatypeMemberFunction> m_memberFunctions;
+			std::unordered_set<CustomDatatypeMemberFunction> m_memberFunctions;
 		};
 	}
 }

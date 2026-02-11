@@ -36,11 +36,11 @@ namespace dim {
 			m_identifiers.push_back(identifier);
 		}
 
-    Expression::Expression(
-      struct utils::Context ctx
-    ) :
-      ctx(ctx)
-    {}
+		Expression::Expression(
+			struct utils::Context ctx
+		) :
+			ctx(ctx)
+		{}
 
 		std::string Expression::Repr(
 			const size_t indent
@@ -59,47 +59,47 @@ namespace dim {
 
 
 
-    AssignableExpression::AssignableExpression(
-      struct utils::Context ctx
-    ) :
-      Expression(ctx)
-    {}
+		AssignableExpression::AssignableExpression(
+			struct utils::Context ctx
+		) :
+			Expression(ctx)
+		{}
 
-    std::string AssignableExpression::Repr(
-      size_t indent
-    ) {
-      std::string repr = "ASSIGNABLE EXPRESSION";
+		std::string AssignableExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "ASSIGNABLE EXPRESSION";
 			repr.insert(0, indent, '\t');
 			return repr;
-    }
-    NodeType AssignableExpression::Type() {
-      return NodeType::ASSIGNABLE;
-    }
-    DatatypeStr AssignableExpression::GetDatatype() {
-      return "INFER";
-    }
-    std::expected<
-      Success,
-      std::string
-    > AssignableExpression::TryAssign(
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-      std::shared_ptr<Expression> expression
-    ) {
-      return std::unexpected("Using AssignableExpression on its own.");
-    }
+		}
+		NodeType AssignableExpression::Type() {
+			return NodeType::ASSIGNABLE;
+		}
+		DatatypeStr AssignableExpression::GetDatatype() {
+			return "INFER";
+		}
+		std::expected<
+			Success,
+			std::string
+		> AssignableExpression::TryAssign(
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::shared_ptr<Expression> expression
+		) {
+			return std::unexpected("Using AssignableExpression on its own.");
+		}
 
 
 
 		IdentifierExpression::IdentifierExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
 			std::string name,
 			bool isConst,
 			std::shared_ptr<Expression> expression,
 			DatatypeStr datatype
 		) :
-      AssignableExpression(ctx),
-      m_expression(expression),
+			AssignableExpression(ctx),
+			m_expression(expression),
 			m_name(name),
 			m_isConst(isConst),
 			m_datatype(datatype)
@@ -126,9 +126,9 @@ namespace dim {
 		) {
 			m_isConst = isConst;
 		}
-    std::shared_ptr<Expression> IdentifierExpression::GetExpression() {
-      return m_expression;
-    }
+		std::shared_ptr<Expression> IdentifierExpression::GetExpression() {
+			return m_expression;
+		}
 		void IdentifierExpression::SetExpression(
 			std::shared_ptr<Expression> expression
 		) {
@@ -155,37 +155,37 @@ namespace dim {
 		DatatypeStr IdentifierExpression::GetDatatype() {
 			return m_datatype;
 		}
-    std::expected<
-      Success,
-      std::string
-    > IdentifierExpression::TryAssign(
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-      std::shared_ptr<Expression> expression
-    ) {
-      std::shared_ptr<IdentifierExpression> identifier;
-      {
-        std::expected<
-          IdentifierData,
-          std::string
-        > result = identifierRegister->Get(m_name);
-        if(!result) {
-          return std::unexpected(result.error());
-        }
-        identifier = std::make_shared<IdentifierExpression>(
-				  ctx,
-				  identifierRegister,
-  				result.value().name,
-  				result.value().isConst,
-  				nullptr,
-  				result.value().datatype
-  			);
-      }
+		std::expected<
+			Success,
+			std::string
+		> IdentifierExpression::TryAssign(
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::shared_ptr<Expression> expression
+		) {
+			std::shared_ptr<IdentifierExpression> identifier;
+			{
+				std::expected<
+					IdentifierData,
+					std::string
+				> result = identifierRegister->Get(m_name);
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				identifier = std::make_shared<IdentifierExpression>(
+					ctx,
+					identifierRegister,
+					result.value().name,
+					result.value().isConst,
+					nullptr,
+					result.value().datatype
+				);
+			}
 
-      if(identifier->GetIsConst()) {
+			if(identifier->GetIsConst()) {
 				return std::unexpected("Trying to assign to constant expression '" + m_name + "'");
 			}
 
-      DatatypeStr expectedDatatype = identifier->GetDatatype();
+			DatatypeStr expectedDatatype = identifier->GetDatatype();
 			DatatypeStr gotDatatype = expression->GetDatatype();
 			if(expectedDatatype != gotDatatype) {
 				std::expected<
@@ -204,13 +204,13 @@ namespace dim {
 
 			identifier->SetExpression(expression);
 
-      return Success{};
-    }
+			return Success{};
+		}
 
 
 
 		ScopeExpression::ScopeExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::vector<std::shared_ptr<Expression>> expressions,
 			std::shared_ptr<IdentifierExpression> name
 		) :
@@ -261,8 +261,8 @@ namespace dim {
 
 
 		NullExpression::NullExpression(
-      struct utils::Context ctx
-    ) :
+			struct utils::Context ctx
+		) :
 			Expression(ctx)
 		{}
 
@@ -284,7 +284,7 @@ namespace dim {
 
 
 		NumberExpression::NumberExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::string value
 		) :
 			Expression(ctx),
@@ -331,7 +331,7 @@ namespace dim {
 		__GEN__SUB_NUMBER_CLASS_IMPL(F64Expression, f64, F64)
 		
 		F128Expression::F128Expression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			f128 value
 		) :
 			NumberExpression(ctx, utils::f128tos(value)),
@@ -356,7 +356,7 @@ namespace dim {
 
 
 		BooleanExpression::BooleanExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::string value
 		) :
 			Expression(ctx),
@@ -385,7 +385,7 @@ namespace dim {
 
 
 		CharExpression::CharExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::string value
 		) :
 			Expression(ctx),
@@ -414,7 +414,7 @@ namespace dim {
 
 
 		StringExpression::StringExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::string value
 		) :
 			Expression(ctx),
@@ -443,7 +443,7 @@ namespace dim {
 
 
 		UnaryExpression::UnaryExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> term,
 			std::string operatorSymbol
 		) :
@@ -489,7 +489,7 @@ namespace dim {
 
 
 		BinaryExpression::BinaryExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> left,
 			std::string operatorSymbol,
 			std::shared_ptr<Expression> right
@@ -565,7 +565,7 @@ namespace dim {
 
 
 		IfElseExpression::IfElseExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition
 		) :
@@ -606,7 +606,7 @@ namespace dim {
 
 
 		IfElseStructure::IfElseStructure(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::vector<std::shared_ptr<IfElseExpression>> expressions
 		) :
 			Expression(ctx),
@@ -648,7 +648,7 @@ namespace dim {
 
 
 		MatchExpression::MatchExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition
 		) :
@@ -691,7 +691,7 @@ namespace dim {
 
 
 		MatchStructure::MatchStructure(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> expression,
 			std::vector<std::shared_ptr<MatchExpression>> expressions
 		) :
@@ -733,7 +733,7 @@ namespace dim {
 
 
 		LoopExpression::LoopExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope
 		) :
 			Expression(ctx),
@@ -760,7 +760,7 @@ namespace dim {
 
 
 		WhileLoopExpression::WhileLoopExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition,
 			std::shared_ptr<OrExpression> orExpression
@@ -799,7 +799,7 @@ namespace dim {
 
 
 		ForLoopExpression::ForLoopExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> initialExpression,
 			std::shared_ptr<Expression> condition,
@@ -847,7 +847,7 @@ namespace dim {
 
 
 		NestedExpression::NestedExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> expression
 		) :
 			Expression(ctx),
@@ -875,7 +875,7 @@ namespace dim {
 
 
 		BreakExpression::BreakExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> expression,
 			std::shared_ptr<IdentifierExpression> name
 		) :
@@ -913,7 +913,7 @@ namespace dim {
 
 
 		ReturnExpression::ReturnExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> expression
 		) :
 			NestedExpression(ctx, expression)
@@ -942,7 +942,7 @@ namespace dim {
 
 
 		OrExpression::OrExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<Expression> expression
 		) :
 			NestedExpression(ctx, expression)
@@ -963,8 +963,8 @@ namespace dim {
 
 
 		DiscardExpression::DiscardExpression(
-      struct utils::Context ctx
-    ) :
+			struct utils::Context ctx
+		) :
 			AssignableExpression(ctx)
 		{}
 
@@ -981,25 +981,25 @@ namespace dim {
 		DatatypeStr DiscardExpression::GetDatatype() {
 			return "INFER";
 		}
-    std::expected<
-      Success,
-      std::string
-    > DiscardExpression::TryAssign(
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-      std::shared_ptr<Expression> expression
-    ) {
-      // TODO: Add discard logic to parser
-      return Success{};
-    }
+		std::expected<
+			Success,
+			std::string
+		> DiscardExpression::TryAssign(
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::shared_ptr<Expression> expression
+		) {
+			// TODO: Add discard logic to parser
+			return Success{};
+		}
 
 
 
 		AssignationExpression::AssignationExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<AssignableExpression> destination,
 			std::shared_ptr<Expression> expression
 		) :
-      NestedExpression(ctx, expression),
+		NestedExpression(ctx, expression),
 			m_destination(destination)
 		{}
 
@@ -1027,7 +1027,7 @@ namespace dim {
 		
 
 		DeclarationExpression::DeclarationExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::shared_ptr<Expression> expression,
 			DatatypeStr datatype,
@@ -1068,26 +1068,65 @@ namespace dim {
 
 
 
-		FunctionDeclarationExpression::FunctionDeclarationExpression(
-      struct utils::Context ctx,
+		FunctionPrototypeExpression::FunctionPrototypeExpression(
+			struct utils::Context ctx,
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::vector<std::shared_ptr<DeclarationExpression>> arguments,
-			std::shared_ptr<ScopeExpression> scope,
 			DatatypeStr returnDatatype
 		) :
 			Expression(ctx),
 			m_identifier(identifier),
 			m_arguments(arguments),
-			m_scope(scope),
 			m_returnDatatype(returnDatatype)
 		{}
 
-		std::shared_ptr<IdentifierExpression> FunctionDeclarationExpression::GetIdentifier() {
+		std::shared_ptr<IdentifierExpression> FunctionPrototypeExpression::GetIdentifier() {
 			return m_identifier;
 		}
-		std::vector<std::shared_ptr<DeclarationExpression>> FunctionDeclarationExpression::GetArguments() {
+		std::vector<std::shared_ptr<DeclarationExpression>> FunctionPrototypeExpression::GetArguments() {
 			return m_arguments;
 		}
+
+		std::string FunctionPrototypeExpression::Repr(
+			const size_t indent
+		) {
+
+			std::string repr = "fn ";
+			repr.insert(0, indent, '\t');
+			repr += m_identifier->GetName() + "(\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->GetIdentifier()->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
+			}
+			repr.insert(repr.size(), indent, '\t');
+			repr += ") -> " + m_returnDatatype;
+
+			return repr;
+		}
+		NodeType FunctionPrototypeExpression::Type() {
+			return NodeType::FN_PROTO;
+		}
+		DatatypeStr FunctionPrototypeExpression::GetDatatype() {
+			return m_returnDatatype;
+		}
+
+
+
+		FunctionDeclarationExpression::FunctionDeclarationExpression(
+			struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::vector<std::shared_ptr<DeclarationExpression>> arguments,
+			std::shared_ptr<ScopeExpression> scope,
+			DatatypeStr returnDatatype
+		) :
+			FunctionPrototypeExpression(
+				ctx,
+				identifier,
+				arguments,
+				returnDatatype
+			),
+			m_scope(scope)
+		{}
+
 		std::shared_ptr<ScopeExpression> FunctionDeclarationExpression::GetScope() {
 			return m_scope;
 		}
@@ -1110,7 +1149,7 @@ namespace dim {
 				repr += m_arguments.at(i)->GetIdentifier()->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
 			}
 			repr.insert(repr.size(), indent, '\t');
-			repr += ") -> " + scopeRepr;
+			repr += ") -> " + m_returnDatatype + " " + scopeRepr;
 
 			return repr;
 		}
@@ -1124,7 +1163,7 @@ namespace dim {
 
 
 		FunctionCallExpression::FunctionCallExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::vector<std::shared_ptr<Expression>> arguments,
 			DatatypeStr returnDatatype
@@ -1163,26 +1202,99 @@ namespace dim {
 		}
 
 
-
-		StructDeclarationExpression::StructDeclarationExpression(
-      struct utils::Context ctx,
-		  std::vector<std::shared_ptr<IdentifierExpression>> members,
-		  std::shared_ptr<IdentifierExpression> name
+		
+		InterfaceDeclarationExpression::InterfaceDeclarationExpression(
+			struct utils::Context ctx,
+			std::vector<std::shared_ptr<IdentifierExpression>> members,
+			std::unordered_set<std::shared_ptr<FunctionPrototypeExpression>> memberFunctionsPrototypes,
+			std::shared_ptr<IdentifierExpression> name
 		) :
 			Expression(ctx),
-		  m_members(members),
-		  m_name(name)
+			m_members(members),
+			m_memberFunctionsPrototypes(memberFunctionsPrototypes),
+			m_name(name)
+		{}
+
+		std::vector<std::shared_ptr<IdentifierExpression>> InterfaceDeclarationExpression::GetMembers() {
+			return m_members;
+		}
+		std::unordered_set<std::shared_ptr<FunctionPrototypeExpression>> InterfaceDeclarationExpression::GetMemberFunctionsPrototypes() {
+			return m_memberFunctionsPrototypes;
+		}
+		std::shared_ptr<IdentifierExpression> InterfaceDeclarationExpression::GetName() {
+			return m_name;
+		}
+		std::expected<
+			std::shared_ptr<FunctionPrototypeExpression>,
+			std::string
+		> InterfaceDeclarationExpression::GetMemberFunctionPrototype(
+			const std::string& name
+		) {
+			std::unordered_set<std::shared_ptr<FunctionPrototypeExpression>>::iterator itResult = std::find_if(
+				m_memberFunctionsPrototypes.begin(),
+				m_memberFunctionsPrototypes.end(),
+				[&name](const std::shared_ptr<FunctionPrototypeExpression>& element) {
+					return element->GetIdentifier()->GetName() == name;
+				}
+			);
+			if(itResult == m_memberFunctionsPrototypes.end()) {
+				return std::unexpected(
+					"Invalid member function prototype '" + name + "' requested on interface '" + m_name->GetName() + "'"
+				);
+			}
+			return *itResult;
+		}
+
+		std::string InterfaceDeclarationExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "interface {\n";
+			std::for_each(
+				m_memberFunctionsPrototypes.begin(),
+				m_memberFunctionsPrototypes.end(),
+				[&repr, &indent](const std::shared_ptr<FunctionPrototypeExpression>& expression) -> void {
+					repr += expression->Repr(indent + 1) + "\n";
+				}
+			);
+			for(const auto& member : m_members) {
+				repr.insert(repr.size(), indent + 1, '\t');
+				repr += member->GetName() + ": "
+					+ member->GetDatatype() + "\n";
+			}
+			repr += "}";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+
+		NodeType InterfaceDeclarationExpression::Type() {
+			return NodeType::INTERFACE;
+		}
+		DatatypeStr InterfaceDeclarationExpression::GetDatatype() {
+			return m_name->GetName();
+		}
+
+
+
+		StructDeclarationExpression::StructDeclarationExpression(
+			struct utils::Context ctx,
+			std::vector<std::shared_ptr<IdentifierExpression>> members,
+			std::shared_ptr<IdentifierExpression> name
+		) :
+			Expression(ctx),
+			m_members(members),
+			m_name(name)
 		{}
 
 		std::vector<std::shared_ptr<IdentifierExpression>> StructDeclarationExpression::GetMembers() {
-		  return m_members;
+			return m_members;
 		}
 		std::shared_ptr<IdentifierExpression> StructDeclarationExpression::GetName() {
-		  return m_name;
+			return m_name;
 		}
 
 		std::string StructDeclarationExpression::Repr(
-		  size_t indent
+			size_t indent
 		) {
 			std::string repr = "struct {\n";
 			for(const auto& member : m_members) {
@@ -1197,16 +1309,16 @@ namespace dim {
 			return repr;
 		}
 		NodeType StructDeclarationExpression::Type() {
-		  return NodeType::STRUCT_DECL;
+			return NodeType::STRUCT_DECL;
 		}
 		DatatypeStr StructDeclarationExpression::GetDatatype() {
-		  return m_name->GetName();
+			return m_name->GetName();
 		}
 
 
 
 		StructExpression::StructExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::vector<std::shared_ptr<IdentifierExpression>> members,
 			std::shared_ptr<IdentifierExpression> name
 		) :
@@ -1238,21 +1350,21 @@ namespace dim {
 			return repr;
 		}
 		NodeType StructExpression::Type() {
-		  return NodeType::STRUCT;
+		  	return NodeType::STRUCT;
 		}
 		DatatypeStr StructExpression::GetDatatype() {
-		  return m_name->GetName();
+		  	return m_name->GetName();
 		}
 
 		
 		
 		StructMemberAccessExpression::StructMemberAccessExpression(
-      struct utils::Context ctx,
+			struct utils::Context ctx,
 			std::shared_ptr<IdentifierExpression> structIdentfier,
 			std::shared_ptr<IdentifierExpression> memberIdentifier,
 			DatatypeStr datatype
 		) :
-      AssignableExpression(ctx),
+			AssignableExpression(ctx),
 			m_structIdentifier(structIdentfier),
 			m_memberIdentifier(memberIdentifier)
 		{
@@ -1279,51 +1391,51 @@ namespace dim {
 		DatatypeStr StructMemberAccessExpression::GetDatatype() {
 			return m_memberIdentifier->GetDatatype();
 		}
-    std::expected<
-      Success,
-      std::string
-    > StructMemberAccessExpression::TryAssign(
-      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
-      std::shared_ptr<Expression> expression
-    ) {
-      std::shared_ptr<IdentifierExpression> structIdentifier;
-      {
-        std::expected<
-          IdentifierData,
-          std::string
-        > result = identifierRegister->Get(m_structIdentifier->GetName());
-        if(!result) {
-          return std::unexpected(result.error());
-        }
-        structIdentifier = std::make_shared<IdentifierExpression>(
-        	ctx,
-				  identifierRegister,
-  				result.value().name,
-  				result.value().isConst,
-  				nullptr,
-  				result.value().datatype
-  			);
-      }
+		std::expected<
+			Success,
+			std::string
+		> StructMemberAccessExpression::TryAssign(
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::shared_ptr<Expression> expression
+		) {
+			std::shared_ptr<IdentifierExpression> structIdentifier;
+			{
+				std::expected<
+					IdentifierData,
+					std::string
+				> result = identifierRegister->Get(m_structIdentifier->GetName());
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				structIdentifier = std::make_shared<IdentifierExpression>(
+					ctx,
+					identifierRegister,
+					result.value().name,
+					result.value().isConst,
+					nullptr,
+					result.value().datatype
+				);
+			}
 
-      if(structIdentifier->GetIsConst()) {
+      		if(structIdentifier->GetIsConst()) {
 				return std::unexpected("Trying to assign to constant struct expression '" + m_structIdentifier->GetName() + "'");
 			}
 
-      std::shared_ptr<CustomDatatypeClass> structClass;
-      {
-        std::expected<
-          std::shared_ptr<DatatypeClass>,
-          std::string
-        > result = GetDatatypeClass(structIdentifier->GetDatatype());
-        if(!result) {
-          return std::unexpected(result.error());
-        }
-        structClass = std::dynamic_pointer_cast<CustomDatatypeClass>(
-          result.value()
-        );
-      }
+			std::shared_ptr<CustomDatatypeClass> structClass;
+			{
+				std::expected<
+					std::shared_ptr<DatatypeClass>,
+					std::string
+				> result = GetDatatypeClass(structIdentifier->GetDatatype());
+				if(!result) {
+					return std::unexpected(result.error());
+				}
+				structClass = std::dynamic_pointer_cast<CustomDatatypeClass>(
+					result.value()
+				);
+			}
 
-      DatatypeStr expectedDatatype = structClass->GetMember(
+      		DatatypeStr expectedDatatype = structClass->GetMember(
 				m_memberIdentifier->GetName()
 			).value().type->GetName();
 
@@ -1345,100 +1457,100 @@ namespace dim {
 
 			m_memberIdentifier->SetExpression(expression);
 
-      return Success{};
-    }
+			return Success{};
+		}
 
 
 
-    StructImplementationExpression::StructImplementationExpression(
-      struct utils::Context ctx,
-      std::shared_ptr<IdentifierExpression> structIdentifier,
-      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
-    ) :
-      Expression(ctx),
-      m_structIdentifier(structIdentifier),
-      m_memberFunctions(memberFunctions)
-    {}
+		StructImplementationExpression::StructImplementationExpression(
+			struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> structIdentifier,
+			std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
+		) :
+			Expression(ctx),
+			m_structIdentifier(structIdentifier),
+			m_memberFunctions(memberFunctions)
+		{}
 
-    std::shared_ptr<IdentifierExpression> StructImplementationExpression::GetStruct() {
-      return m_structIdentifier;
-    }
-    std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> StructImplementationExpression::GetMemberFunctions() {
-      return m_memberFunctions;
-    }
-    std::expected<
-      std::shared_ptr<FunctionDeclarationExpression>,
-      std::string
-    > StructImplementationExpression::GetMemberFunction(
-      const std::string& name
-    ) {
-      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>>::iterator itResult = std::find_if(
-        m_memberFunctions.begin(),
-        m_memberFunctions.end(),
-        [&name](const std::shared_ptr<FunctionDeclarationExpression>& element) {
-          return element->GetIdentifier()->GetName() == name;
-        }
-      );
-      if(itResult == m_memberFunctions.end()) {
-        return std::unexpected("Invalid member function '" + name + "' requested on struct '" + m_structIdentifier->GetName() + "'");
-      }
-      return *itResult;
-    }
+		std::shared_ptr<IdentifierExpression> StructImplementationExpression::GetStruct() {
+			return m_structIdentifier;
+		}
+		std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> StructImplementationExpression::GetMemberFunctions() {
+			return m_memberFunctions;
+		}
+		std::expected<
+			std::shared_ptr<FunctionDeclarationExpression>,
+			std::string
+		> StructImplementationExpression::GetMemberFunction(
+			const std::string& name
+		) {
+			std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>>::iterator itResult = std::find_if(
+				m_memberFunctions.begin(),
+				m_memberFunctions.end(),
+				[&name](const std::shared_ptr<FunctionDeclarationExpression>& element) {
+					return element->GetIdentifier()->GetName() == name;
+				}
+			);
+			if(itResult == m_memberFunctions.end()) {
+				return std::unexpected("Invalid member function '" + name + "' requested on struct '" + m_structIdentifier->GetName() + "'");
+			}
+			return *itResult;
+		}
 
-    std::string StructImplementationExpression::Repr(
-      size_t indent
-    ) {
-      std::string repr = "impl ";
-      repr += m_structIdentifier->GetName() + " {\n";
-      std::for_each(
+		std::string StructImplementationExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = "impl ";
+			repr += m_structIdentifier->GetName() + " {\n";
+			std::for_each(
 				m_memberFunctions.begin(),
 				m_memberFunctions.end(),
 				[&repr, &indent](const std::shared_ptr<FunctionDeclarationExpression>& expression) -> void {
 					repr += expression->Repr(indent + 1) + "\n";
 				}
 			);
-      repr += "}";
-      repr.insert(0, indent, '\t');
-      repr.insert(repr.size() - 1, indent, '\t');
-      return repr;
-    }
-    NodeType StructImplementationExpression::Type() {
-      return NodeType::STRUCT_IMPL;
-    }
-    DatatypeStr StructImplementationExpression::GetDatatype() {
-      return "VOID";
-    }
+			repr += "}";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType StructImplementationExpression::Type() {
+			return NodeType::STRUCT_IMPL;
+		}
+		DatatypeStr StructImplementationExpression::GetDatatype() {
+			return "VOID";
+		}
 
 
 
-    StructMemberFunctionAccessExpression::StructMemberFunctionAccessExpression(
-      struct utils::Context ctx,
-      std::shared_ptr<IdentifierExpression> structIdentifier,
-      std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
-      std::vector<std::shared_ptr<Expression>> arguments,
-      DatatypeStr returnDatatype
-    ) :
-      Expression(ctx),
-      m_structIdentifier(structIdentifier),
-      m_memberFunctionIdentifier(memberFunctionIdentifier),
-      m_arguments(arguments),
-      m_returnDatatype(returnDatatype)
-    {}
+		StructMemberFunctionAccessExpression::StructMemberFunctionAccessExpression(
+			struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> structIdentifier,
+			std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
+			std::vector<std::shared_ptr<Expression>> arguments,
+			DatatypeStr returnDatatype
+		) :
+			Expression(ctx),
+			m_structIdentifier(structIdentifier),
+			m_memberFunctionIdentifier(memberFunctionIdentifier),
+			m_arguments(arguments),
+			m_returnDatatype(returnDatatype)
+		{}
 
-    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetStruct() {
-      return m_structIdentifier;
-    }
-    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetMemberFunction() {
-      return m_memberFunctionIdentifier;
-    }
-    std::vector<std::shared_ptr<Expression>> StructMemberFunctionAccessExpression::GetArguments() {
-      return m_arguments;
-    }
-    
-    std::string StructMemberFunctionAccessExpression::Repr(
-      size_t indent
-    ) {
-      std::string repr = m_structIdentifier->GetName() + "." + m_memberFunctionIdentifier->GetName();
+		std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetStruct() {
+			return m_structIdentifier;
+		}
+		std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetMemberFunction() {
+			return m_memberFunctionIdentifier;
+		}
+		std::vector<std::shared_ptr<Expression>> StructMemberFunctionAccessExpression::GetArguments() {
+			return m_arguments;
+		}
+		
+		std::string StructMemberFunctionAccessExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = m_structIdentifier->GetName() + "." + m_memberFunctionIdentifier->GetName();
 			repr += "(\n";
 			for(size_t i = 0; i < m_arguments.size(); i++) {
 				repr += m_arguments.at(i)->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
@@ -1447,12 +1559,12 @@ namespace dim {
 			repr.insert(0, indent, '\t');
 			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;
-    }
-    NodeType StructMemberFunctionAccessExpression::Type() {
-      return NodeType::STRUCT_ACCESS_FN;
-    }
-    DatatypeStr StructMemberFunctionAccessExpression::GetDatatype() {
-      return m_returnDatatype;
-    }
-  }
+		}
+		NodeType StructMemberFunctionAccessExpression::Type() {
+			return NodeType::STRUCT_ACCESS_FN;
+		}
+		DatatypeStr StructMemberFunctionAccessExpression::GetDatatype() {
+			return m_returnDatatype;
+		}
+  	}
 }
