@@ -2278,6 +2278,16 @@ namespace dim {
 				});
 			}
 
+			if(tokens.size() > 0 && tokens.front().type == lexer::TokenType::EOL) {
+				(void)eat(tokens);
+				return std::make_shared<FunctionPrototypeExpression>(
+					ctx,
+					identifier,
+					arguments,
+					returnDatatype
+				);
+			}
+
 			functions.push_back(
 				std::make_shared<FunctionDeclarationExpression>(
 					ctx,
@@ -2302,6 +2312,171 @@ namespace dim {
 			return functions.back();
 		}
 
+		Result<std::shared_ptr<Expression>> parse_interface_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		) {
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			if(tokens.front().type != lexer::TokenType::INTERFACE) {
+				return parse_fn_declaration_expression(tokens, identifierRegister);
+			}
+			struct utils::Context ctx = tokens.front().ctx;
+			(void)eat(tokens);
+
+			__TRY_TOKEN_FUNC_WRETERR(
+				expect,
+				tokens,
+				lexer::MakeToken(
+					lexer::TokenType::BRACE,
+					"{"
+				)
+			)
+
+			std::vector<std::shared_ptr<IdentifierExpression>> memberExpressions = {};
+			std::unordered_set<std::shared_ptr<FunctionPrototypeExpression>> memberFunctionsPrototypes;
+
+			while(tokens.size() > 0) {
+
+				if(tokens.front().type == lexer::TokenType::FN) {
+			
+					std::shared_ptr<Expression> memberFunctionPrototypeExpression;
+					__TRY_EXPR_FUNC_WRETERR_WSAVE(
+						parse_fn_declaration_expression,
+						tokens,
+						identifierRegister,
+						memberFunctionPrototypeExpression
+					)
+
+					if(auto memberFunctionPrototype = std::dynamic_pointer_cast<FunctionPrototypeExpression>(memberFunctionPrototypeExpression)) {
+						memberFunctionsPrototypes.insert(memberFunctionPrototype);
+					} else {
+						return std::unexpected(utils::Error{
+							.ctx = ctx,
+							.message = "Invalid function " + memberFunctionPrototype->Repr() + " in interface declaration",
+							.type = utils::ErrorType::ERROR,
+						});
+					}
+
+					continue;
+				}
+
+				if(tokens.front().type == lexer::TokenType::BRACE && tokens.front().value == "}") {
+					break;
+				}
+				std::shared_ptr<Expression> memberIdentifierExpression;
+				__TRY_EXPR_FUNC_WRETERR_WSAVE(
+					parse_identifier_expression,
+					tokens,
+					identifierRegister,
+					memberIdentifierExpression
+				)
+				auto memberIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(memberIdentifierExpression);
+
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::COLON)
+				)
+
+				struct utils::Context argumentDatatypeCtx = tokens.front().ctx;
+				DatatypeStr argumentDatatype = "";
+				__TRY_EXPECTED_FUNC_WRETERR_WSAVE__NEW(
+					expect_type,
+					std::string,
+					argumentDatatype,
+					tokens
+				)
+
+				if(!GetDatatypeClass(argumentDatatype)) {
+					return std::unexpected(utils::Error{
+						.ctx = argumentDatatypeCtx,
+						.message = "Invalid datatype in interface declaration : " + argumentDatatype,
+						.type = utils::ErrorType::ERROR,
+					});
+				}
+
+				memberIdentifier->SetDatatype(argumentDatatype);
+				memberExpressions.push_back(memberIdentifier);
+
+				__TRY_TOKEN_FUNC_WRETERR(
+					expect,
+					tokens,
+					lexer::MakeToken(lexer::TokenType::EOL)
+				)
+			}
+			if(tokens.size() == 0) {
+				return std::unexpected(utils::Error{
+					.ctx = utils::Context{ .line = 0, .column = 0 },
+					.message = "Unexpected end of file in interface declaration.",
+					.type = utils::ErrorType::RETERR,
+				});
+			}
+			(void)eat(tokens);
+
+			std::shared_ptr<Expression> interfaceIdentifierExpression;
+			__TRY_EXPR_FUNC_WRETERR_WSAVE(
+				parse_identifier_expression,
+				tokens,
+				identifierRegister,
+				interfaceIdentifierExpression
+			)
+			auto interfaceIdentifier = std::dynamic_pointer_cast<IdentifierExpression>(interfaceIdentifierExpression);
+
+			auto customDatatypeClass = std::make_shared<CustomDatatypeClass>(
+				interfaceIdentifier->GetName(),
+				dim::utils::to_unordered_set<CustomDatatypeMember>(
+					dim::utils::map<std::shared_ptr<IdentifierExpression>, CustomDatatypeMember>(
+						memberExpressions,
+						[](const std::shared_ptr<IdentifierExpression>& member) {
+							return CustomDatatypeMember{
+								.type = GetDatatypeClass(member->GetDatatype()).value(),
+								.name = member->GetName()
+							};
+						}
+					)
+				)
+			);
+		
+			std::for_each(
+				std::begin(memberFunctionsPrototypes),
+				std::end(memberFunctionsPrototypes),
+				[&customDatatypeClass](const std::shared_ptr<FunctionPrototypeExpression>& memberFunctionPrototype) -> void {
+					customDatatypeClass->AddMemberFunction(CustomDatatypeMemberFunction{
+						.name = memberFunctionPrototype->GetIdentifier()->GetName(),
+						.returnType = memberFunctionPrototype->GetDatatype(),
+						.argumentsTypes =
+							utils::map<
+								std::shared_ptr<DeclarationExpression>,
+								DatatypeStr
+							>(
+								memberFunctionPrototype->GetArguments(),
+								[](const std::shared_ptr<DeclarationExpression>& argument) {
+									return argument->GetDatatype();
+								}
+							),
+					});
+		
+				}
+			);
+
+			LOG(customDatatypeClass->GetMemberFunctions().size());
+			
+			datatypes.push_back(customDatatypeClass);
+
+			return std::make_shared<InterfaceDeclarationExpression>(
+				ctx,
+				memberExpressions,
+				memberFunctionsPrototypes,
+				interfaceIdentifier	
+			);
+		}
+
 		Result<std::shared_ptr<Expression>> parse_struct_declaration_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
@@ -2314,7 +2489,7 @@ namespace dim {
 				});
 			}
 			if(tokens.front().type != lexer::TokenType::STRUCT) {
-				return parse_fn_declaration_expression(tokens, identifierRegister);
+				return parse_interface_declaration_expression(tokens, identifierRegister);
 			}
 			struct utils::Context ctx = tokens.front().ctx;
 			(void)eat(tokens);

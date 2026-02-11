@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ast.hxx"
 #include <parser/ast.hxx>
 #include <parser/cast.hxx>
 
@@ -217,6 +218,11 @@ namespace dim {
 		);
 
 		Result<std::shared_ptr<Expression>> parse_fn_declaration_expression(
+			std::vector<struct lexer::Token>& tokens,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
+		);
+
+		Result<std::shared_ptr<Expression>> parse_interface_declaration_expression(
 			std::vector<struct lexer::Token>& tokens,
 			std::shared_ptr<ScopeIdentifierRegister> identifierRegister
 		);
