@@ -370,6 +370,8 @@ namespace dim {
 					memberFunction = result.value();
 				}
 
+				// TODO: Add comptime check
+
 				std::vector<std::shared_ptr<Expression>> arguments = {};
 				size_t index = 0;
 				while(
@@ -561,6 +563,14 @@ namespace dim {
 				index++;
 
 				arguments.push_back(argument);
+			}
+
+			if(arguments.size() < wantedArgs.size()) {
+				return std::unexpected(utils::Error{
+					.ctx = ctx,
+					.message = std::string("Too few arguments (" + std::to_string(arguments.size()) + ") provided to function ") + (*funcIter)->GetIdentifier()->GetName(),
+					.type = utils::ErrorType::RETERR,
+				});
 			}
 
 			if(tokens.size() == 0) {
