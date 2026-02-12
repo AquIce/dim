@@ -3,6 +3,45 @@
 namespace dim {
 	namespace parser {
 
+		ScopeIdentifierRegister::ScopeIdentifierRegister(
+			std::shared_ptr<ScopeIdentifierRegister> parent
+		) :
+			m_parent(parent),
+			m_identifiers()
+		{}
+
+		std::expected<
+			IdentifierData,
+			std::string
+		> ScopeIdentifierRegister::Get(
+			const std::string name
+		) {
+			std::vector<IdentifierData>::iterator identifier = std::find_if(
+				m_identifiers.begin(), m_identifiers.end(),
+				[&name](const IdentifierData& ident) {
+					return name == ident.name;
+				}
+			);
+			if(identifier == m_identifiers.end()) {
+				if(m_parent) {
+					return m_parent->Get(name);
+				}
+				return std::unexpected("Trying to get non existing identifier.");
+			}
+			return *identifier;
+		}
+		void ScopeIdentifierRegister::Register(
+			IdentifierData identifier
+		) {
+			m_identifiers.push_back(identifier);
+		}
+
+    Expression::Expression(
+      struct utils::Context ctx
+    ) :
+      ctx(ctx)
+    {}
+
 		std::string Expression::Repr(
 			const size_t indent
 		) {
@@ -14,17 +53,170 @@ namespace dim {
 		NodeType Expression::Type() {
 			return NodeType::NONE;
 		}
-		Datatype Expression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr Expression::GetDatatype() {
+			return "INFER";
 		}
 
 
 
-		ScopeExpression::ScopeExpression(
-			std::vector<std::shared_ptr<Expression>> expressions
+    AssignableExpression::AssignableExpression(
+      struct utils::Context ctx
+    ) :
+      Expression(ctx)
+    {}
+
+    std::string AssignableExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = "ASSIGNABLE EXPRESSION";
+			repr.insert(0, indent, '\t');
+			return repr;
+    }
+    NodeType AssignableExpression::Type() {
+      return NodeType::ASSIGNABLE;
+    }
+    DatatypeStr AssignableExpression::GetDatatype() {
+      return "INFER";
+    }
+    std::expected<
+      Success,
+      std::string
+    > AssignableExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      return std::unexpected("Using AssignableExpression on its own.");
+    }
+
+
+
+		IdentifierExpression::IdentifierExpression(
+      struct utils::Context ctx,
+			std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+			std::string name,
+			bool isConst,
+			std::shared_ptr<Expression> expression,
+			DatatypeStr datatype
 		) :
-			Expression(),
-			m_expressions(expressions)
+      AssignableExpression(ctx),
+      m_expression(expression),
+			m_name(name),
+			m_isConst(isConst),
+			m_datatype(datatype)
+		{
+			std::expected<
+				IdentifierData,
+				std::string
+			> result = identifierRegister->Get(name);
+
+			if(result) {
+				m_isConst = result.value().isConst;
+				m_datatype = result.value().datatype;
+			}
+		}
+
+		std::string IdentifierExpression::GetName() {
+			return m_name;
+		}
+		bool IdentifierExpression::GetIsConst() {
+			return m_isConst;
+		}
+		void IdentifierExpression::SetIsConst(
+			bool isConst
+		) {
+			m_isConst = isConst;
+		}
+    std::shared_ptr<Expression> IdentifierExpression::GetExpression() {
+      return m_expression;
+    }
+		void IdentifierExpression::SetExpression(
+			std::shared_ptr<Expression> expression
+		) {
+			m_expression = expression;
+		}
+		void IdentifierExpression::SetDatatype(
+			DatatypeStr datatype
+		) {
+			m_datatype = datatype;
+		}
+
+		std::string IdentifierExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr =
+				std::string("(") + m_name + ": "
+				+ m_datatype + ")";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType IdentifierExpression::Type() {
+			return NodeType::IDENTIFIER;
+		}
+		DatatypeStr IdentifierExpression::GetDatatype() {
+			return m_datatype;
+		}
+    std::expected<
+      Success,
+      std::string
+    > IdentifierExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      std::shared_ptr<IdentifierExpression> identifier;
+      {
+        std::expected<
+          IdentifierData,
+          std::string
+        > result = identifierRegister->Get(m_name);
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        identifier = std::make_shared<IdentifierExpression>(
+				  ctx,
+				  identifierRegister,
+  				result.value().name,
+  				result.value().isConst,
+  				nullptr,
+  				result.value().datatype
+  			);
+      }
+
+      if(identifier->GetIsConst()) {
+				return std::unexpected("Trying to assign to constant expression '" + m_name + "'");
+			}
+
+      DatatypeStr expectedDatatype = identifier->GetDatatype();
+			DatatypeStr gotDatatype = expression->GetDatatype();
+			if(expectedDatatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> castResult = try_cast(expression, expectedDatatype);
+
+				if(!castResult) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ expectedDatatype + ", got " + gotDatatype
+					);
+				}
+				expression = castResult.value();
+			}
+
+			identifier->SetExpression(expression);
+
+      return Success{};
+    }
+
+
+
+		ScopeExpression::ScopeExpression(
+      struct utils::Context ctx,
+			std::vector<std::shared_ptr<Expression>> expressions,
+			std::shared_ptr<IdentifierExpression> name
+		) :
+			Expression(ctx),
+			m_expressions(expressions),
+			m_name(name)
 		{}
 
 		std::vector<std::shared_ptr<Expression>> ScopeExpression::GetExpressions() {
@@ -36,14 +228,25 @@ namespace dim {
 			m_expressions.push_back(expression);
 		}
 
+		std::shared_ptr<IdentifierExpression> ScopeExpression::GetName() {
+			return m_name;
+		}
+		void ScopeExpression::SetName(
+			std::shared_ptr<IdentifierExpression> name
+		) {
+			m_name = name;
+		}
+
 		std::string ScopeExpression::Repr(
 			const size_t indent
 		) {
-			std::string repr = "{\n";
+			std::string repr = m_name ? m_name->Repr() + " " : "";
+			repr += "{\n";
 			for(const auto& expression : m_expressions) {
 				repr += expression->Repr(indent + 1) + "\n";
 			}
 			repr += "}";
+			repr.insert(0, indent, '\t');
 			repr.insert(repr.size() - 1, indent, '\t');
 
 			return repr;
@@ -51,14 +254,16 @@ namespace dim {
 		NodeType ScopeExpression::Type() {
 			return NodeType::SCOPE;
 		}
-		Datatype ScopeExpression::GetDatatype() {
+		DatatypeStr ScopeExpression::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
 
 
-		NullExpression::NullExpression() :
-			Expression()
+		NullExpression::NullExpression(
+      struct utils::Context ctx
+    ) :
+			Expression(ctx)
 		{}
 
 		std::string NullExpression::Repr(
@@ -72,21 +277,28 @@ namespace dim {
 		NodeType NullExpression::Type() {
 			return NodeType::NUL;
 		}
-		Datatype NullExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr NullExpression::GetDatatype() {
+			return "INFER";
 		}
 
 
 
 		NumberExpression::NumberExpression(
+      struct utils::Context ctx,
 			std::string value
 		) :
-			Expression(),
+			Expression(ctx),
 			m_value(value)
 		{}
 
 		std::string NumberExpression::GetValue() {
 			return m_value;
+		}
+
+		void NumberExpression::SetValue(
+			std::string value
+		) {
+			m_value = value;
 		}
 
 		std::string NumberExpression::Repr(
@@ -100,8 +312,8 @@ namespace dim {
 		NodeType NumberExpression::Type() {
 			return NodeType::NUMBER;
 		}
-		Datatype NumberExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr NumberExpression::GetDatatype() {
+			return "INFER";
 		}
 
 
@@ -119,9 +331,10 @@ namespace dim {
 		__GEN__SUB_NUMBER_CLASS_IMPL(F64Expression, f64, F64)
 		
 		F128Expression::F128Expression(
+      struct utils::Context ctx,
 			f128 value
 		) :
-			NumberExpression(utils::f128tos(value)),
+			NumberExpression(ctx, utils::f128tos(value)),
 			m_value(value)
 		{}
 		
@@ -136,15 +349,17 @@ namespace dim {
 		NodeType F128Expression::Type() {
 			return NodeType::F128;
 		}
-		Datatype F128Expression::GetDatatype() {
-			return Datatype::F128;
+		DatatypeStr F128Expression::GetDatatype() {
+			return "F128";
 		}
 
 
+
 		BooleanExpression::BooleanExpression(
+      struct utils::Context ctx,
 			std::string value
 		) :
-			Expression(),
+			Expression(ctx),
 			m_value(value)
 		{}
 
@@ -163,16 +378,46 @@ namespace dim {
 		NodeType BooleanExpression::Type() {
 			return NodeType::BOOLEAN;
 		}
-		Datatype BooleanExpression::GetDatatype() {
-			return Datatype::BOOLEAN;
+		DatatypeStr BooleanExpression::GetDatatype() {
+			return "BOOLEAN";
+		}
+
+
+
+		CharExpression::CharExpression(
+      struct utils::Context ctx,
+			std::string value
+		) :
+			Expression(ctx),
+			m_value(value)
+		{}
+
+		std::string CharExpression::GetValue() {
+			return m_value;
+		}
+
+		std::string CharExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "CharExpression('" + m_value + "')";
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+
+		NodeType CharExpression::Type() {
+			return NodeType::CHAR;
+		}
+		DatatypeStr CharExpression::GetDatatype() {
+			return "CHAR";
 		}
 
 
 
 		StringExpression::StringExpression(
+      struct utils::Context ctx,
 			std::string value
 		) :
-			Expression(),
+			Expression(ctx),
 			m_value(value)
 		{}
 
@@ -191,16 +436,18 @@ namespace dim {
 		NodeType StringExpression::Type() {
 			return NodeType::STRING;
 		}
-		Datatype StringExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr StringExpression::GetDatatype() {
+			return "STRING";
 		}
 
 
 
 		UnaryExpression::UnaryExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<Expression> term,
 			std::string operatorSymbol
 		) :
+			Expression(ctx),
 			m_term(term),
 			m_operatorSymbol(operatorSymbol)
 		{}
@@ -213,7 +460,7 @@ namespace dim {
 		}
 
 		std::shared_ptr<Expression> UnaryExpression::GetSampleExpression() {
-			return std::make_shared<BooleanExpression>("true");
+			return std::make_shared<BooleanExpression>(ctx, "true");
 		}
 
 		std::string UnaryExpression::Repr(
@@ -232,24 +479,22 @@ namespace dim {
 		NodeType UnaryExpression::Type() {
 			return NodeType::UNARY;
 		}
-		Datatype UnaryExpression::GetDatatype() {
-			if(m_operatorSymbol == "!") {
-				return Datatype::BOOLEAN;
-			}
-			/*
-				m_operatorSymbol == "~"
-			*/
-			return m_term->GetDatatype();
+		DatatypeStr UnaryExpression::GetDatatype() {
+			return GetUnaryOutputDatatype(
+				m_operatorSymbol,
+				m_term->GetDatatype()
+			).value();
 		}
 
 
 
 		BinaryExpression::BinaryExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<Expression> left,
 			std::string operatorSymbol,
 			std::shared_ptr<Expression> right
 		) :
-			Expression(),
+			Expression(ctx),
 			m_left(left),
 			m_operatorSymbol(operatorSymbol),
 			m_right(right)
@@ -287,7 +532,7 @@ namespace dim {
 				|| m_operatorSymbol == "=="
 				|| m_operatorSymbol == "!="
 			*/
-			return std::make_shared<BooleanExpression>("true");
+			return std::make_shared<BooleanExpression>(ctx, "true");
 		}
 
 		std::string BinaryExpression::Repr(
@@ -309,38 +554,22 @@ namespace dim {
 		NodeType BinaryExpression::Type() {
 			return NodeType::BINARY;
 		}
-		Datatype BinaryExpression::GetDatatype() {
-			if(
-				m_operatorSymbol == "+"
-				|| m_operatorSymbol == "-"
-				|| m_operatorSymbol == "*"
-				|| m_operatorSymbol == "/"
-				|| m_operatorSymbol == "&"
-				|| m_operatorSymbol == "|"
-				|| m_operatorSymbol == "^"
-			) {
-				return m_left->GetDatatype();
-			}
-			/*
-				m_operatorSymbol == "<"
-				|| m_operatorSymbol == ">"
-				|| m_operatorSymbol == "<="
-				|| m_operatorSymbol == ">="
-				|| m_operatorSymbol == "&&"
-				|| m_operatorSymbol == "||"
-				|| m_operatorSymbol == "=="
-				|| m_operatorSymbol == "!="
-			*/
-			return Datatype::BOOLEAN;		
+		DatatypeStr BinaryExpression::GetDatatype() {
+			return GetBinaryOutputDatatype(
+				m_left->GetDatatype(),
+				m_operatorSymbol,
+				m_right->GetDatatype()
+			).value();
 		}
 
 
 
 		IfElseExpression::IfElseExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition
 		) :
-			Expression(),
+			Expression(ctx),
 			m_scope(scope),
 			m_condition(condition)
 		{}
@@ -370,16 +599,17 @@ namespace dim {
 		NodeType IfElseExpression::Type() {
 			return NodeType::IFELSE_EXPR;
 		}
-		Datatype IfElseExpression::GetDatatype() {
+		DatatypeStr IfElseExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
 
 
 		IfElseStructure::IfElseStructure(
+      struct utils::Context ctx,
 			std::vector<std::shared_ptr<IfElseExpression>> expressions
 		) :
-			Expression(),
+			Expression(ctx),
 			m_expressions(expressions)
 		{}
 
@@ -411,17 +641,18 @@ namespace dim {
 		NodeType IfElseStructure::Type() {
 			return NodeType::IFELSE_STRUCT;
 		}
-		Datatype IfElseStructure::GetDatatype() {
+		DatatypeStr IfElseStructure::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
 
 
 		MatchExpression::MatchExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition
 		) :
-			Expression(),
+			Expression(ctx),
 			m_scope(scope),
 			m_condition(condition)
 		{}
@@ -453,17 +684,18 @@ namespace dim {
 		NodeType MatchExpression::Type() {
 			return NodeType::MATCH_EXPR;
 		}
-		Datatype MatchExpression::GetDatatype() {
+		DatatypeStr MatchExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
 
 
 		MatchStructure::MatchStructure(
+      struct utils::Context ctx,
 			std::shared_ptr<Expression> expression,
 			std::vector<std::shared_ptr<MatchExpression>> expressions
 		) :
-			NestedExpression(expression),
+			NestedExpression(ctx, expression),
 			m_expressions(expressions)
 		{}
 
@@ -494,16 +726,17 @@ namespace dim {
 		NodeType MatchStructure::Type() {
 			return NodeType::MATCH_STRUCT;
 		}
-		Datatype MatchStructure::GetDatatype() {
+		DatatypeStr MatchStructure::GetDatatype() {
 			return m_expressions.back()->GetDatatype();
 		}
 
 
 
 		LoopExpression::LoopExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope
 		) :
-			Expression(),
+			Expression(ctx),
 			m_scope(scope)
 		{}
 
@@ -521,17 +754,18 @@ namespace dim {
 		NodeType LoopExpression::Type() {
 			return NodeType::LOOP;
 		}
-		Datatype LoopExpression::GetDatatype() {
+		DatatypeStr LoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
 
 		WhileLoopExpression::WhileLoopExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> condition,
 			std::shared_ptr<OrExpression> orExpression
 		) :
-			LoopExpression(scope),
+			LoopExpression(ctx, scope),
 			m_condition(condition),
 			m_orExpression(orExpression)
 		{}
@@ -559,12 +793,13 @@ namespace dim {
 		NodeType WhileLoopExpression::Type() {
 			return NodeType::WHILE;
 		}
-		Datatype WhileLoopExpression::GetDatatype() {
+		DatatypeStr WhileLoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
 
 		ForLoopExpression::ForLoopExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<ScopeExpression> scope,
 			std::shared_ptr<Expression> initialExpression,
 			std::shared_ptr<Expression> condition,
@@ -572,6 +807,7 @@ namespace dim {
 			std::shared_ptr<OrExpression> orExpression
 		) :
 			WhileLoopExpression(
+				ctx,
 				scope,
 				condition,
 				orExpression
@@ -605,15 +841,16 @@ namespace dim {
 		NodeType ForLoopExpression::Type() {
 			return NodeType::FOR;
 		}
-		Datatype ForLoopExpression::GetDatatype() {
+		DatatypeStr ForLoopExpression::GetDatatype() {
 			return m_scope->GetDatatype();
 		}
 
 
 		NestedExpression::NestedExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<Expression> expression
 		) :
-			Expression(),
+			Expression(ctx),
 			m_expression(expression)
 		{}
 
@@ -631,38 +868,84 @@ namespace dim {
 		NodeType NestedExpression::Type() {
 			return NodeType::NESTED;
 		}
-		Datatype NestedExpression::GetDatatype() {
+		DatatypeStr NestedExpression::GetDatatype() {
 			return m_expression->GetDatatype();
 		}
 
 
 
 		BreakExpression::BreakExpression(
-			std::shared_ptr<Expression> expression
+      struct utils::Context ctx,
+			std::shared_ptr<Expression> expression,
+			std::shared_ptr<IdentifierExpression> name
 		) :
-			NestedExpression(expression)
+			NestedExpression(ctx, expression),
+			m_name(name)
 		{}
+
+		std::shared_ptr<IdentifierExpression> BreakExpression::GetScopeName() {
+			return m_name;
+		}
+		void BreakExpression::SetScopeName(
+			std::shared_ptr<IdentifierExpression> name
+		) {
+			m_name = name;
+		}
 
 		std::string BreakExpression::Repr(
 			const size_t indent
 		) {
-			std::string repr = "break" + NestedExpression::Repr(indent);
+			std::string repr = "break ";
+			if(m_name) {
+				repr += m_name->Repr() + " ";
+			}
+			repr += NestedExpression::Repr(indent);
 			repr.insert(0, indent, '\t');
 			return repr;
 		}
 		NodeType BreakExpression::Type() {
 			return NodeType::BREAK;
 		}
-		Datatype BreakExpression::GetDatatype() {
+		DatatypeStr BreakExpression::GetDatatype() {
+			return NestedExpression::GetDatatype();
+		}
+
+
+
+		ReturnExpression::ReturnExpression(
+      struct utils::Context ctx,
+			std::shared_ptr<Expression> expression
+		) :
+			NestedExpression(ctx, expression)
+		{}
+
+		std::string ReturnExpression::Repr(
+			const size_t indent
+		) {
+			std::string repr = "return";
+			if(m_expression) {
+				repr += std::string(" ") + NestedExpression::Repr(indent);
+			}
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType ReturnExpression::Type() {
+			return NodeType::RETURN;
+		}
+		DatatypeStr ReturnExpression::GetDatatype() {
+			if(m_expression == nullptr) {
+				return "VOID";
+			}
 			return NestedExpression::GetDatatype();
 		}
 
 
 
 		OrExpression::OrExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<Expression> expression
 		) :
-			NestedExpression(expression)
+			NestedExpression(ctx, expression)
 		{}
 
 		std::string OrExpression::Repr(
@@ -673,81 +956,16 @@ namespace dim {
 		NodeType OrExpression::Type() {
 			return NodeType::OR;
 		}
-		Datatype OrExpression::GetDatatype() {
+		DatatypeStr OrExpression::GetDatatype() {
 			return NestedExpression::GetDatatype();
 		}
 
-		IdentifierExpression::IdentifierExpression(
-			std::function<
-				std::expected<
-					IdentifierData,
-					std::string
-				> (const std::string name)
-			> GetIdentifierFn,
-			std::string name,
-			bool isConst,
-			std::shared_ptr<Expression> expression,
-			Datatype datatype
-		) :
-			NestedExpression(expression),
-			m_name(name),
-			m_isConst(isConst),
-			m_datatype(datatype)
-		{
-			std::expected<
-				IdentifierData,
-				std::string
-			> result = GetIdentifierFn(name);
-
-			if(result) {
-				m_isConst = result.value().isConst;
-				m_datatype = result.value().datatype;
-			}
-		}
-
-		std::string IdentifierExpression::GetName() {
-			return m_name;
-		}
-		bool IdentifierExpression::GetIsConst() {
-			return m_isConst;
-		}
-		void IdentifierExpression::SetIsConst(
-			bool isConst
-		) {
-			m_isConst = isConst;
-		}
-		void IdentifierExpression::SetExpression(
-			std::shared_ptr<Expression> expression
-		) {
-			m_expression = expression;
-		}
-		void IdentifierExpression::SetDatatype(
-			Datatype datatype
-		) {
-			m_datatype = datatype;
-		}
-
-		std::string IdentifierExpression::Repr(
-			const size_t indent
-		) {
-			std::string repr =
-				std::string("(") + m_name + ": "
-				+ std::string(DatatypeToStr.at(int(m_datatype)))
-				+ ")";
-			repr.insert(0, indent, '\t');
-			return repr;
-		}
-		NodeType IdentifierExpression::Type() {
-			return NodeType::IDENTIFIER;
-		}
-		Datatype IdentifierExpression::GetDatatype() {
-			return m_datatype;
-		}
 
 
-
-		DiscardExpression::DiscardExpression() :
-			Expression()
+		DiscardExpression::DiscardExpression(
+      struct utils::Context ctx
+    ) :
+			AssignableExpression(ctx)
 		{}
 
 		std::string DiscardExpression::Repr(
@@ -760,31 +978,41 @@ namespace dim {
 		NodeType DiscardExpression::Type() {
 			return NodeType::DISCARD;
 		}
-		Datatype DiscardExpression::GetDatatype() {
-			return Datatype::INFER;
+		DatatypeStr DiscardExpression::GetDatatype() {
+			return "INFER";
 		}
+    std::expected<
+      Success,
+      std::string
+    > DiscardExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      // TODO: Add discard logic to parser
+      return Success{};
+    }
 
 
 
 		AssignationExpression::AssignationExpression(
-			std::shared_ptr<IdentifierExpression> identifier,
+      struct utils::Context ctx,
+			std::shared_ptr<AssignableExpression> destination,
 			std::shared_ptr<Expression> expression
 		) :
-			m_identifier(identifier)
-		{
-			m_identifier->SetExpression(expression);
-		}
+      NestedExpression(ctx, expression),
+			m_destination(destination)
+		{}
 
-		std::shared_ptr<IdentifierExpression> AssignationExpression::GetIdentifier() {
-			return m_identifier;
+		std::shared_ptr<AssignableExpression> AssignationExpression::GetDestination() {
+			return m_destination;
 		}
 
 		std::string AssignationExpression::Repr(
 			const size_t indent
-		) {			
+		) {
 			std::string repr =
-				m_identifier->Repr(indent) + " = (\n"
-				+ m_identifier->GetExpression()->Repr(indent + 1)
+				m_destination->Repr(indent) + " = (\n"
+				+ m_expression->Repr(indent + 1)
 				+ "\n)";
 			repr.insert(repr.size() - 1, indent, '\t');
 			return repr;
@@ -792,18 +1020,20 @@ namespace dim {
 		NodeType AssignationExpression::Type() {
 			return NodeType::ASSIGN;
 		}
-		Datatype AssignationExpression::GetDatatype() {
-			return m_identifier->GetDatatype();
+		DatatypeStr AssignationExpression::GetDatatype() {
+			return m_destination->GetDatatype();
 		}
 
 		
 
 		DeclarationExpression::DeclarationExpression(
+      struct utils::Context ctx,
 			std::shared_ptr<IdentifierExpression> identifier,
 			std::shared_ptr<Expression> expression,
-			Datatype datatype,
+			DatatypeStr datatype,
 			bool isConst
 		) :
+			Expression(ctx),
 			m_identifier(identifier)
 		{
 			m_identifier->SetExpression(expression);
@@ -819,16 +1049,7 @@ namespace dim {
 			const size_t indent
 		) {
 			std::string identifierRepr = m_identifier->Repr(indent);
-			identifierRepr.erase(
-				std::remove_if(
-					identifierRepr.begin(),
-					identifierRepr.end(),
-					[](unsigned char c) {
-						return c == '\t';
-					}
-				),
-				identifierRepr.end()
-			);
+			identifierRepr.erase(0, identifierRepr.find_first_not_of('\t'));
 			std::string repr =
 				std::string(m_identifier->GetIsConst() ? "const " : "var ")
 				+ identifierRepr + " := (\n"
@@ -841,8 +1062,397 @@ namespace dim {
 		NodeType DeclarationExpression::Type() {
 			return NodeType::DECL;
 		}
-		Datatype DeclarationExpression::GetDatatype() {
+		DatatypeStr DeclarationExpression::GetDatatype() {
 			return m_identifier->GetDatatype();
 		}
-	}
+
+
+
+		FunctionDeclarationExpression::FunctionDeclarationExpression(
+      struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::vector<std::shared_ptr<DeclarationExpression>> arguments,
+			std::shared_ptr<ScopeExpression> scope,
+			DatatypeStr returnDatatype
+		) :
+			Expression(ctx),
+			m_identifier(identifier),
+			m_arguments(arguments),
+			m_scope(scope),
+			m_returnDatatype(returnDatatype)
+		{}
+
+		std::shared_ptr<IdentifierExpression> FunctionDeclarationExpression::GetIdentifier() {
+			return m_identifier;
+		}
+		std::vector<std::shared_ptr<DeclarationExpression>> FunctionDeclarationExpression::GetArguments() {
+			return m_arguments;
+		}
+		std::shared_ptr<ScopeExpression> FunctionDeclarationExpression::GetScope() {
+			return m_scope;
+		}
+		void FunctionDeclarationExpression::SetScope(
+			std::shared_ptr<ScopeExpression> scope
+		) {
+			m_scope = scope;
+		}
+
+		std::string FunctionDeclarationExpression::Repr(
+			const size_t indent
+		) {
+			std::string scopeRepr = m_scope->Repr(indent);
+			scopeRepr.erase(0, scopeRepr.find_first_not_of('\t'));
+
+			std::string repr = "fn ";
+			repr.insert(0, indent, '\t');
+			repr += m_identifier->GetName() + "(\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->GetIdentifier()->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
+			}
+			repr.insert(repr.size(), indent, '\t');
+			repr += ") -> " + scopeRepr;
+
+			return repr;
+		}
+		NodeType FunctionDeclarationExpression::Type() {
+			return NodeType::FN;
+		}
+		DatatypeStr FunctionDeclarationExpression::GetDatatype() {
+			return m_returnDatatype;
+		}
+
+
+
+		FunctionCallExpression::FunctionCallExpression(
+      struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> identifier,
+			std::vector<std::shared_ptr<Expression>> arguments,
+			DatatypeStr returnDatatype
+		) :
+			Expression(ctx),
+			m_identifier(identifier),
+			m_arguments(arguments),
+			m_returnDatatype(returnDatatype)
+		{}
+
+		std::shared_ptr<IdentifierExpression> FunctionCallExpression::GetIdentifier() {
+			return m_identifier;
+		}
+		std::vector<std::shared_ptr<Expression>> FunctionCallExpression::GetArguments() {
+			return m_arguments;
+		}
+
+		std::string FunctionCallExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = m_identifier->GetName();
+			repr += "(\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
+			}
+			repr += "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType FunctionCallExpression::Type() {
+			return NodeType::FN_CALL;
+		}
+		DatatypeStr FunctionCallExpression::GetDatatype() {
+			return m_returnDatatype;
+		}
+
+
+
+		StructDeclarationExpression::StructDeclarationExpression(
+      struct utils::Context ctx,
+		  std::vector<std::shared_ptr<IdentifierExpression>> members,
+		  std::shared_ptr<IdentifierExpression> name
+		) :
+			Expression(ctx),
+		  m_members(members),
+		  m_name(name)
+		{}
+
+		std::vector<std::shared_ptr<IdentifierExpression>> StructDeclarationExpression::GetMembers() {
+		  return m_members;
+		}
+		std::shared_ptr<IdentifierExpression> StructDeclarationExpression::GetName() {
+		  return m_name;
+		}
+
+		std::string StructDeclarationExpression::Repr(
+		  size_t indent
+		) {
+			std::string repr = "struct {\n";
+			for(const auto& member : m_members) {
+				repr.insert(repr.size(), indent + 1, '\t');
+				repr += member->GetName() + ": "
+			  		+ member->GetDatatype() + "\n";
+			}
+			repr += "} ";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 2, indent, '\t');
+			repr += m_name->GetName() + ";";
+			return repr;
+		}
+		NodeType StructDeclarationExpression::Type() {
+		  return NodeType::STRUCT_DECL;
+		}
+		DatatypeStr StructDeclarationExpression::GetDatatype() {
+		  return m_name->GetName();
+		}
+
+
+
+		StructExpression::StructExpression(
+      struct utils::Context ctx,
+			std::vector<std::shared_ptr<IdentifierExpression>> members,
+			std::shared_ptr<IdentifierExpression> name
+		) :
+			Expression(ctx),
+			m_members(members),
+			m_name(name)
+		{}
+
+		std::vector<std::shared_ptr<IdentifierExpression>> StructExpression::GetMembers() {
+			return m_members;
+		}
+
+		std::shared_ptr<IdentifierExpression> StructExpression::GetName() {
+			return m_name;
+		}
+
+		std::string StructExpression::Repr(
+		  size_t indent
+		) {
+			std::string repr = m_name->GetName() + " {\n";
+			for(const auto& member : m_members) {
+				repr.insert(repr.size(), indent + 1, '\t');
+				repr += member->GetName() + ": "
+			  		+ member->GetDatatype() + "\n";
+			}
+			repr += "}";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+		}
+		NodeType StructExpression::Type() {
+		  return NodeType::STRUCT;
+		}
+		DatatypeStr StructExpression::GetDatatype() {
+		  return m_name->GetName();
+		}
+
+		
+		
+		StructMemberAccessExpression::StructMemberAccessExpression(
+      struct utils::Context ctx,
+			std::shared_ptr<IdentifierExpression> structIdentfier,
+			std::shared_ptr<IdentifierExpression> memberIdentifier,
+			DatatypeStr datatype
+		) :
+      AssignableExpression(ctx),
+			m_structIdentifier(structIdentfier),
+			m_memberIdentifier(memberIdentifier)
+		{
+			m_memberIdentifier->SetDatatype(datatype);
+		}
+
+		std::shared_ptr<IdentifierExpression> StructMemberAccessExpression::GetStruct() {
+			return m_structIdentifier;
+		}
+		std::shared_ptr<IdentifierExpression> StructMemberAccessExpression::GetMember() {
+			return m_memberIdentifier;
+		}
+
+		std::string StructMemberAccessExpression::Repr(
+			size_t indent
+		) {
+			std::string repr = m_structIdentifier->GetName() + "." + m_memberIdentifier->GetName();
+			repr.insert(0, indent, '\t');
+			return repr;
+		}
+		NodeType StructMemberAccessExpression::Type() {
+			return NodeType::STRUCT_ACCESS;
+		}
+		DatatypeStr StructMemberAccessExpression::GetDatatype() {
+			return m_memberIdentifier->GetDatatype();
+		}
+    std::expected<
+      Success,
+      std::string
+    > StructMemberAccessExpression::TryAssign(
+      std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+      std::shared_ptr<Expression> expression
+    ) {
+      std::shared_ptr<IdentifierExpression> structIdentifier;
+      {
+        std::expected<
+          IdentifierData,
+          std::string
+        > result = identifierRegister->Get(m_structIdentifier->GetName());
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        structIdentifier = std::make_shared<IdentifierExpression>(
+        	ctx,
+				  identifierRegister,
+  				result.value().name,
+  				result.value().isConst,
+  				nullptr,
+  				result.value().datatype
+  			);
+      }
+
+      if(structIdentifier->GetIsConst()) {
+				return std::unexpected("Trying to assign to constant struct expression '" + m_structIdentifier->GetName() + "'");
+			}
+
+      std::shared_ptr<CustomDatatypeClass> structClass;
+      {
+        std::expected<
+          std::shared_ptr<DatatypeClass>,
+          std::string
+        > result = GetDatatypeClass(structIdentifier->GetDatatype());
+        if(!result) {
+          return std::unexpected(result.error());
+        }
+        structClass = std::dynamic_pointer_cast<CustomDatatypeClass>(
+          result.value()
+        );
+      }
+
+      DatatypeStr expectedDatatype = structClass->GetMember(
+				m_memberIdentifier->GetName()
+			).value().type->GetName();
+
+			DatatypeStr gotDatatype = expression->GetDatatype();
+			if(expectedDatatype != gotDatatype) {
+				std::expected<
+					std::shared_ptr<Expression>,
+					std::string
+				> castResult = try_cast(expression, expectedDatatype);
+
+				if(!castResult) {
+					return std::unexpected(
+						std::string("Expected type ")
+						+ expectedDatatype + ", got " + gotDatatype
+					);
+				}
+				expression = castResult.value();
+			}
+
+			m_memberIdentifier->SetExpression(expression);
+
+      return Success{};
+    }
+
+
+
+    StructImplementationExpression::StructImplementationExpression(
+      struct utils::Context ctx,
+      std::shared_ptr<IdentifierExpression> structIdentifier,
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
+    ) :
+      Expression(ctx),
+      m_structIdentifier(structIdentifier),
+      m_memberFunctions(memberFunctions)
+    {}
+
+    std::shared_ptr<IdentifierExpression> StructImplementationExpression::GetStruct() {
+      return m_structIdentifier;
+    }
+    std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> StructImplementationExpression::GetMemberFunctions() {
+      return m_memberFunctions;
+    }
+    std::expected<
+      std::shared_ptr<FunctionDeclarationExpression>,
+      std::string
+    > StructImplementationExpression::GetMemberFunction(
+      const std::string& name
+    ) {
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>>::iterator itResult = std::find_if(
+        m_memberFunctions.begin(),
+        m_memberFunctions.end(),
+        [&name](const std::shared_ptr<FunctionDeclarationExpression>& element) {
+          return element->GetIdentifier()->GetName() == name;
+        }
+      );
+      if(itResult == m_memberFunctions.end()) {
+        return std::unexpected("Invalid member function '" + name + "' requested on struct '" + m_structIdentifier->GetName() + "'");
+      }
+      return *itResult;
+    }
+
+    std::string StructImplementationExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = "impl ";
+      repr += m_structIdentifier->GetName() + " {\n";
+      std::for_each(
+				m_memberFunctions.begin(),
+				m_memberFunctions.end(),
+				[&repr, &indent](const std::shared_ptr<FunctionDeclarationExpression>& expression) -> void {
+					repr += expression->Repr(indent + 1) + "\n";
+				}
+			);
+      repr += "}";
+      repr.insert(0, indent, '\t');
+      repr.insert(repr.size() - 1, indent, '\t');
+      return repr;
+    }
+    NodeType StructImplementationExpression::Type() {
+      return NodeType::STRUCT_IMPL;
+    }
+    DatatypeStr StructImplementationExpression::GetDatatype() {
+      return "VOID";
+    }
+
+
+
+    StructMemberFunctionAccessExpression::StructMemberFunctionAccessExpression(
+      struct utils::Context ctx,
+      std::shared_ptr<IdentifierExpression> structIdentifier,
+      std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
+      std::vector<std::shared_ptr<Expression>> arguments,
+      DatatypeStr returnDatatype
+    ) :
+      Expression(ctx),
+      m_structIdentifier(structIdentifier),
+      m_memberFunctionIdentifier(memberFunctionIdentifier),
+      m_arguments(arguments),
+      m_returnDatatype(returnDatatype)
+    {}
+
+    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetStruct() {
+      return m_structIdentifier;
+    }
+    std::shared_ptr<IdentifierExpression> StructMemberFunctionAccessExpression::GetMemberFunction() {
+      return m_memberFunctionIdentifier;
+    }
+    std::vector<std::shared_ptr<Expression>> StructMemberFunctionAccessExpression::GetArguments() {
+      return m_arguments;
+    }
+    
+    std::string StructMemberFunctionAccessExpression::Repr(
+      size_t indent
+    ) {
+      std::string repr = m_structIdentifier->GetName() + "." + m_memberFunctionIdentifier->GetName();
+			repr += "(\n";
+			for(size_t i = 0; i < m_arguments.size(); i++) {
+				repr += m_arguments.at(i)->Repr(indent + 1) + (i < m_arguments.size() - 1 ? "," : "") + "\n";
+			}
+			repr += "\n)";
+			repr.insert(0, indent, '\t');
+			repr.insert(repr.size() - 1, indent, '\t');
+			return repr;
+    }
+    NodeType StructMemberFunctionAccessExpression::Type() {
+      return NodeType::STRUCT_ACCESS_FN;
+    }
+    DatatypeStr StructMemberFunctionAccessExpression::GetDatatype() {
+      return m_returnDatatype;
+    }
+  }
 }

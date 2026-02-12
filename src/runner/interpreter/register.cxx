@@ -20,7 +20,7 @@ namespace dim {
 			RegisterValue value
 		) {
 			if(this->Exists(name)) {
-				return std::unexpected("Trying to register existing value");
+				return std::unexpected("Trying to register existing value.");
 			}
 		
 			m_register.insert(
@@ -46,7 +46,7 @@ namespace dim {
 			const std::string name
 		) {
 			if(!this->Exists(name)) {
-				return std::unexpected("Trying to get non existing value.");
+				return std::unexpected("Trying to get non existing value '" + name + "'.");
 			}
 			
 			try {
@@ -97,6 +97,126 @@ namespace dim {
 			const std::string name
 		) {
 			return m_register.find(name) != m_register.end();
+		}
+
+
+
+		FunctionRegisterManager::FunctionRegisterManager() :
+			m_register()
+		{}
+
+		std::expected<
+			Success,
+			std::string
+		> FunctionRegisterManager::Register(
+			FunctionRegisterValue value
+		) {
+			const std::string name = value.function->GetIdentifier()->GetName();
+			if(this->Exists(name)) {
+				return std::unexpected("Trying to register existing value");
+			}
+		
+			m_register.insert(
+				{ name, value }
+			);
+			return Success{};
+		}
+
+		bool FunctionRegisterManager::Exists(
+			const std::string name
+		) {
+			return m_register.find(name) != m_register.end();
+		}
+
+		std::expected<
+			FunctionRegisterValue,
+			std::string
+		> FunctionRegisterManager::Get(
+			const std::string name
+		) {
+			if(!this->Exists(name)) {
+				return std::unexpected("Trying to get non existing value.");
+			}
+			return m_register.at(name);
+		}
+
+    std::expected<
+      Success,
+      std::string
+    > FunctionRegisterManager::CustomAdd(
+      const std::string& structName
+    ) {
+			if(m_customRegister.find(structName) != m_customRegister.end()) {
+        return std::unexpected("Struct datatype " + structName + " already exists.");
+      }
+      m_customRegister.insert(
+        { structName, {} }
+      );
+      return Success{};
+    }
+
+    std::expected<
+			Success,
+			std::string
+		> FunctionRegisterManager::CustomRegister(
+      const std::string& structName,
+			FunctionRegisterValue value
+		) {
+      if(m_customRegister.find(structName) == m_customRegister.end()) {
+        this->CustomAdd(structName);
+      }
+			const std::string name = value.function->GetIdentifier()->GetName();
+			if(this->CustomExists(structName, name)) {
+				return std::unexpected("Trying to register existing value for struct " + structName);
+			}
+		
+			m_customRegister.at(structName).insert(
+				{ name, value }
+			);
+			return Success{};
+		}
+
+		bool FunctionRegisterManager::CustomExists(
+      const std::string& structName,
+			const std::string name
+		) {
+      if(m_customRegister.find(structName) == m_customRegister.end()) {
+        return false;
+      }
+			return m_customRegister.at(structName).find(name) != m_customRegister.at(structName).end();
+		}
+
+		std::expected<
+			FunctionRegisterValue,
+			std::string
+		> FunctionRegisterManager::CustomGet(
+      const std::string& structName,
+			const std::string name
+		) {
+			if(!this->CustomExists(structName, name)) {
+				return std::unexpected(
+          std::string("Trying to get non existing value '") + name
+          + "' for struct " + structName
+        );
+			}
+			return m_customRegister.at(structName).at(name);
+		}
+
+
+
+		std::string FunctionRegisterManager::Repr() {
+			std::string repr = "FuncRegMan\n";
+			for(const auto& [name, functionRegisterValue] : m_register) {
+				repr += name + ": " + functionRegisterValue.function->Repr() + "\n";
+			}
+      for(const auto& [structName, structFunctionRegister] : m_customRegister) {
+        repr += structName + ": {\n";
+        for(const auto& [name, functionRegisterValue] : structFunctionRegister) {
+				  repr += "\t" + name + ": " + functionRegisterValue.function->Repr(1) + "\n";
+			  }
+        repr += "}";
+			}
+			return repr;
 		}
 	}
 }

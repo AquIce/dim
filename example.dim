@@ -1,0 +1,24 @@
+enum Option<_Res> {
+  _,
+  value: _Res,
+};
+
+enum Result<_Res, _Err> {
+  value: _Res;
+  error: _Err;
+};
+
+impl Option<_Res> {
+  fn ok() -> bool {
+    return this.has.alue;
+  }
+}
+
+impl Result<_Res, _Err> {
+  fn ok() -> bool {
+    return !this->error;
+  }
+  fn err() -> bool {
+    return !!this.error;
+  }
+}

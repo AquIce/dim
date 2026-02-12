@@ -3,6 +3,34 @@
 namespace dim {
 	namespace utils {
 
+    std::string ErrorTypeRepr(
+      ErrorType type
+    ) {
+      switch(type) {
+        case ErrorType::NONE:
+          return "NONE";
+        case ErrorType::FATAL:
+          return "FATAL";
+        case ErrorType::ERROR:
+          return "ERROR";
+        case ErrorType::WARNING:
+          return "WARNING";
+        case ErrorType::RETERR:
+          return "RETERR";
+        default:
+          return "UNKNOWN";
+      }
+    }
+
+    std::string ErrorRepr(
+      struct Error& err
+    ) {
+      return std::string("[") + ErrorTypeRepr(err.type)
+        + "]" + std::to_string(err.ctx.line)
+        + ":" + std::to_string(err.ctx.column)
+        + " > " + err.message;
+    }
+
 		[[nodiscard]] char shift(
 			std::string& str
 		) {
@@ -20,20 +48,6 @@ namespace dim {
 				result += shift(str);
 			}
 			return result;
-		}
-
-		f128 stof128(
-			const std::string& input
-		) {
-			return strtoflt128(input.c_str(), nullptr);
-		}
-
-		std::string f128tos(
-			f128 value
-		) {
-			char buffer[128];
-			snprintf(buffer, sizeof(buffer), "%.36Lf", value);
-			return std::string(buffer);
 		}
 	}
 }

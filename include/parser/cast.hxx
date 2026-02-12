@@ -1,11 +1,15 @@
 #pragma once
 
 #include <parser/ast.hxx>
+#include <parser/types.hxx>
 #include <utils/utils.hxx>
 
 #include <expected>
+#include <functional>
 #include <limits>
 #include <memory>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #define __GEN__TRY_CAST_ITYPE(_IType, _RetType) \
@@ -39,7 +43,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(value); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		value \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \
@@ -78,7 +85,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(value); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		value \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \
@@ -111,7 +121,10 @@ try { \
 	if(expressions.size() != 2) { \
 		return expressionRef; \
 	} \
-	return std::make_shared<_RetType>(static_cast<_FType>(value)); \
+	return std::make_shared<_RetType>( \
+		utils::Context{ .line = 0, .column = 0 }, \
+		static_cast<_FType>(value) \
+	); \
 } catch(...) { \
 	return std::unexpected( \
 		"Value '" + numberExpression->GetValue() \
@@ -121,30 +134,6 @@ try { \
 
 namespace dim {
 	namespace parser {
-
-		typedef utils::Iterator<Datatype, Datatype::I8, Datatype::STRING> DatatypeIterator;
-
-		const auto ConversionTable = std::array<uint16_t, 15>({
-			0b0011111111111111, // INFER
-			0b0000111000011111, // I8
-			0b0000111000011101, // I16
-			0b0000111000011001, // I32
-			0b0000111000010001, // I64
-			0b0000111111111101, // U8
-			0b0000111111011001, // U16
-			0b0000111110010001, // U32
-			0b0000111100000001, // U64
-			0b0000111000000001, // F32
-			0b0000110000000001, // F64
-			0b0000100000000001, // F128
-			0b0001000000000001, // BOOLEAN
-			0b0010000000000001, // STRING
-		});
-
-		bool isConvertible(
-			Datatype first,
-			Datatype second
-		) noexcept;
 
 		std::expected<
 			std::shared_ptr<NumberExpression>,
@@ -168,6 +157,13 @@ namespace dim {
 		) noexcept;
 
 		std::expected<
+			std::shared_ptr<CharExpression>,
+			std::string
+		> try_cast_char(
+			std::shared_ptr<Expression> expression
+		) noexcept;
+
+		std::expected<
 			std::shared_ptr<StringExpression>,
 			std::string
 		> try_cast_str(
@@ -183,7 +179,7 @@ namespace dim {
 			std::string
 		> try_cast(
 			std::shared_ptr<Expression> expression,
-			Datatype datatype
+			DatatypeStr datatype
 		) noexcept;
 
 		std::expected<

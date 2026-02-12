@@ -20,6 +20,7 @@ namespace dim {
 			NUL,
 			NUMBER,
 			BOOLEAN,
+			CHAR,
 			STRING,
 			
 			BINARY_OPERATOR,
@@ -29,9 +30,12 @@ namespace dim {
 			BRACE,
 			
 			DOT,
+			COMMA,
 			COLON,
 			EQUALS,
 			ARROW,
+			AT,
+			DOUBLE_DOT,
 
 			IFELSE,
 			MATCH,
@@ -41,26 +45,34 @@ namespace dim {
 
 			DECL,
 			TYPE,
+			FN,
+			RETURN,
+			STRUCT,
+			IMPL,
 
 			DISCARD,
 			IDENTIFIER,
 		};
 
-		const std::array<std::string_view, 23> TokenTypeStr = {
+		const std::array<std::string_view, 31> TokenTypeStr = {
 			"NONE",
 			"EOL",
 			"NULL",
 			"NUMBER",
 			"BOOLEAN",
+			"CHAR",
 			"STRING",
 			"BINARY_OPERATOR",
 			"UNARY_OPERATOR",
 			"PARENTHESIS",
 			"BRACE",
 			"DOT",
+			"COMMA",
 			"COLON",
 			"EQUALS",
 			"ARROW",
+			"AT",
+			"DOUBLE_DOT",
 			"IFELSE",
 			"MATCH",
 			"LOOP",
@@ -68,6 +80,10 @@ namespace dim {
 			"OR",
 			"DECL",
 			"TYPE",
+			"FN",
+			"RETURN",
+			"STRUCT",
+			"IMPL",
 			"DISCARD",
 			"IDENTIFIER",
 		};
@@ -75,140 +91,206 @@ namespace dim {
 		struct Token {
 			TokenType type;
 			std::string value;
+      struct utils::Context ctx;
+		};
+
+		class LexTracker {
+		public:
+			const std::vector<std::string> src;
+			struct utils::Context ctx;
+			std::vector<struct Token> tokens;
+
+		public:
+      LexTracker(
+        const std::vector<std::string> src
+      );
+
+			std::expected<std::string, std::string> shift(
+				size_t length = 1
+			);
+			std::expected<std::string, std::string> peek(
+				size_t length = 1
+			);
+      std::expected<char, utils::Error> lex_char();
 		};
 
 		typedef std::function<
-			std::expected<struct Token, std::string> (std::string& src)
+			Result<struct Token> (LexTracker&)
 		> LexFunction;
 		
 		struct Token MakeToken(
 			const TokenType type = TokenType::NONE,
-			const std::string value = ""
+			const std::string value = "",
+      const struct utils::Context ctx = { .line = 0, .column = 0 }
 		) noexcept;
 
 		std::string TokenRepr(
 			const struct Token& token
 		) noexcept;
-	
-		std::expected<struct Token, std::string> LexEOL(
-			std::string& src
-		) noexcept;
 
-		std::expected<struct Token, std::string> LexNull(
-			std::string& src
+		std::expected<char, std::string> to_escaped_char(
+			const std::string& chr
 		) noexcept;
 	
-		std::expected<struct Token, std::string> LexNumber(
-			std::string& src
+		Result<struct Token> LexEOL(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexBoolean(
-			std::string& src
+		Result<struct Token> LexNull(
+			LexTracker& tracker
+		) noexcept;
+	
+		Result<struct Token> LexNumber(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexString(
-			std::string& src
+		Result<struct Token> LexBoolean(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexBinaryOperator(
-			std::string& src
+		Result<struct Token> LexChar(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexUnaryOperator(
-			std::string& src
+		Result<struct Token> LexString(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexBinaryOperator(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexUnaryOperator(
+			LexTracker& tracker
 		) noexcept;
 		
-		std::expected<struct Token, std::string> LexParenthesis(
-			std::string& src
+		Result<struct Token> LexParenthesis(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexBrace(
-			std::string& src
+		Result<struct Token> LexBrace(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexDot(
-			std::string& src
+		Result<struct Token> LexDot(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexColon(
-			std::string& src
+		Result<struct Token> LexComma(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexEquals(
-			std::string& src
+		Result<struct Token> LexColon(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexArrow(
-			std::string& src
+		Result<struct Token> LexEquals(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexIfElse(
-			std::string& src
+		Result<struct Token> LexArrow(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexMatch(
-			std::string& src
+		Result<struct Token> LexAt(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexLoop(
-			std::string& src
+		Result<struct Token> LexDoubleDot(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexBreak(
-			std::string& src
+		Result<struct Token> LexIfElse(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexOr(
-			std::string& src
+		Result<struct Token> LexMatch(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexDecl(
-			std::string& src
+		Result<struct Token> LexLoop(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexType(
-			std::string& src
+		Result<struct Token> LexBreak(
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<struct Token, std::string> LexIdentifier(
-			std::string& src
+		Result<struct Token> LexOr(
+			LexTracker& tracker
 		) noexcept;
 
-		const std::array<const LexFunction, 21> LexFunctionsList = {
+		Result<struct Token> LexDecl(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexType(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexFn(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexReturn(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexStruct(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexImpl(
+			LexTracker& tracker
+		) noexcept;
+
+		Result<struct Token> LexIdentifier(
+			LexTracker& tracker
+		) noexcept;
+
+		const std::array<const LexFunction, 29> LexFunctionsList = {
 			&LexEOL,
 			&LexNull,
 			&LexNumber,
 			&LexBoolean,
+			&LexChar,
 			&LexString,
 			&LexArrow,
-			&LexBinaryOperator,
 			&LexUnaryOperator,
+			&LexBinaryOperator,
 			&LexParenthesis,
 			&LexBrace,
+			&LexDoubleDot,
 			&LexDot,
+			&LexComma,
 			&LexColon,
 			&LexEquals,
+			&LexAt,
 			&LexIfElse,
 			&LexMatch,
 			&LexLoop,
 			&LexBreak,
 			&LexOr,
 			&LexDecl,
+			&LexStruct,
+			&LexImpl,
 			&LexType,
+			&LexFn,
+			&LexReturn,
 			&LexIdentifier,
 		};
 
 		void StripWhitespaces(
-			std::string& src
+			LexTracker& tracker
 		) noexcept;
 
-		std::expected<Success, std::string> StripComments(
-			std::string& src
+		Result<> StripComments(
+			LexTracker& tracker
 		) noexcept;
 		
-		std::expected<Success, std::string> Lex(
+    std::expected<Success, std::string> Lex(
 			std::vector<struct Token>& tokens,
-			std::string& src
+			const std::vector<std::string>& src
 		) noexcept;
 	}
 }

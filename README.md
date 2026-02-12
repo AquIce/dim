@@ -3,9 +3,11 @@
 ## Scopes
 
 For now, without functions being implemented yet, your program MUST be contained in a global scope.
+This scope can (and should) be called `main`.
+Note that the name is optionnal.
 
 ```
-{
+main {
     // Your code here
 };
 ```
@@ -47,6 +49,15 @@ Booleans are assigned this way :
 };
 ```
 
+### Char
+
+Characters are assigned this way :
+```
+{
+    const valChar: char = '\0';
+};
+```
+
 ### String
 
 Strings are assigned this way :
@@ -55,13 +66,16 @@ Strings are assigned this way :
     const valStr: str = "Hello, World!\n";
 };
 ```
-All escaped characters are also available.
+Escaped characters are also available.
 
 ### Unary Operators
 
-| Operator | Operand Type | Result Type | Example |
-| - | - | - | - | - |
-| `!` | `<any>` | `bool` | `!true` |
+| Operator | Operand Type | Result Type     | Example |
+| -------- | ------------ | --------------- | ------- |
+| `!`      | `<any>`      | `bool`          | `!true` |
+| `~`      | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as Operand | `~1234` |
+| `++` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` (has to be an identifier) | Same as Operand | `var i := 0; i++;` |
+| `--` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` (has to be an identifier) | Same as Operand | `var i := 1; i--;` |
 
 ### Binary Operators
 
@@ -80,9 +94,9 @@ All escaped characters are also available.
 | `>=` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128` | `bool` | `14.3 >= 8.5` |
 | `==` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `bool` | `14.3 == 8.5` |
 | `!=` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `f128`, `bool`, `str` | `bool` | `14.3 != 8.5` |
-| `&` | `bool` | Same as LHS | Same as LHS | `true & false` |
-| `\|` | `bool` | Same as LHS | Same as LHS | `true \| false` |
-| `^` | `bool` | Same as LHS | Same as LHS | `true ^ false` |
+| `&` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `true & false` |
+| `\|` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `32 \| 43` |
+| `^` | `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `bool` | Same as LHS | Same as LHS | `456 ^ 567` |
 
 ### Conditional Structures
 
@@ -102,6 +116,42 @@ Note two important things :
 1. The `;` at the end is required.
 2. The else clause is required, because every statement has to have a value.
 
+To avoid using the verbose :
+```
+if(<condition>) {
+	...
+} else {
+	<value>;
+};
+```
+You can simply do :
+```
+if(<condition>) {
+	...
+} else <value>;
+```
+
+> Match structure
+
+```
+match(<value>) {
+	(< <value>) -> {
+		...
+	}
+	<value> -> {
+		...
+	}
+	_ -> {
+		...
+	}
+};
+```
+
+There are 3 different types of cases :
+1. Value cases : When a simple value is provided, the case is triggered is the match value is equal to it.
+2. Comparison cases : When a comparison (for example `(>= 23)`) is provided, the match value is inserted in it, and the case is then resolved like an if expression.
+3. Default case : Triggered if no other case is triggered
+
 ### Loops
 
 > Loop
@@ -113,6 +163,12 @@ loop {
 ```
 
 Loops infinitely (until `break` statement is met).
+You can also add a name to the scope :
+```
+loop myScope {
+    ...
+};
+```
 
 > While Loop
 
@@ -124,6 +180,7 @@ loop(<condition>) {
 
 Loops while `<condition>` is `true` (or until `break` statement is met).
 If `<condition>` is instantly `false`, then the statement's value is `<value>`.
+As with the basic loop, you can add a name to the scope.
 
 > For Loop
 
@@ -136,6 +193,15 @@ loop(<initial>, <condition>, <update>) {
 Before the first iteration, runs the `<initial>` statement.
 Loops while `<condition>` is `true` (or until `break` statement is met), running `<update>` after each iteration.
 If `<condition>` is instantly `false`, then the statement's value is `<value>`.
+As with the basic and while loop, you can add a name to the scope.
+
+> Range-base loop
+
+```
+loop(<identifier> @ [start]..<stop>) {
+	...
+} or <value>;
+```
 
 > Break
 
@@ -146,6 +212,14 @@ loop {
 ```
 
 When breaking out of a loop, you need to provide a value.
+You can also break out of a specific scope using its name :
+```
+main {
+    loop {
+        break main 0;
+    }
+}
+```
 
 ### Variables
 
@@ -164,4 +238,20 @@ Or infer the type :
 
 ```
 <name> = <value>;
+```
+
+### Functions
+
+> Declaration
+
+You can declare functions like this :
+```
+fn add(a: i32, b: i32) -> i32 {
+    return a + b;
+}
+```
+
+Then use them like this :
+```
+const value := add(12, 34);
 ```

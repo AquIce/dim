@@ -1,12 +1,12 @@
 #pragma once
 
 #include <runner/interpreter/value.hxx>
+#include <parser/ast.hxx>
 #include <utils/utils.hxx>
 
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 namespace dim {
 	namespace interpreter {
@@ -14,6 +14,10 @@ namespace dim {
 		typedef struct {
 			std::shared_ptr<Value> value;
 		} RegisterValue;
+
+		typedef struct {
+			std::shared_ptr<parser::FunctionDeclarationExpression> function;
+		} FunctionRegisterValue;
 
 		class RegisterManager {
 		public:
@@ -72,5 +76,71 @@ namespace dim {
 			std::shared_ptr<RegisterManager> m_parent;
 		};
 
+		class FunctionRegisterManager {
+		public:
+			FunctionRegisterManager();
+
+			std::expected<
+				Success,
+				std::string
+			> Register(
+				FunctionRegisterValue value
+			);
+
+			bool Exists(
+				const std::string name
+			);
+
+			std::expected<
+				FunctionRegisterValue,
+				std::string
+			> Get(
+				const std::string name
+			);
+
+      std::expected<
+        Success,
+        std::string
+      > CustomAdd(
+        const std::string& structName
+      );
+
+      std::expected<
+				Success,
+				std::string
+			> CustomRegister(
+        const std::string& structName,
+				FunctionRegisterValue value
+			);
+
+			bool CustomExists(
+        const std::string& structName,
+				const std::string name
+			);
+
+			std::expected<
+				FunctionRegisterValue,
+				std::string
+			> CustomGet(
+        const std::string& structName,
+				const std::string name
+			);
+
+			std::string Repr();
+
+		private:
+			std::unordered_map<
+				std::string,
+				FunctionRegisterValue
+			> m_register;
+
+      std::unordered_map<
+        std::string,
+        std::unordered_map<
+          std::string,
+          FunctionRegisterValue
+        >
+      > m_customRegister;
+		};
 	}
 }

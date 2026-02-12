@@ -1,5 +1,6 @@
 #pragma once
 
+#include <parser/types.hxx>
 #include <utils/utils.hxx>
 
 #include <algorithm>
@@ -8,20 +9,22 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #define __GEN__SUB_NUMBER_CLASS(_ClassName, _ValueType) \
 class _ClassName : public NumberExpression { \
 public: \
 	_ClassName( \
+    struct utils::Context ctx, \
 		_ValueType value \
 	); \
 	\
 	std::string Repr( \
-		size_t indent = 0 \
+	  size_t indent = 0 \
 	) override; \
 	NodeType Type() override; \
-	Datatype GetDatatype() override; \
+	DatatypeStr GetDatatype() override; \
 \
 private: \
 	_ValueType m_value; \
@@ -29,9 +32,10 @@ private: \
 
 #define __GEN__SUB_NUMBER_CLASS_IMPL(_ClassName, _ValueType, ENUM_MEMBER) \
 _ClassName::_ClassName( \
+  struct utils::Context ctx, \
 	_ValueType value \
 ) : \
-	NumberExpression(std::to_string(value)), \
+	NumberExpression(ctx, std::to_string(value)), \
 	m_value(value) \
 {} \
 \
@@ -46,8 +50,8 @@ std::string _ClassName::Repr( \
 NodeType _ClassName::Type() { \
 	return NodeType::ENUM_MEMBER; \
 } \
-Datatype _ClassName::GetDatatype() { \
-	return Datatype::ENUM_MEMBER; \
+DatatypeStr _ClassName::GetDatatype() { \
+	return std::string(#ENUM_MEMBER); \
 }
 
 namespace dim {
@@ -58,8 +62,21 @@ namespace dim {
 		class ScopeExpression;
 		class NullExpression;
 		class NumberExpression;
+		class I8Expression;
+		class I16Expression;
+		class I32Expression;
+		class I64Expression;
+		class U8Expression;
+		class U16Expression;
+		class U32Expression;
+		class U64Expression;
+		class F32Expression;
+		class F64Expression;
+		class F128Expression;
 		class BooleanExpression;
+		class CharExpression;
 		class StringExpression;
+    class AssignableExpression;
 		class UnaryExpression;
 		class BinaryExpression;
 		class IfElseExpression;
@@ -75,6 +92,12 @@ namespace dim {
 		class DiscardExpression;
 		class AssignationExpression;
 		class DeclarationExpression;
+		class FunctionDeclarationExpression;
+		class FunctionCallExpression;
+		class StructDeclarationExpression;
+		class StructExpression;
+		class StructMemberAccessExpression;
+    class StructImplementationExpression;
 		
 		enum class NodeType {
 			NONE = 0,
@@ -82,11 +105,14 @@ namespace dim {
 			SCOPE,
 			NUL,
 			NUMBER,
+			VOID,
 			I8, I16, I32, I64,
 			U8, U16, U32, U64,
 			F32, F64, F128,
 			BOOLEAN,
+			CHAR,
 			STRING,
+			ASSIGNABLE,
 			UNARY,
 			BINARY,
 			IFELSE_EXPR,
@@ -97,24 +123,35 @@ namespace dim {
 			WHILE,
 			FOR,
 			BREAK,
+			RETURN,
 			OR,
 			IDENTIFIER,
 			DISCARD,
 			ASSIGN,
 			DECL,
+			FN,
+			FN_CALL,
+			STRUCT_DECL,
+			STRUCT,
+			STRUCT_ACCESS,
+      STRUCT_IMPL,
+      STRUCT_ACCESS_FN,
 		};
 
-		const std::array<std::string_view, 33> NodeTypeToStr = {
+		const std::array<std::string_view, 44> NodeTypeToStr = {
 			"NONE",
 			"NESTED",
 			"SCOPE",
 			"NUL",
 			"NUMBER",
-			"i8", "i16", "i32", "i64",
-			"u8", "u16", "u32", "u64",
-			"f32", "f64", "f128",
+			"VOID",
+			"I8", "I16", "I32", "I64",
+			"U8", "U16", "U32", "U64",
+			"F32", "F64", "F128",
 			"BOOLEAN",
+			"CHAR",
 			"STRING",
+			"ASSIGNABLE",
 			"UNARY",
 			"BINARY",
 			"IFELSE_EXPR",
@@ -125,33 +162,54 @@ namespace dim {
 			"WHILE",
 			"FOR",
 			"BREAK",
+			"RETURN",
 			"OR",
 			"IDENTIFIER",
+			"DISCARD",
 			"ASSIGN",
 			"DECL",
-		};
-
-		enum class Datatype {
-			INFER = 0,
-			I8, I16, I32, I64,
-			U8, U16, U32, U64,
-			F32, F64, F128,
-			BOOLEAN, /*CHAR,*/ STRING,
-		};
-
-		const std::array<std::string_view, 14> DatatypeToStr = {
-			"INFER",
-			"i8", "i16", "i32", "i64",
-			"u8", "u16", "u32", "u64",
-			"f32", "f64", "f128",
-			"bool", /*"char",*/ "str",
+			"FN",
+			"FN_CALL",
+			"STRUCT_DECL",
+			"STRUCT",
+			"STRUCT_ACCESS",
+      "STRUCT_IMPL",
+      "STRUCT_ACCESS_FN",
 		};
 
 		typedef struct {
 			const std::string name;
 			const bool isConst;
-			const Datatype datatype;
+			const DatatypeStr datatype;
 		} IdentifierData;
+	}
+}
+
+#include <parser/cast.hxx>
+
+namespace dim {
+	namespace parser {
+
+		class ScopeIdentifierRegister {
+		public:
+			ScopeIdentifierRegister(
+				std::shared_ptr<ScopeIdentifierRegister> parent = nullptr
+			);
+
+			std::expected<
+				IdentifierData,
+				std::string
+			> Get(
+				const std::string name
+			);
+			void Register(
+				IdentifierData identifier
+			);
+
+		private:
+			std::shared_ptr<ScopeIdentifierRegister> m_parent;
+			std::vector<IdentifierData> m_identifiers;
+		};
 
 		class Expression {
 		public:
@@ -159,14 +217,20 @@ namespace dim {
 				const size_t indent = 0
 			);
 			virtual NodeType Type();
-			virtual Datatype GetDatatype();
+			virtual DatatypeStr GetDatatype();
 
-			Expression() = default;
+			Expression(
+        struct utils::Context ctx
+      );
+
+    public:
+      struct utils::Context ctx;
 		};
 
 		class NestedExpression : public Expression {
 		public:
 			NestedExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression
 			);
 
@@ -176,16 +240,82 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		protected:
 			std::shared_ptr<Expression> m_expression;
 		};
 
+    class AssignableExpression : public Expression {
+    public:
+      AssignableExpression(
+        struct utils::Context ctx
+      );
+
+      std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+      virtual std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      );
+    };
+
+		class IdentifierExpression : public AssignableExpression {
+		public:
+			IdentifierExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+				std::string name,
+				bool isConst = true,
+				std::shared_ptr<Expression> expression = nullptr,
+				DatatypeStr datatype = "INFER"
+			);
+
+			std::string GetName();
+			bool GetIsConst();
+			void SetIsConst(
+				bool isConst
+			);
+      std::shared_ptr<Expression> GetExpression();
+			void SetExpression(
+				std::shared_ptr<Expression> expression
+			);
+			void SetDatatype(
+				DatatypeStr datatype
+			);
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      ) override;
+
+		private:
+      std::shared_ptr<Expression> m_expression;
+			std::string m_name;
+			bool m_isConst;
+			DatatypeStr m_datatype;
+		};
+
 		class ScopeExpression : public Expression {
 		public:
 			ScopeExpression(
-				std::vector<std::shared_ptr<Expression>> expressions = {}
+        struct utils::Context ctx,
+				std::vector<std::shared_ptr<Expression>> expressions = {},
+				std::shared_ptr<IdentifierExpression> name = nullptr
 			);
 
 			std::vector<std::shared_ptr<Expression>> GetExpressions();
@@ -193,40 +323,52 @@ namespace dim {
 				std::shared_ptr<Expression> expression
 			);
 
+			std::shared_ptr<IdentifierExpression> GetName();
+			void SetName(
+				std::shared_ptr<IdentifierExpression> name
+			);
+
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::vector<std::shared_ptr<Expression>> m_expressions;
+			std::shared_ptr<IdentifierExpression> m_name;
 		};
 
 		class NullExpression : public Expression {
 		public:
-			NullExpression();
+			NullExpression(
+        struct utils::Context ctx
+      );
 
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 		};
 
 		class NumberExpression : public Expression {
 		public:
 			NumberExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
 			std::string GetValue();
+			void SetValue(
+				std::string value
+			);
 
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		protected:
 			std::string m_value;
@@ -249,6 +391,7 @@ namespace dim {
 		class BooleanExpression : public Expression {
 		public:
 			BooleanExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -258,7 +401,26 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::string m_value;
+		};
+
+		class CharExpression : public Expression {
+		public:
+			CharExpression(
+        struct utils::Context ctx,
+				std::string value
+			);
+
+			std::string GetValue();
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::string m_value;
@@ -267,6 +429,7 @@ namespace dim {
 		class StringExpression : public Expression {
 		public:
 			StringExpression(
+        struct utils::Context ctx,
 				std::string value
 			);
 
@@ -276,7 +439,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::string m_value;
@@ -285,6 +448,7 @@ namespace dim {
 		class UnaryExpression : public Expression {
 		public:
 			UnaryExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> term,
 				std::string operatorSymbol
 			);
@@ -298,7 +462,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_term;
@@ -308,6 +472,7 @@ namespace dim {
 		class BinaryExpression : public Expression {
 		public:
 			BinaryExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> left,
 				std::string operatorSymbol,
 				std::shared_ptr<Expression> right
@@ -323,7 +488,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_left;
@@ -334,6 +499,7 @@ namespace dim {
 		class IfElseExpression : public Expression {
 		public:
 			IfElseExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition
 			);
@@ -345,7 +511,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<ScopeExpression> m_scope;
@@ -355,6 +521,7 @@ namespace dim {
 		class IfElseStructure : public Expression {
 		public:
 			IfElseStructure(
+        struct utils::Context ctx,
 				std::vector<std::shared_ptr<IfElseExpression>> expressions
 			);
 
@@ -364,7 +531,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::vector<std::shared_ptr<IfElseExpression>> m_expressions;
@@ -373,6 +540,7 @@ namespace dim {
 		class MatchExpression : public Expression {
 		public:
 			MatchExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition
 			);
@@ -384,7 +552,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<ScopeExpression> m_scope;
@@ -394,6 +562,7 @@ namespace dim {
 		class MatchStructure : public NestedExpression {
 		public:
 			MatchStructure(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression,
 				std::vector<std::shared_ptr<MatchExpression>> expressions
 			);
@@ -404,7 +573,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::vector<std::shared_ptr<MatchExpression>> m_expressions;
@@ -413,6 +582,7 @@ namespace dim {
 		class LoopExpression : public Expression {
 		public:
 			LoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope
 			);
 
@@ -422,7 +592,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		protected:
 			std::shared_ptr<ScopeExpression> m_scope;
@@ -431,6 +601,7 @@ namespace dim {
 		class WhileLoopExpression : public LoopExpression {
 		public:
 			WhileLoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> condition,
 				std::shared_ptr<OrExpression> orExpression
@@ -443,7 +614,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		protected:
 			std::shared_ptr<Expression> m_condition;
@@ -453,6 +624,7 @@ namespace dim {
 		class ForLoopExpression : public WhileLoopExpression {
 		public:
 			ForLoopExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<ScopeExpression> scope,
 				std::shared_ptr<Expression> initialExpression,
 				std::shared_ptr<Expression> condition,
@@ -467,7 +639,7 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<Expression> m_initialExpression;
@@ -477,19 +649,44 @@ namespace dim {
 		class BreakExpression : public NestedExpression {
 		public:
 			BreakExpression(
-				std::shared_ptr<Expression> expression
+        struct utils::Context ctx,
+				std::shared_ptr<Expression> expression,
+				std::shared_ptr<IdentifierExpression> scopeName = nullptr
+			);
+
+			std::shared_ptr<IdentifierExpression> GetScopeName();
+			void SetScopeName(
+				std::shared_ptr<IdentifierExpression> scopeName
 			);
 
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
+		
+		private:
+			std::shared_ptr<IdentifierExpression> m_name;
+		};
+
+		class ReturnExpression : public NestedExpression {
+		public:
+			ReturnExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<Expression> expression = nullptr
+			);
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
 		};
 
 		class OrExpression : public NestedExpression {
 		public:
 			OrExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<Expression> expression
 			);
 
@@ -497,84 +694,56 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 		};
 
-		class IdentifierExpression : public NestedExpression {
+		class DiscardExpression : public AssignableExpression {
 		public:
-			IdentifierExpression(
-				std::function<
-					std::expected<
-						IdentifierData,
-						std::string
-					> (const std::string name)
-				> GetIdentifierFn,
-				std::string name,
-				bool isConst = true,
-				std::shared_ptr<Expression> expression = nullptr,
-				Datatype datatype = Datatype::INFER
-			);
-
-			std::string GetName();
-			bool GetIsConst();
-			void SetIsConst(
-				bool isConst
-			);
-			void SetExpression(
-				std::shared_ptr<Expression> expression
-			);
-			void SetDatatype(
-				Datatype datatype
-			);
+			DiscardExpression(
+        struct utils::Context ctx
+      );
 
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
-
-		private:
-			std::string m_name;
-			bool m_isConst;
-			Datatype m_datatype;
+			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      );
 		};
 
-		class DiscardExpression : public Expression {
-		public:
-			DiscardExpression();
-
-			std::string Repr(
-				const size_t indent = 0
-			) override;
-			NodeType Type() override;
-			Datatype GetDatatype() override;
-		};
-
-		class AssignationExpression : public Expression {
+		class AssignationExpression : public NestedExpression {
 		public:
 			AssignationExpression(
-				std::shared_ptr<IdentifierExpression> identifier,
+        struct utils::Context ctx,
+				std::shared_ptr<AssignableExpression> destination,
 				std::shared_ptr<Expression> expression
 			);
 
-			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::shared_ptr<AssignableExpression> GetDestination();
 
 			std::string Repr(
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
-			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::shared_ptr<AssignableExpression> m_destination;
 		};
 
 		class DeclarationExpression : public Expression {
 		public:
 			DeclarationExpression(
+        struct utils::Context ctx,
 				std::shared_ptr<IdentifierExpression> identifier,
 				std::shared_ptr<Expression> expression,
-				Datatype datatype,
+				DatatypeStr datatype,
 				bool isConst
 			);
 
@@ -584,10 +753,193 @@ namespace dim {
 				const size_t indent = 0
 			) override;
 			NodeType Type() override;
-			Datatype GetDatatype() override;
+			DatatypeStr GetDatatype() override;
 
 		private:
 			std::shared_ptr<IdentifierExpression> m_identifier;
 		};
-	}
+
+		class FunctionDeclarationExpression : public Expression {
+		public:
+			FunctionDeclarationExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::vector<std::shared_ptr<DeclarationExpression>> arguments,
+				std::shared_ptr<ScopeExpression> scope,
+				DatatypeStr returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::vector<std::shared_ptr<DeclarationExpression>> GetArguments();
+			std::shared_ptr<ScopeExpression> GetScope();
+			void SetScope(
+				std::shared_ptr<ScopeExpression> scope
+			);
+
+			std::string Repr(
+				const size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::vector<std::shared_ptr<DeclarationExpression>> m_arguments;
+			std::shared_ptr<ScopeExpression> m_scope;
+			DatatypeStr m_returnDatatype;
+		};
+
+		class FunctionCallExpression : public Expression {
+		public:
+			FunctionCallExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<IdentifierExpression> identifier,
+				std::vector<std::shared_ptr<Expression>> arguments,
+				DatatypeStr returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetIdentifier();
+			std::vector<std::shared_ptr<Expression>> GetArguments();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_identifier;
+			std::vector<std::shared_ptr<Expression>> m_arguments;
+			DatatypeStr m_returnDatatype;
+		};
+
+		class StructDeclarationExpression : public Expression {
+		public:
+			StructDeclarationExpression(
+        struct utils::Context ctx,
+				std::vector<std::shared_ptr<IdentifierExpression>> members,
+				std::shared_ptr<IdentifierExpression> name
+			);
+
+			std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
+			std::shared_ptr<IdentifierExpression> GetName();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::vector<std::shared_ptr<IdentifierExpression>> m_members;
+			std::shared_ptr<IdentifierExpression> m_name;
+		};
+
+		class StructExpression : public Expression {
+		public:
+			StructExpression(
+        struct utils::Context ctx,
+				std::vector<std::shared_ptr<IdentifierExpression>> members,
+				std::shared_ptr<IdentifierExpression> name
+			);
+
+			std::vector<std::shared_ptr<IdentifierExpression>> GetMembers();
+			std::shared_ptr<IdentifierExpression> GetName();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+		private:
+			std::vector<std::shared_ptr<IdentifierExpression>> m_members;
+			std::shared_ptr<IdentifierExpression> m_name;
+		};
+
+		class StructMemberAccessExpression : public AssignableExpression {
+		public:
+			StructMemberAccessExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<IdentifierExpression> structIdentifier,
+				std::shared_ptr<IdentifierExpression> memberIdentifier,
+				DatatypeStr datatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetStruct();
+			std::shared_ptr<IdentifierExpression> GetMember();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+      std::expected<
+        Success,
+        std::string
+      > TryAssign(
+        std::shared_ptr<ScopeIdentifierRegister> identifierRegister,
+        std::shared_ptr<Expression> expression
+      ) override;
+
+		private:
+			std::shared_ptr<IdentifierExpression> m_structIdentifier;
+			std::shared_ptr<IdentifierExpression> m_memberIdentifier;
+		};
+
+    class StructImplementationExpression : public Expression {
+    public:
+      StructImplementationExpression(
+        struct utils::Context ctx,
+        std::shared_ptr<IdentifierExpression> structIdentifier,
+        std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> memberFunctions
+      );
+
+      std::shared_ptr<IdentifierExpression> GetStruct();
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> GetMemberFunctions();
+      std::expected<
+        std::shared_ptr<FunctionDeclarationExpression>,
+        std::string
+      > GetMemberFunction(
+        const std::string& name
+      );
+
+      std::string Repr(
+        size_t indent = 0
+      ) override;
+      NodeType Type() override;
+      DatatypeStr GetDatatype() override;
+
+    private:
+      std::shared_ptr<IdentifierExpression> m_structIdentifier;
+      std::unordered_set<std::shared_ptr<FunctionDeclarationExpression>> m_memberFunctions;
+    };
+
+    class StructMemberFunctionAccessExpression : public Expression {
+		public:
+			StructMemberFunctionAccessExpression(
+        struct utils::Context ctx,
+				std::shared_ptr<IdentifierExpression> structIdentifier,
+				std::shared_ptr<IdentifierExpression> memberFunctionIdentifier,
+        std::vector<std::shared_ptr<Expression>> arguments,
+				DatatypeStr returnDatatype
+			);
+
+			std::shared_ptr<IdentifierExpression> GetStruct();
+			std::shared_ptr<IdentifierExpression> GetMemberFunction();
+      std::vector<std::shared_ptr<Expression>> GetArguments();
+
+			std::string Repr(
+				size_t indent = 0
+			) override;
+			NodeType Type() override;
+			DatatypeStr GetDatatype() override;
+
+  	private:
+			std::shared_ptr<IdentifierExpression> m_structIdentifier;
+			std::shared_ptr<IdentifierExpression> m_memberFunctionIdentifier;
+      std::vector<std::shared_ptr<Expression>> m_arguments;
+      DatatypeStr m_returnDatatype;
+		};
+  }
 }
